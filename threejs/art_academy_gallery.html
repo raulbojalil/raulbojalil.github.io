@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>RAB's Art Gallery</title>
+		<style>
+			html, body {
+				width: 100%;
+				height: 100%;
+			}
+
+			body {
+				background-color: #ffffff;
+				margin: 0;
+				overflow: hidden;
+				font-family: arial;
+			}
+
+			#blocker {
+
+				position: absolute;
+
+				width: 100%;
+				height: 100%;
+
+				background-color: rgba(0,0,0,0.5);
+
+			}
+
+			#instructions {
+
+				width: 100%;
+				height: 100%;
+
+				display: -webkit-box;
+				display: -moz-box;
+				display: box;
+
+				-webkit-box-orient: horizontal;
+				-moz-box-orient: horizontal;
+				box-orient: horizontal;
+
+				-webkit-box-pack: center;
+				-moz-box-pack: center;
+				box-pack: center;
+
+				-webkit-box-align: center;
+				-moz-box-align: center;
+				box-align: center;
+
+				color: #ffffff;
+				text-align: center;
+
+				cursor: pointer;
+
+			}
+
+		</style>
+	</head>
+	<body>
+		<script src="three.min.js"></script>
+		<script src="PointerLockControls.js"></script>
+
+		<div id="blocker">
+
+			<div id="instructions">
+                <span> WELCOME TO MY ART GALLERY!</span><br/><br/>
+
+                <span>These are my renditions of some of the pieces from the Art Academy series of games for the Nintendo DS and Nintendo 3DS systems.</span>
+                <br />
+                <span>A simple image carousel was boring to me so I decided to try my hand at doing a 3D gallery, just like the one in-game albeit a lot simpler. Its a bit small right now but I expect to add more pieces in the future. </span><br /><br />
+<span>ENJOY!  </span><br/><br />
+				<span style="font-size:40px">Click to play</span>
+				<br />
+				(W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+			</div>
+
+		</div>
+
+		<script type="text/javascript">
+
+		    var roomWidth = 700;
+		    var roomHeight = 500;
+		    var roomDepth = 2100;
+		    var roomYPos = 70;
+
+		    var paintingWidth = 200;
+		    var paintingHeight = 150;
+		    var frameWidth = 237;
+		    var frameHeight = 187;
+
+		    var paintingYPos = 70;
+		    var paintingSeparation = 350;
+
+			var camera, scene, renderer;
+			var geometry, material, mesh;
+			var controls;
+
+			var blocker = document.getElementById( 'blocker' );
+			var instructions = document.getElementById( 'instructions' );
+
+			var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+
+			if ( havePointerLock ) {
+
+				var element = document.body;
+
+				var pointerlockchange = function ( event ) {
+
+					if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+
+						controls.enabled = true;
+
+						blocker.style.display = 'none';
+
+					} else {
+
+						controls.enabled = false;
+
+						blocker.style.display = '-webkit-box';
+						blocker.style.display = '-moz-box';
+						blocker.style.display = 'box';
+
+						instructions.style.display = '';
+
+					}
+
+				}
+
+				var pointerlockerror = function ( event ) {
+
+					instructions.style.display = '';
+
+				}
+
+				// Hook pointer lock state change events
+				document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+				document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+				document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+
+				document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+				document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+				document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+
+				instructions.addEventListener( 'click', function ( event ) {
+
+					instructions.style.display = 'none';
+
+					// Ask the browser to lock the pointer
+					element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+
+					if ( /Firefox/i.test( navigator.userAgent ) ) {
+
+						var fullscreenchange = function ( event ) {
+
+							if ( document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element ) {
+
+								document.removeEventListener( 'fullscreenchange', fullscreenchange );
+								document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+
+								element.requestPointerLock();
+							}
+
+						}
+
+						document.addEventListener( 'fullscreenchange', fullscreenchange, false );
+						document.addEventListener( 'mozfullscreenchange', fullscreenchange, false );
+
+						element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
+
+						element.requestFullscreen();
+
+					} else {
+
+						element.requestPointerLock();
+
+					}
+
+				}, false );
+
+			} else {
+
+				instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
+
+			}
+
+			init();
+			animate();
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 20000 );
+				scene = new THREE.Scene();
+
+				renderer = new THREE.WebGLRenderer();
+				//renderer.setClearColor( 0xffffff );
+				renderer.setSize(window.innerWidth, window.innerHeight);
+
+				////SKYBOX////
+
+				/*var imagePrefix = "textures/skybox/graycloud_";
+				var directions = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+				var imageSuffix = ".jpg";
+				var skyGeometry = new THREE.BoxGeometry(5000, 5000, 5000);
+
+				var materialArray = [];
+				for (var i = 0; i < 6; i++)
+				    materialArray.push(new THREE.MeshBasicMaterial({
+
+                        map: THREE.ImageUtils.loadTexture(imagePrefix + directions[i] + imageSuffix),
+				        side: THREE.BackSide
+				    }));
+				var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
+				var skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
+				scene.add(skyBox);*/
+
+				///////////////
+
+
+				//var sprite = makeTextSprite(" Hello, ",
+		            //{ fontsize: 24, borderColor: { r: 255, g: 0, b: 0, a: 1.0 }, backgroundColor: { r: 255, g: 100, b: 100, a: 0.8} });
+
+				//sprite.position.set(0, 0, 0);
+				//sprite.position.normalize();
+				//scene.add(sprite);
+
+
+				var floorTexture = THREE.ImageUtils.loadTexture('textures/wood.png');
+				floorTexture.anisotropy = renderer.getMaxAnisotropy();
+				floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+				floorTexture.repeat.set(6, 6);
+				var floorMaterial = new THREE.MeshPhongMaterial({ map: floorTexture, shininess: 90, side: THREE.BackSide });
+
+				var ceilingTexture = THREE.ImageUtils.loadTexture('textures/wood2.png');
+				ceilingTexture.anisotropy = renderer.getMaxAnisotropy();
+				ceilingTexture.wrapS = ceilingTexture.wrapT = THREE.RepeatWrapping;
+				ceilingTexture.repeat.set(2, 6);
+				var ceilingMaterial = new THREE.MeshPhongMaterial({ map: ceilingTexture, side: THREE.BackSide });
+
+				var wallMaterial = new THREE.MeshPhongMaterial({ shininess: 10, color: 15724527, side: THREE.BackSide });
+
+				var paintingTextures = [
+                        THREE.ImageUtils.loadTexture('textures/artacademy/aguacates.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/flor2.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/champinones.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/cisne.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/diego.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/flor.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/barca.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/mano.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/melon.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/ola.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/arco.jpg'),
+                        THREE.ImageUtils.loadTexture('textures/artacademy/caballo.jpg'),
+                    ];
+
+				var positions = [
+                    { posx: -((roomWidth/2)-1), posz: 0, rotx: 0, roty: Math.PI / 2, rotz: 0 },
+                    { posx: -((roomWidth / 2) - 1), posz: paintingSeparation, rotx: 0, roty: Math.PI / 2, rotz: 0 },
+                    { posx: -((roomWidth / 2) - 1), posz: paintingSeparation*2, rotx: 0, roty: Math.PI / 2, rotz: 0 },
+                    { posx: -((roomWidth / 2) - 1), posz: -paintingSeparation, rotx: 0, roty: Math.PI / 2, rotz: 0 },
+                    { posx: -((roomWidth / 2) - 1), posz: -(paintingSeparation*2), rotx: 0, roty: Math.PI / 2, rotz: 0 },
+
+                    { posx: ((roomWidth / 2) - 1), posz: 0, rotx: 0, roty: -Math.PI / 2, rotz: 0 },
+                    { posx: ((roomWidth / 2) - 1), posz: paintingSeparation, rotx: 0, roty: -Math.PI / 2, rotz: 0 },
+                    { posx: ((roomWidth / 2) - 1), posz: paintingSeparation*2, rotx: 0, roty: -Math.PI / 2, rotz: 0 },
+                    { posx: ((roomWidth / 2) - 1), posz: -paintingSeparation, rotx: 0, roty: -Math.PI / 2, rotz: 0 },
+                    { posx: ((roomWidth / 2) - 1), posz: -(paintingSeparation*2), rotx: 0, roty: -Math.PI / 2, rotz: 0 },
+                    
+                    { posx: 0, posz: -(roomDepth/2) + 1, rotx: 0, roty: 0, rotz: 0 },
+                    { posx: 0, posz: (roomDepth / 2) - 1, rotx: 0, roty: -Math.PI, rotz: 0 },
+
+                ]
+
+				var frameTexture = THREE.ImageUtils.loadTexture('textures/frame.png');
+				frameTexture.anisotropy = renderer.getMaxAnisotropy();
+				var frameMaterial = new THREE.MeshPhongMaterial({ map: frameTexture, transparent: true  });
+
+
+				for (var i = 0; i < paintingTextures.length; i++) {
+
+				    var frame = new THREE.Mesh(new THREE.PlaneGeometry(frameWidth, frameHeight), frameMaterial);
+				    frame.position.set(positions[i].posx, paintingYPos, positions[i].posz);
+				    frame.rotation.set(positions[i].rotx, positions[i].roty, positions[i].rotz);
+                    //frame.position.set(-49, 35, 10);
+                    //frame.rotation.set(0, Math.PI/2, 0);
+                    scene.add(frame);
+
+                    var painting = new THREE.Mesh(new THREE.PlaneGeometry(paintingWidth, paintingHeight), new THREE.MeshPhongMaterial({ map: paintingTextures[i] }));
+                    //painting.position.set(-48.95, 35, 10);
+                    //painting.rotation.set(0, Math.PI / 2, 0);
+                    painting.position.set(positions[i].posx, paintingYPos, positions[i].posz);
+                    painting.rotation.set(positions[i].rotx, positions[i].roty, positions[i].rotz);
+                    scene.add(painting);
+
+                }
+
+				var ceilingLightTexture = THREE.ImageUtils.loadTexture('textures/ceilinglightON.png');
+				ceilingLightTexture.anisotropy = renderer.getMaxAnisotropy();
+				var ceilingLightMaterial = new THREE.MeshPhongMaterial({ map: ceilingLightTexture, transparent: true });
+
+				var roomMaterials = new THREE.MeshFaceMaterial([
+
+                    wallMaterial,
+                    wallMaterial,
+                    ceilingMaterial,
+                    floorMaterial,
+                    wallMaterial,
+                    wallMaterial
+
+                ]);
+
+				
+
+				var room = new THREE.Mesh(new THREE.BoxGeometry(roomWidth, roomHeight, roomDepth), roomMaterials);
+				scene.add(room);
+				room.position.set(0, roomYPos, 0);
+
+				var ceilingLightPositions = [400, -400];
+				//var ceilingLightPositions = [0];
+
+				for (var i = 0; i < ceilingLightPositions.length; i++) {
+
+				    var ceilingLight = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), ceilingLightMaterial);
+				    scene.add(ceilingLight);
+				    ceilingLight.rotation.set(Math.PI / 2, 0, 0);
+				    ceilingLight.position.set(0, (roomHeight / 2) + roomYPos - 1, ceilingLightPositions[i]);
+
+				    var light = new THREE.PointLight(0xffffff, 0.65);
+				    scene.add(light);
+				    light.position.set(0, (roomHeight / 2) + roomYPos - 30, ceilingLightPositions[i]);
+
+				    /*var light = new THREE.DirectionalLight(0xffffff);
+				    light.position.set(0, (roomHeight / 2) + roomYPos - 50, ceilingLightPositions[i]);
+				    light.target.position.set(roomWidth/2, 0, 0);
+				    scene.add(light);*/
+				}
+
+				//scene.add(new THREE.AmbientLight(0xffffff)); 
+
+				controls = new THREE.PointerLockControls( camera );
+				scene.add( controls.getObject() );
+
+				document.body.appendChild( renderer.domElement );
+
+                /*var loader = new THREE.ObjectLoader();
+                loader.load('scenes/test_scene5.js', function (mesh) {
+                    //scene.add(mesh);
+                    //mesh.position.set(0, 0, 0);
+
+                    scene.traverse(function (child) {
+
+                        if (child.name == "Floor")
+                            child.material = material;
+                        if (child.name == "Drawing")
+                            child.material = material2;
+                        if (child.name == "Frame")
+                            child.material = material3;
+                        if (child.name == "CeilingLight")
+                            child.material = material4;
+                        if (child.name == "Ceiling")
+                            child.material = material5;
+                        if (child.name == "Cube") {
+                            child.material = material6;
+                            child.material.needsUpdate = true;
+                        }
+                    });
+
+                });*/
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				controls.update();
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

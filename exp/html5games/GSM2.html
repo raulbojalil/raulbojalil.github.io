@@ -1,0 +1,517 @@
+<html>
+<head>
+    <title>GSM</title>
+</head>
+<body>
+</body>
+<script type="text/javascript" src="http://www.kineticjs.com/download/kinetic2d-v1.0.4.js"></script>
+<script type="text/javascript">
+
+    ///GameStateManagement.js
+    var GAMESTATEMANAGEMENT = GAMESTATEMANAGEMENT || {};
+    var COMMON = COMMON || {};
+
+    GAMESTATEMANAGEMENT.CANVAS_WIDTH = 500;
+    GAMESTATEMANAGEMENT.CANVAS_HEIGHT = 500;
+
+    //ScreenState.js
+    GAMESTATEMANAGEMENT.ScreenState = {
+
+        TransitionOn: 0,
+        Active: 1,
+        TransitionOff: 2,
+        Hidden: 3
+    };
+
+
+    var gameTime = { elapsedGameTime: 0, totalGameTime: 0 };
+
+    //ScreenManager.js
+    GAMESTATEMANAGEMENT.ScreenManager = function () {
+
+        var screens = new Array();
+        var screensToUpdate = new Array();
+
+        var canvas = document.createElement("canvas");
+        canvas.id = "myCanvas";
+        canvas.width = GAMESTATEMANAGEMENT.CANVAS_WIDTH;
+        canvas.height = GAMESTATEMANAGEMENT.CANVAS_HEIGHT;
+        document.body.appendChild(canvas);
+
+
+        //        canvas.addEventListener("mousedown", function (e) {
+
+        //            alert(this);
+
+        //        }, false);
+
+        //canvas.addEventListener("mousedown", function () { alert("Prueba2") }, false);
+
+        this.context = canvas.getContext("2d");
+
+
+        this.clear = function () {
+
+            this.context.clearRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+        };
+
+        this.update = function (gameTime) {
+
+            screensToUpdate.splice(0, screensToUpdate.length);
+            for (var i = 0; i < screens.length; i++) {
+                screensToUpdate.push(screens[i]);
+            }
+
+            var otherScreenHasFocus = false;
+            var coveredByOtherScreen = false;
+
+            while (screensToUpdate.length > 0) {
+                // Pop the topmost screen off the waiting list.
+                var screen = screensToUpdate.pop();
+
+                // Update the screen.
+                screen.update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+                if (screen.screenState == GAMESTATEMANAGEMENT.ScreenState.TransitionOn ||
+                screen.screenState == GAMESTATEMANAGEMENT.ScreenState.Active) {
+                    // If this is the first active screen we came across,
+                    // give it a chance to handle input.
+                    if (!otherScreenHasFocus) {
+                        //screen.HandleInput(input);
+                        otherScreenHasFocus = true;
+                    }
+
+                    // If this is an active non-popup, inform any subsequent
+                    // screens that they are covered by it.
+                    if (!screen.isPopup)
+                        coveredByOtherScreen = true;
+                }
+            }
+        };
+
+        this.draw = function (gameTime) {
+
+            this.context.clearRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+
+            for (var i = 0; i < screens.length; i++) {
+                if (screens[i].screenState == GAMESTATEMANAGEMENT.ScreenState.Hidden)
+                    continue;
+
+                screens[i].draw(gameTime);
+            }
+        };
+
+        this.render = function () {
+
+            gameTime.elapsedGameTime = 1000 / 60;
+            gameTime.totalGameTime += gameTime.elapsedGameTime;
+            this.update(gameTime);
+            this.clear();
+            this.draw(gameTime);
+
+
+
+            setTimeout(this.render, 1000 / 60);
+
+        }
+
+
+        this.addScreen = function (screen) {
+
+            screen.screenManager = this;
+            screen.isExiting = false;
+            screens.push(screen);
+            screen.loadContent();
+        };
+
+        this.removeScreen = function (screen) {
+
+            for (var i = 0; i < screens.length; i++) {
+
+                if (screens[i] == screen) {
+                    screen.unloadContent();
+                    screens.splice(i, 1);
+                }
+            }
+        };
+
+        this.fadeBackBufferToBlack = function (alpha) {
+
+            this.context.setFillStyle = "rgba(0,0,0," + alpha + ")";
+            this.context.fillRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+        };
+
+    };
+
+    //GameScreen.js
+    GAMESTATEMANAGEMENT.GameScreen = function () {
+
+        this.isPopup = false;
+        this.transitionOnTime = 0;
+        this.transitionOffTime = 0;
+        this.screenManager = null;
+
+        //Gets the current position of the screen transition, ranging
+        //from zero (fully active, no transition) to one (transitioned
+        //fully off to nothing).
+        this.transitionPosition = 1;
+
+        //Gets the current alpha of the screen transition, ranging
+        //from 1 (fully active, no transition) to 0 (transitioned
+        //fully off to nothing).
+        this.getTransitionAlpha = function () {
+            return 1 - this.transitionPosition;
+        };
+
+        this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOn;
+
+        this.isExiting = false;
+
+        var _otherScreenHasFocus;
+        this.isActive = function () {
+            return !_otherScreenHasFocus && (this.screenState == GAMESTATEMANAGEMENT.ScreenState.TransitionOn ||
+                        this.screenState == GAMESTATEMANAGEMENT.ScreenState.Active);
+        };
+
+        this.updateTransition = function (gameTime, time, direction) {
+            // How much should we move by?
+            var transitionDelta;
+
+            if (time == 0)
+                transitionDelta = 1;
+            else
+                transitionDelta = gameTime.elapsedGameTime / time;
+
+            // Update the transition position.
+            this.transitionPosition += transitionDelta * direction;
+
+            // Did we reach the end of the transition?
+            if (((direction < 0) && (this.transitionPosition <= 0)) ||
+                ((direction > 0) && (this.transitionPosition >= 1))) {
+                this.transitionPosition = this.clamp(this.transitionPosition, 0, 1);
+                return false;
+            }
+
+            // Otherwise we are still busy transitioning.
+            return true;
+        };
+
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            _otherScreenHasFocus = otherScreenHasFocus;
+
+            if (this.isExiting) {
+                // If the screen is going away to die, it should transition off.
+                this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOff;
+
+                if (!this.updateTransition(gameTime, this.transitionOffTime, 1)) {
+                    // When the transition finishes, remove the screen.
+                    this.screenManager.removeScreen(this);
+                }
+            }
+            else if (coveredByOtherScreen) {
+
+                // If the screen is covered by another, it should transition off.
+                if (this.updateTransition(gameTime, this.transitionOffTime, 1)) {
+                    // Still busy transitioning.
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOff;
+                }
+                else {
+                    // Transition finished!
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.Hidden;
+                }
+            }
+            else {
+                // Otherwise the screen should transition on and become active.
+                if (this.updateTransition(gameTime, this.transitionOnTime, -1)) {
+                    // Still busy transitioning.
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOn;
+                }
+                else {
+                    // Transition finished!
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.Active;
+                }
+            }
+
+        };
+
+        this.clamp = function (value, min, max) {
+
+            if (value < min) return min;
+            if (value > max) return max;
+
+            return value;
+        };
+
+        this.draw = function (gameTime) {
+        };
+
+        this.loadContent = function () {
+        };
+
+        this.unloadContent = function () {
+        };
+
+        this.exitScreen = function () {
+
+            if (this.transitionOffTime == 0) {
+                // If the screen has a zero transition time, remove it immediately.
+                this.screenManager.removeScreen(this);
+            }
+            else {
+                // Otherwise flag that it should transition off and then exit.
+                this.isExiting = true;
+            }
+        };
+    };
+
+    ///BackgroundScreen.js
+    GAMESTATEMANAGEMENT.BackgroundScreen = function () {
+
+        this.transitionOnTime = 0;
+        this.transitionOffTime = 0;
+
+        var baseUpdate = this.update;
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            baseUpdate.call(this, gameTime, otherScreenHasFocus, false);
+        };
+
+        this.draw = function (gameTime) {
+
+            var grd = this.screenManager.context.createLinearGradient(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+            grd.addColorStop(0, "#8ED6FF"); // light blue
+            grd.addColorStop(1, "#004CB3"); // dark blue
+            this.screenManager.context.fillStyle = grd;
+            this.screenManager.context.fillRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.BackgroundScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.BackgroundScreen.constructor = GAMESTATEMANAGEMENT.BackgroundScreen;
+
+    ///MessageBoxScreen.js
+    GAMESTATEMANAGEMENT.MessageBoxScreen = function () {
+
+        this.transitionOnTime = 2000;
+        this.transitionOffTime = 2000;
+        this.isPopup = true;
+
+        var prueba = 0;
+
+        this.draw = function (gameTime) {
+
+            this.screenManager.context.fillStyle = "rgba(0,0,0," + this.getTransitionAlpha() + ")";
+            this.screenManager.context.fillRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+            this.screenManager.context.font = "40pt Calibri";
+            this.screenManager.context.fillStyle = "white";
+            this.screenManager.context.fillText("Algo", 40, 40);
+
+            //if (prueba < 200 && prueba > -1) prueba++;
+
+            //if (prueba == 200) {
+                //this.exitScreen();
+                //prueba = -1;
+            //}
+
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.MessageBoxScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.MessageBoxScreen.constructor = GAMESTATEMANAGEMENT.MessageBoxScreen;
+
+
+    GAMESTATEMANAGEMENT.CompanySplashScreen = function () {
+
+        this.transitionOnTime = 2000;
+        this.transitionOffTime = 2000;
+
+
+    };
+
+    GAMESTATEMANAGEMENT.CompanySplashScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.CompanySplashScreen.constructor = GAMESTATEMANAGEMENT.CompanySplashScreen;
+
+    ///MenuScreen.js
+
+    GAMESTATEMANAGEMENT.MenuScreen = function (menuTitle) {
+
+        var y = 60;
+
+        var _menuTitle = menuTitle;
+        this.menuEntries = new Array();
+
+        this.transitionOffTime = 0;
+        this.transitionOnTime = 0;
+
+
+        this.draw = function (gameTime) {
+
+//            this.screenManager.context.font = "23pt Calibri";
+//            this.screenManager.context.fillStyle = "white";
+//            this.screenManager.context.textAlign = "center";
+//            this.screenManager.context.fillText(_menuTitle, GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, 40);
+
+            //Es mejor utilizar elementos DOM para las opciones  CREO QUE NO
+                        for (var i = 0; i < this.menuEntries.length; i++) {
+                            
+                            this.menuEntries[i].position.x = GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2;
+                            this.menuEntries[i].position.y = y + (i * 60);
+                            this.menuEntries[i].draw(this);
+                           
+                        }
+        };
+
+        this.loadContent = function () {
+
+            for (var i = 0; i < this.menuEntries.length; i++)
+                this.menuEntries[i].loadContent();
+        }
+
+        this.unloadContent = function () {
+
+            for (var i = 0; i < this.menuEntries.length; i++)
+                this.menuEntries[i].unloadContent();
+        }
+
+    };
+
+    GAMESTATEMANAGEMENT.MenuScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.MenuScreen.constructor = GAMESTATEMANAGEMENT.MenuScreen;
+
+
+    ///MainMenuScreen.js
+
+    GAMESTATEMANAGEMENT.MainMenuScreen = function () {
+
+        GAMESTATEMANAGEMENT.MenuScreen.call(this, "Menú principal");
+
+        var onExit = function () {
+            window.close();
+        };
+
+        var onPlayGame = function () {
+
+            this.menuScreen.screenManager.addScreen(new GAMESTATEMANAGEMENT.MessageBoxScreen());
+            //mainMenuScreen.screenManager.addScreen(new GAMESTATEMANAGEMENT.MessageBoxScreen());
+            //this.screenManager.addScreen(new GAMESTATEMANAGEMENT.BackgroundScreen());
+        };
+
+        var onOptions = function () {
+            alert("Aquí va la pantalla de opciones");
+        };
+
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Jugar", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, 80, onPlayGame, this));
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Opciones", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, 130, onOptions, this));
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Salir", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, 180, onExit, this));
+
+    };
+
+    GAMESTATEMANAGEMENT.MainMenuScreen.prototype = new GAMESTATEMANAGEMENT.MenuScreen();
+    GAMESTATEMANAGEMENT.MainMenuScreen.constructor = GAMESTATEMANAGEMENT.MainMenuScreen;
+
+    ///LoadingScreen.js
+
+
+    ///Rectangle.js
+    COMMON.Rectangle = function (x, y, width, height) {
+
+        this.position = new COMMON.Vector2(x, y);
+        this.width = width;
+        this.height = height;
+
+    };
+
+
+    
+
+
+    ///Vector2.js
+    COMMON.Vector2 = function (x, y) {
+        this.x = x;
+        this.y = y;
+    };
+
+
+    ///MenuEntry.js
+
+    GAMESTATEMANAGEMENT.MenuEntry = function (text, x, y, func, menuScreen) {
+
+        this.text = text;
+        this.position = new COMMON.Vector2(x, y);
+        //this.onselected = new COMMON.Event();
+        var domElement = null;
+
+        //        this.addEventListener = function (func) {
+        //            domElement.addEventListener("click", func, false);
+        //        };
+
+        this.han
+
+        this.loadContent = function () {
+
+//            domElement = document.createElement("button");
+//            domElement.innerHTML = this.text;
+//            domElement.style.position = "absolute";
+//            domElement.style.top = this.position.y + "px";
+//            domElement.style.left = this.position.x + "px";
+//            domElement.menuScreen = menuScreen;
+//            domElement.addEventListener("click", func, false);
+
+//            document.body.appendChild(domElement);
+
+        };
+
+        this.unloadContent = function () {
+            //document.body.removeChild(domElement);
+        };
+
+        //this.isSelected = false;
+
+        this.draw = function (menuScreen) {
+
+                                menuScreen.screenManager.context.font = "40pt Calibri";
+                                menuScreen.screenManager.context.fillStyle = "white";
+                                menuScreen.screenManager.context.textAlign = "center";
+                                menuScreen.screenManager.context.fillText(this.text, this.position.x, this.position.y);
+
+        };
+
+        this.getWidth = function () {
+
+        };
+
+
+    };
+
+    COMMON.Event = function () {
+        //function to call on event fire
+        var eventAction = null;
+
+        //subscribe a function to the event
+        this.subscribe = function (fn) {
+            eventAction = fn;
+        };
+
+        //fire the event
+        this.fire = function (sender, eventArgs) {
+            if (eventAction != null) {
+                eventAction(sender, eventArgs);
+            }
+        };
+    };
+
+    //////////////////////////////////////////////////////////////////
+
+
+    var gameStateManagement = new GAMESTATEMANAGEMENT.ScreenManager();
+    gameStateManagement.addScreen(new GAMESTATEMANAGEMENT.BackgroundScreen());
+    gameStateManagement.addScreen(new GAMESTATEMANAGEMENT.MainMenuScreen());
+
+    gameStateManagement.render();
+
+
+</script>
+</html>

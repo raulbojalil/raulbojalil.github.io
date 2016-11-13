@@ -1,0 +1,1197 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>RAB's Art Academy Gallery</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+            .overlay {
+
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(0,0,0,0.5);
+			}
+
+            .clickable
+            {
+                cursor: pointer;
+            }
+
+			.overlay-text {
+
+				width: 100%;
+				height: 100%;
+
+				display: -webkit-box;
+				display: -moz-box;
+				display: box;
+
+				-webkit-box-orient: horizontal;
+				-moz-box-orient: horizontal;
+				box-orient: horizontal;
+
+				-webkit-box-pack: center;
+				-moz-box-pack: center;
+				box-pack: center;
+
+				-webkit-box-align: center;
+				-moz-box-align: center;
+				box-align: center;
+
+				color: #ffffff;
+				text-align: center;
+			}
+
+            #painting
+            {
+                position: absolute;
+                margin: auto;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 70%;
+                z-index: 9999;
+                opacity: 0.9;
+                -webkit-transition: 1s ease-in-out;
+                -moz-transition: 1s ease-in-out;
+                -o-transition: 1s ease-in-out;
+                transition: 1s ease-in-out;
+                /*-webkit-transform: scale(0.2);
+                -moz-transform: scale(0.2);
+                -o-transform: scale(0.2);
+                -ms-transform: scale(0.2);
+                transform: scale(0.2);*/
+            }
+
+            .grow {
+                -webkit-transform: scale(1);
+                -moz-transform: scale(1);
+                -o-transform: scale(1);
+                -ms-transform: scale(1);
+                transform: scale(1);
+              }
+
+		</style>
+	</head>
+	<body>
+
+        <audio autoplay loop>
+            <source src="Gallery/A_05.ogg" type="audio/ogg">
+            <source src="Gallery/A_05.mp3" type="audio/mpeg">
+        </audio>
+
+        <img id="painting" style="display: none" />
+
+        <div id="blocker" class="overlay">
+            <div id="instructions" class="overlay-text clickable">
+                <span id="message" style="font-size:40px">Loading...</span>
+                <br />
+                <br />
+                <strong>Welcome to my Art Academy Gallery!</strong> What you see here are some of my renditions of the lessons from
+                the <a href="javascript: window.open('http://artacademy.nintendo.com/')"><i>Art Academy</i></a> series for the Nintendo DS/DSi and Nintendo 3DS systems. I really want to thank Vince, who has been hands down one of the best teachers I ever had (no kidding, he is that good!).
+                So, without further ado, click anywhere on the screen when it finishes loading to start.
+                <br />
+                <br />
+                <br />
+                <span style="font-size:20px">Controls: W,A,S,D = Move, Shift = Run, Mouse = Look around. Get close to a painting to zoom it in.</span>
+
+                <br />
+                <br />
+                <br /><br /><br />
+                3D Models, sound effects and music by Headstrong Games/Nintendo.
+		<br/>
+		Art Academy, Nintendo 3DS and Nintendo DSi are trademarks of Nintendo.
+
+            </div>
+        </div>
+
+        <div id="confirm" class="overlay" style="display: none">
+            <div class="overlay-text">
+                <span id="message" style="font-size:40px">Are you leaving?</span>
+                <br />
+                <span class="clickable">Yes</span>
+                <span class="clickable">No</span>
+            </div>
+        </div>
+
+		<script src="js/three.min.js"></script>
+
+		<script src="js/loaders/ColladaLoader.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+        <script src="js/controls/PointerLockControls.js"></script>
+
+		<script>
+
+            var SCENE_BOUNDS_Y = -200;
+            var WALKING_SPEED = 500;
+            var RUNNING_SPEED = 950;
+            var PAINTING_Y = 19;
+            var LIGHT_INTENSITY = 0.00;
+            var DOME_LIGHT_INTENSITY = 0.3;
+
+            var particleLight;
+
+
+            THREE.Object3D.prototype.eclone = function () {
+                var object = this.clone(new THREE.Object3D(), false);
+
+                for (var i = 0; i < this.children.length; i++) {
+
+                    var child = this.children[i];
+                    if (child.eclone) {
+                        object.add(child.eclone());
+                    } else {
+                        object.add(child.clone());
+                    }
+
+                }
+                return object;
+            };
+
+            THREE.Mesh.prototype.eclone = function (object, recursive) {
+                if (object === undefined) {
+                    object = new THREE.Mesh(this.geometry, this.material.clone());
+                }
+
+                THREE.Object3D.prototype.eclone.call(this, object, recursive);
+
+                return object;
+            };
+
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats;
+
+			var camera, scene, renderer;
+			var particleLight;
+
+			var controls;
+			
+			var testLine;
+
+			var moveIndex = 0;
+			var moveAmount = 0.1;
+			var posButton = false;
+			var rotButton = false;
+
+			var collisionObjects = [];
+
+			var finishedLoading = false;
+
+			var controlsEnabled = false;
+			var moveForward = false;
+			var moveBackward = false;
+			var moveLeft = false;
+			var moveRight = false;
+			var running = false;
+
+			var prevTime = performance.now();
+			var velocity = new THREE.Vector3();
+
+			var blocker = document.getElementById('blocker');
+			var instructions = document.getElementById('instructions');
+			var message = document.getElementById('message');
+			var painting = document.getElementById('painting');
+
+			var models = [];
+			var frames = [];
+			var lights = [];
+
+			var raycaster;
+			var forwardRaycaster;
+			var paintingRaycaster;
+
+			
+			var paintings = [];
+
+            //-----------------------//
+
+			// http://www.html5rocks.com/en/tutorials/pointerlock/intro/
+
+			var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+
+			if (havePointerLock) {
+
+			    var element = document.body;
+
+			    var pointerlockchange = function (event) {
+
+			        if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
+
+			            resetPlayer(true);
+			            prevTime = performance.now();
+			            controlsEnabled = true;
+			            controls.enabled = true;
+			            
+                        
+			            blocker.style.display = 'none';
+
+			        } else {
+
+			            controlsEnabled = false;
+			            controls.enabled = false;
+
+			            blocker.style.display = '-webkit-box';
+			            blocker.style.display = '-moz-box';
+			            blocker.style.display = 'box';
+			            painting.style.display = 'none';
+
+			            instructions.style.display = '';
+
+			        }
+
+			    }
+
+			    var pointerlockerror = function (event) {
+
+			        instructions.style.display = '';
+
+			    }
+
+			    // Hook pointer lock state change events
+			    document.addEventListener('pointerlockchange', pointerlockchange, false);
+			    document.addEventListener('mozpointerlockchange', pointerlockchange, false);
+			    document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
+
+			    document.addEventListener('pointerlockerror', pointerlockerror, false);
+			    document.addEventListener('mozpointerlockerror', pointerlockerror, false);
+			    document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
+
+			}
+			
+
+			instructions.addEventListener('click', function (event) {
+
+			    if (finishedLoading) {
+			    
+			        if (havePointerLock) {
+
+			            // Ask the browser to lock the pointer
+			            element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+
+			            if (/Firefox/i.test(navigator.userAgent)) {
+
+			                var fullscreenchange = function (event) {
+
+			                    if (document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element) {
+
+			                        document.removeEventListener('fullscreenchange', fullscreenchange);
+			                        document.removeEventListener('mozfullscreenchange', fullscreenchange);
+
+			                        element.requestPointerLock();
+			                    }
+
+			                }
+
+			                document.addEventListener('fullscreenchange', fullscreenchange, false);
+			                document.addEventListener('mozfullscreenchange', fullscreenchange, false);
+
+			                element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
+
+			                element.requestFullscreen();
+
+			            } else {
+
+			                element.requestPointerLock();
+
+			            }
+			        }
+			        else {
+			            controlsEnabled = true;
+			            controls.enabled = true;
+
+			            blocker.style.display = 'none';
+			        }
+			    }   
+
+			}, false);
+
+
+            //-----------------------//
+
+        
+			var loadTextures = function (textures, index, onComplete) {
+
+			    if (index == textures.length) {
+			        if (onComplete)
+			            onComplete();
+			    }
+			    else {
+			        var url = textures[index].url;
+			        textures[index].tex = new THREE.ImageUtils.loadTexture(url, THREE.UVMapping, function () {
+
+			            textures[index].tex.offset.set(0, -0.1);
+			            var percentComplete = (index + 1) / textures.length * 50;
+			            message.innerHTML = (50 + Math.round(percentComplete, 2)) + '%';
+			            loadTextures(textures, index + 1, onComplete);
+
+			        }, function () {
+			            message.innerHTML = "Error loading resource. Please try reloading the page.";
+			        });
+
+			    }
+
+			}
+
+			var loadModels = function (models, index, onComplete) {
+
+			    if (index == models.length) {
+			        if (onComplete)
+			            onComplete();
+			    }
+			    else {
+
+			        var loader = new THREE.ColladaLoader();
+			        loader.options.convertUpAxis = true;
+
+			        loader.load(models[index], function (collada) {
+
+			            var percentComplete = (index+1) / models.length * 50;
+			            message.innerHTML = Math.round(percentComplete, 2) + '%';
+			            models[index] = collada.scene;
+			            models[index].scale.x = models[index].scale.y = models[index].scale.z = 0.05;
+			            models[index].updateMatrix();
+                        
+			            loadModels(models, index+1, onComplete);
+			        }, function (xhr) {
+			            
+			            //if (xhr.lengthComputable) {
+			                //var percentComplete = xhr.loaded / xhr.total * 100;
+			                //message.innerHTML = Math.round(percentComplete, 2) + '% downloaded';
+			            //}
+			        
+			        }, function (xhr) {
+			            message.innerHTML = "Error loading resource. Please try reloading the page.";
+			        });
+			    }
+			}
+
+            //-----------------------//
+
+
+            //Circular 
+            //
+
+			models = [
+                'Gallery/Main_Hall/Main_Hall.dae',
+                'Gallery/RoomCircular/Room_Circular.dae',
+                'Gallery/Exterior/Exterior.dae',
+                'Gallery/Entrance/Entrance.dae',
+                'Gallery/Main_Hall/Main_Hall.dae',
+                'Gallery/Room1/Room_01.dae',
+                'Gallery/Room2/Room_02.dae',
+                'Gallery/Room3/Room_03.dae',
+                'Gallery/Room4/Room_04.dae',
+                'Gallery/Room5/Room_05.dae',
+                'Gallery/F_01_FRAME_00/Frame_01_Small.dae',
+                'Gallery/F_01_FRAME_01/Frame_02_Small.dae',
+                'Gallery/F_01_FRAME_02/Frame_03_Small.dae',
+                'Gallery/F_01_FRAME_03/Frame_04_Small.dae',
+                'Gallery/F_01_FRAME_04/Frame_05_Small.dae',
+                'Gallery/F_01_FRAME_05/Frame_06_Small.dae',
+                'Gallery/F_01_FRAME_06/Frame_07_Small.dae',
+                'Gallery/F_01_FRAME_07/Frame_08_Small.dae',
+                'Gallery/F_01_FRAME_08/Frame_09_Small.dae',
+                'Gallery/F_01_FRAME_09/Frame_10_Small.dae',
+                'Gallery/F_01_FRAME_10/Frame_11_Small.dae',
+                'Gallery/F_01_FRAME_11/Frame_12_Small.dae',
+                //'Gallery/F_01_FRAME_Gold/Frame_13_Gold.dae',
+                //'Gallery/PaintingHighlight/Highlight_Small.dae'
+			];
+	
+			textures = [
+
+                //Main_Hall
+                { url: "Gallery/Paintings/HNI_0013.jpg", pos: new THREE.Vector3(-46.799, PAINTING_Y, 30.36), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0002.jpg", pos: new THREE.Vector3(-46.799, PAINTING_Y, -37), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0046.jpg", pos: new THREE.Vector3(45, PAINTING_Y, 30.36), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0047.jpg", pos: new THREE.Vector3(45, PAINTING_Y, -37), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0050.jpg", pos: new THREE.Vector3(-29.799, PAINTING_Y, -62.60000000000006), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0098.JPG", pos: new THREE.Vector3(29.201000000000008, PAINTING_Y, -62.60000000000006), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+
+                //RoomCircular
+                { url: "Gallery/Paintings/HNI_0096.JPG", pos: new THREE.Vector3(35.635385976291325, PAINTING_Y, -86.19131675418409), rot: new THREE.Euler(0, -Math.PI / 2 - Math.PI / 4, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0097.JPG", pos: new THREE.Vector3(-37.40874452027903, PAINTING_Y, -159.2354472507544), rot: new THREE.Euler(0, Math.PI / 2 - Math.PI / 4, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0099.JPG", pos: new THREE.Vector3(-37.76229791087236, PAINTING_Y, -86.47415946665853), rot: new THREE.Euler(-Math.PI, Math.PI / 2 - Math.PI / 4, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0064.JPG", pos: new THREE.Vector3(35.62039687196072, PAINTING_Y, -159.23137084989753), rot: new THREE.Euler(0, -Math.PI / 2 + Math.PI / 4, 0, "XYZ") },
+              
+              
+                //Room01 (Sala amarilla)
+                { url: "Gallery/Paintings/HNI_0110.JPG", pos: new THREE.Vector3(-153.65498192558047, PAINTING_Y, -92.5814754519504), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0131.JPG", pos: new THREE.Vector3(-153.65498192558047, PAINTING_Y, -122.6814754519505), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0112.JPG", pos: new THREE.Vector3(-153.65498192558047, PAINTING_Y, -152.38147545195062), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0113.JPG", pos: new THREE.Vector3(-126.95498192558048, PAINTING_Y, -181.98147545195064), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0114.JPG", pos: new THREE.Vector3(-89.75498192558042, PAINTING_Y, -181.98147545195064), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0115.JPG", pos: new THREE.Vector3(-61.85498192558044, PAINTING_Y, -156.78147545195068), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0116.JPG", pos: new THREE.Vector3(-61.85498192558044, PAINTING_Y, -85.98147545195071), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0117.JPG", pos: new THREE.Vector3(-79.9549819255804, PAINTING_Y, -63.38147545195073), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0118.JPG", pos: new THREE.Vector3(-136.7549819255804, PAINTING_Y, -63.38147545195073), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+ 
+                //Room02 (Sala naranja)
+                { url: "Gallery/Paintings/HNI_0051.jpg", pos: new THREE.Vector3(-143.68029201481892, PAINTING_Y, 17.74383463728807), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0052.jpg", pos: new THREE.Vector3(-143.68029201481892, PAINTING_Y, -3.4561653627119275), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0053.jpg", pos: new THREE.Vector3(-143.68029201481892, PAINTING_Y, -24.756165362711904), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0056.jpg", pos: new THREE.Vector3(-130.98029201481882, PAINTING_Y, -42.656165362711924), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0057.jpg", pos: new THREE.Vector3(-82.98029201481883, PAINTING_Y, -42.656165362711924), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0061.jpg", pos: new THREE.Vector3(-71.88029201481893, PAINTING_Y, -28.956165362711918), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0062.jpg", pos: new THREE.Vector3(-71.88029201481893, PAINTING_Y, 22.34383463728809), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0063.jpg", pos: new THREE.Vector3(-86.38029201481893, PAINTING_Y, 35.94383463728811), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0067.jpg", pos: new THREE.Vector3(-108.08029201481894, PAINTING_Y, 35.943834637288084), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0069.jpg", pos: new THREE.Vector3(-129.78029201481897, PAINTING_Y, 35.94383463728805), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+               
+                //Room03 (Sala roja)
+                { url: "Gallery/Paintings/HNI_0001.jpg", pos: new THREE.Vector3(-34.79854608429872, PAINTING_Y, -286.7974134085935), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0003.jpg", pos: new THREE.Vector3(-0.2985460842987173, PAINTING_Y, -286.7974134085935), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0004.jpg", pos: new THREE.Vector3(33.1014539157013, PAINTING_Y, -286.7974134085935), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0005.jpg", pos: new THREE.Vector3(-60.19854608429873, PAINTING_Y, -222.49741340859356), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0006.jpg", pos: new THREE.Vector3(-60.198546084298684, PAINTING_Y, -258.6974134085935), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0007.jpg", pos: new THREE.Vector3(58.4014539157012, PAINTING_Y, -222.49741340859356), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0008.jpg", pos: new THREE.Vector3(58.4014539157012, PAINTING_Y, -258.6974134085935), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0041.jpg", pos: new THREE.Vector3(33.1014539157013, PAINTING_Y, -194.99741340859364), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0044.jpg", pos: new THREE.Vector3(-34.79854608429872, PAINTING_Y, -194.99741340859364), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                
+
+                //Room04 (Sala verde)
+                { url: "Gallery/Paintings/HNI_0119.JPG", pos: new THREE.Vector3(93.32039687196067, PAINTING_Y, -168.53137084989748), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0120.JPG", pos: new THREE.Vector3(125.52039687196067, PAINTING_Y, -168.53137084989748), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0121.JPG", pos: new THREE.Vector3(156.82039687196067, PAINTING_Y, -168.53137084989748), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0122.JPG", pos: new THREE.Vector3(184.3203968719607, PAINTING_Y, -140.3313708498975), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0123.JPG", pos: new THREE.Vector3(184.3203968719607, PAINTING_Y, -106.1313708498975), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0125.JPG", pos: new THREE.Vector3(162.92039687196066, PAINTING_Y, -76.73137084989756), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0126.JPG", pos: new THREE.Vector3(136.52039687196068, PAINTING_Y, -76.73137084989756), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0129.JPG", pos: new THREE.Vector3(79.42039687196075, PAINTING_Y, -76.73137084989756), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0130.JPG", pos: new THREE.Vector3(65.72039687196087, PAINTING_Y, -94.13137084989759), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0132.JPG", pos: new THREE.Vector3(65.72039687196087, PAINTING_Y, -151.73137084989753), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") },
+
+                
+
+                //Room05 (Sala azul)
+                { url: "Gallery/Paintings/HNI_0078.jpg", pos: new THREE.Vector3(79.41900423072342, PAINTING_Y, -53.70769849975201), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0084.jpg", pos: new THREE.Vector3(131.0190042307234, PAINTING_Y, -53.70769849975201), rot: new THREE.Euler(0, 0, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0085.jpg", pos: new THREE.Vector3(144.31900423072335, PAINTING_Y, -39.507698499752046), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0086.jpg", pos: new THREE.Vector3(144.31900423072335, PAINTING_Y, -17.007698499752063), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0087.jpg", pos: new THREE.Vector3(144.31900423072335, PAINTING_Y, 3.992301500247925), rot: new THREE.Euler(0, -Math.PI / 2, 0, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0088.jpg", pos: new THREE.Vector3(126.31900423072337, PAINTING_Y, 18.09230150024789), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0090.jpg", pos: new THREE.Vector3(104.81900423072337, PAINTING_Y, 18.09230150024789), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0091.jpg", pos: new THREE.Vector3(83.21900423072341, PAINTING_Y, 18.09230150024789), rot: new THREE.Euler(-Math.PI, 0, -Math.PI, "XYZ") },
+                { url: "Gallery/Paintings/HNI_0092.jpg", pos: new THREE.Vector3(65.7190042307234, PAINTING_Y, -35.50769849975206), rot: new THREE.Euler(0, Math.PI / 2, 0, "XYZ") }
+			];
+
+
+			lights = [
+
+                //Entrance
+                { light: new THREE.PointLight(0xffffff, DOME_LIGHT_INTENSITY), position: new THREE.Vector3(-0.4, 48.4000000000001, 154.15999999999997) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-22.3, 49.300000000000054, 75.66000000000003) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(19.59999999999999, 49.300000000000054, 75.66000000000003) },
+
+                //Main Hall
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-18.000000000000007, 54.600000000000115, 15.26000000000002) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-18.000000000000007, 54.600000000000115, -21.440000000000005) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(16.99999999999997, 54.600000000000115, -21.440000000000005) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(16.99999999999997, 54.600000000000115, 15.26000000000002) },
+
+                //Circular Room
+                { light: new THREE.PointLight(0xffffff, DOME_LIGHT_INTENSITY), position: new THREE.Vector3(-1.2000000000000113, 78.90000000000003, -122.8400000000001) },
+
+
+                //Cuarto verde
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(142.99999999999997, 44.30000000000008, -139.74000000000007) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(106.69999999999999, 44.30000000000008, -139.74000000000007) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(106.69999999999999, 44.30000000000008, -105.44000000000007) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(142.99999999999997, 44.30000000000008, -105.44000000000007) },
+
+
+                //Cuarto amarillo
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-125.20000000000006, 44.30000000000008, -105.44000000000007) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-125.10000000000005, 44.30000000000008, -141.3400000000001) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-90.20000000000003, 44.30000000000008, -141.3400000000001) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-90.20000000000003, 44.30000000000008, -105.44000000000007) },
+
+
+                //Cuarto rojo
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(44.899999999999984, 50.600000000000165, -241.14000000000001) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(22.699999999999978, 50.600000000000165, -241.14000000000001) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(0.0999999999999796, 50.600000000000165, -241.14000000000001) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-22.699999999999978, 50.600000000000165, -241.14000000000001) },
+                { light: new THREE.PointLight(0xffffff, LIGHT_INTENSITY), position: new THREE.Vector3(-44.899999999999984, 50.600000000000165, -241.14000000000001) },
+
+			];
+
+
+			
+
+			loadModels(models, 0, function () {
+
+			    loadTextures(textures, 0, function () {
+
+			        
+
+			        for (var i = 0; i < models.length; i++) {
+			            for (var j = 0; j < models[i].children[0].children.length; j++) {
+			                models[i].children[0].children[j].material.transparent = true;
+			                collisionObjects.push(models[i].children[0].children[j]);
+			            }
+
+			        }
+
+			        init();
+			        finishedLoading = true;
+			        message.innerHTML = "Click to start";
+			        animate();
+			    });
+			});
+
+
+
+			//loader.load('obj/Entrance/Entrance.dae', function (collada) {
+			//loader.load( './models/collada/monster/monster.dae', function ( collada ) {
+
+			   
+				//console.log(collada);
+
+				//.object.material.color.set( 0xff0000 );
+
+				//for(var i =0 ; i < dae.children[0].children.length; i++)
+				//{
+				    //dae.children[0].children[i].material.color.set( 0xff0000 );
+				//}
+				/*for (var prop in collada.dae.geometries) {
+				    objects.push(collada.dae.geometries[prop].mesh);
+				}*/
+
+				/*dae.traverse( function ( child ) {
+
+					if ( child instanceof THREE.SkinnedMesh ) {
+
+						var animation = new THREE.Animation( child, child.geometry.animation );
+						animation.play();
+					}
+
+				} );*/
+
+				//dae.scale.x = dae.scale.y = dae.scale.z = 0.1;
+				//dae.updateMatrix();
+
+				//init();
+				//animate();
+
+			//}, onProgress, onError);
+
+			function addCube(x, y, z) {
+			    var geometry = new THREE.BoxGeometry(10,10,10);
+			    var material = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
+			    var cube = new THREE.Mesh(geometry, material);
+			    cube._exit = 1;
+			    cube.position.set(x, y, z);
+			    //cube.visible = false;
+			    collisionObjects.push(cube);
+			    scene.add(cube);
+
+			    return cube;
+			}
+
+			function addLine(v1, v2) {
+			
+			    if (testLine)
+			        scene.remove(testLine);
+
+			    var geometry = new THREE.Geometry();
+			    var material = new THREE.LineBasicMaterial({ color: 0x00FF00 });
+
+			    geometry.vertices.push(v1);
+			    geometry.vertices.push(v2);
+
+
+			    testLine = new THREE.Line(geometry, material, THREE.LinePieces);
+			    scene.add(testLine);
+			}
+
+			function drawRay(raycaster) {
+
+			    var v1 = new THREE.Vector3();
+			    var v2 = new THREE.Vector3();
+
+			    v1.copy(raycaster.ray.origin);
+			    v2.copy(raycaster.ray.origin);
+			    v2.x += raycaster.ray.direction.x*10;
+			    v2.y += raycaster.ray.direction.y*10;
+			    v2.z += raycaster.ray.direction.z*10;
+
+			    addLine(v1, v2);
+
+			}
+
+			function resetPlayer(preservePos)
+			{
+			    var controlsObject = controls.getObject();
+
+			    var pos = new THREE.Vector3(0, 0, 170);
+			    //pos = new THREE.Vector3(0, 20, 0);
+			    var rotY = new THREE.Euler(0, 0, 0, controlsObject.rotation.order);
+			    var rotX = new THREE.Euler(0, 0, 0, controlsObject.children[0].rotation.order);
+
+			    if (preservePos) {
+			        pos.copy(controlsObject.position);
+			        rotY.copy(controlsObject.rotation);
+			        rotX.copy(controlsObject.children[0].rotation);
+
+			        setTimeout(function () {
+			            controlsObject.position.set(pos.x, pos.y, pos.z);
+			            controlsObject.rotation.set(rotY.x, rotY.y, rotY.z, rotY.order);
+			            controlsObject.children[0].rotation.set(rotX.x, rotX.y, rotX.z, rotX.order);
+			        }, 10);
+			    }
+			    else
+			    {
+			        controlsObject.position.set(pos.x, pos.y, pos.z);
+			        controlsObject.rotation.set(rotY.x, rotY.y, rotY.z, rotY.order);
+			        controlsObject.children[0].rotation.set(rotX.x, rotX.y, rotX.z, rotX.order);
+			    }
+                    
+                
+			    
+
+			}
+
+			function init() {
+
+			    raycaster = new THREE.Raycaster(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -1, 0), 0, 10);
+			    forwardRaycaster = new THREE.Raycaster(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1), 0, 10);
+			    paintingRaycaster = new THREE.Raycaster(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1), 0, 10);
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 0, -0.4, 7 );
+                
+				/*controls = new THREE.TrackballControls(camera);
+
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+
+				controls.noZoom = false;
+				controls.noPan = false;
+
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+
+				controls.keys = [65, 83, 68];
+
+				controls.addEventListener('change', render);*/
+
+
+				scene = new THREE.Scene();
+
+				for (var i = 0; i < models.length; i++) {
+
+				    var root = models[i].children[0];
+
+				    //console.log(root.name);
+
+				    if (root.name == "Frame_01_Small" || root.name == "Frame_02_Small" ||
+                        root.name == "Frame_03_Small" || root.name == "Frame_04_Small" ||
+                        root.name == "Frame_05_Small" || root.name == "Frame_06_Small" ||
+                        root.name == "Frame_07_Small" || root.name == "Frame_08_Small" ||
+                        root.name == "Frame_09_Small" || root.name == "Frame_10_Small" ||
+                        root.name == "Frame_11_Small" || root.name == "Frame_12_Small") {
+
+				        //console.log(root.children);
+
+				        for (var j = 0; j < root.children.length; j++) {
+
+				            root.children[j].material.transparent = true;
+				        }
+				        frames.push(models[i]);
+				    }
+				    else
+				        scene.add(models[i]);
+
+				}
+
+				var frameIndex = 8;
+				for (var i = 0; i < textures.length; i++)
+				{
+				    frameIndex = Math.floor(Math.random() * (frames.length - 1));
+				    var frame = frames[frameIndex].eclone();
+				    //frameIndex++;
+				    //var frame = ].eclone();
+				    var texture = textures[i];
+
+				    for (var j = 0; j < frame.children[0].children.length; j++) {
+
+				        paintings.push(frame.children[0].children[j]);
+				        frame.children[0].children[j]._url = texture.url;
+				        
+				    }
+
+				    //console.log(frame);
+				    //frame.children[0].children[2].visible = false
+
+				    frame.children[0].children[(frameIndex-0) >= 8 ? 0 : 1].visible = false;
+				    frame.children[0].children[(frameIndex-0) >= 9 ? 1 : 2].material.map = texture.tex;
+				    //frame.children[0].children[2].material.needsUpdate = true;
+				    //alert(textures[j].pos.z);
+				    frame.position.set(texture.pos.x, texture.pos.y, texture.pos.z);
+				    frame.rotation.set(texture.rot.x, texture.rot.y, texture.rot.z, texture.rot.order);
+				    textures[i].frame = frame;
+				    scene.add(frame);
+				    //console.log(frame);
+				}
+
+
+				for (var i = 0; i < lights.length; i++)
+				{
+				    /*var debugLight = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+				    debugLight.add(lights[i].light);
+				    debugLight.position.copy(lights[i].position);
+				    scene.add(debugLight);
+
+				    particleLight = debugLight;*/
+
+				    if (lights[i].light.intensity > 0)
+				        scene.add(lights[i].light);
+				    lights[i].light.position.copy(lights[i].position);
+				    particleLight = lights[0].light
+				    //break;
+				}
+
+
+				//var cube = addCube(0, 20, 0);
+				//cube.visible = false;
+                // Controls
+
+				controls = new THREE.PointerLockControls(camera, havePointerLock);
+				scene.add(controls.getObject());
+
+				resetPlayer();
+
+				var onKeyDown = function (event) {
+
+				    //console.log(event.keyCode)
+
+				    if (event.keyCode >= 48 && event.keyCode <= 57)
+				        moveIndex = event.keyCode - 48;
+                    
+				    if (event.type == "mousedown") {
+				        if (event.button == 0)
+				            moveForward = true;
+				    }
+
+				    switch (event.keyCode) {
+
+				        case 38: // up
+				        case 87: // w
+
+				            if (posButton)
+				                particleLight.translateZ(-moveAmount);
+				                //textures[moveIndex].frame.translateZ(-moveAmount); 
+				            else
+				                moveForward = true;
+				            break;
+
+				        case 37: // left
+				        case 65: // a
+				            if (posButton)
+				                particleLight.translateX(-moveAmount);
+				                //textures[moveIndex].frame.translateX(-moveAmount);
+				            else if (rotButton)
+				                particleLight.translateY(-moveAmount);
+				                //textures[moveIndex].frame.rotateY(-Math.PI/4);
+				            else
+				                moveLeft = true;
+				            break;
+
+				        case 40: // down
+				        case 83: // s
+				            if (posButton)
+				                particleLight.translateZ(moveAmount);
+				                //textures[moveIndex].frame.translateZ(moveAmount);
+				            else
+				                moveBackward = true;
+				            break;
+
+				        case 39: // right
+				        case 68: // d
+
+				            if (posButton)
+				                particleLight.translateX(moveAmount);
+				                //textures[moveIndex].frame.translateX(moveAmount);
+				            else if (rotButton)
+				                particleLight.translateY(moveAmount);
+				                //textures[moveIndex].frame.rotateY(Math.PI / 4);
+                            else
+				                moveRight = true;
+				            break;
+
+
+				        case 32: // space
+				            //posButton = true;
+				            /*if (canJump === true) velocity.y += 350;
+				            canJump = false;*/
+				            break;
+
+				        /*case 16: //Ctrl
+				            rotButton = true;
+				            break;*/
+				        case 16:
+				            running = true;
+				            break;
+				    }
+
+				    if (posButton || rotButton) {
+				        moveAmount += moveAmount;
+				        if (moveAmount > 5) moveAmount = 5;
+				    }
+				};
+
+				var onKeyUp = function (event) {
+
+				    if (posButton || rotButton)
+				        moveAmount = 0.1;
+
+				    if (event.type == "mouseup") {
+				        if (event.button == 0)
+				            moveForward = false;
+				    }
+
+				    switch (event.keyCode) {
+
+				        case 38: // up
+				        case 87: // w
+				            moveForward = false;
+				            break;
+
+				        case 37: // left
+				        case 65: // a
+				            moveLeft = false;
+				            break;
+
+				        case 40: // down
+				        case 83: // s
+				            moveBackward = false;
+				            break;
+
+				        case 39: // right
+				        case 68: // d
+				            moveRight = false;
+				            break;
+
+				        case 32: // space
+				            posButton = false;
+				            var frame = textures[moveIndex].frame;
+				            //console.log(moveIndex + " (pos): " + frame.position.x + "," + frame.position.y + "," + frame.position.z);
+				            //console.log(particleLight.position.x + "," + particleLight.position.y + "," + particleLight.position.z);
+				            break;
+
+				        case 17: //Ctrl
+				            rotButton = false;
+				            var frame = textures[moveIndex].frame;
+				            //console.log(moveIndex + " (rot): " + frame.rotation.x + "," + frame.rotation.y + "," + frame.rotation.z);
+				            break;
+				        case 16:
+				            running = false;
+				            rotButton = false;
+				            break;
+
+				    }
+
+				};
+                
+
+				var onTouchStartEnd = function (event) {
+
+				    event.preventDefault();
+				    var touches = event.changedTouches;
+				    moveForward = touches.length > 1;
+
+				};
+
+				document.addEventListener('touchstart', onTouchStartEnd, false);
+				document.addEventListener('touchend', onTouchStartEnd, false);
+				document.addEventListener('mousedown', onKeyDown, false);
+				document.addEventListener('mouseup', onKeyUp, false);
+				document.addEventListener('keydown', onKeyDown, false);
+				document.addEventListener('keyup', onKeyUp, false);
+
+
+
+				// Grid
+
+				/*var size = 14, step = 1;
+
+				var geometry = new THREE.Geometry();
+				var material = new THREE.LineBasicMaterial( { color: 0x303030 } );
+
+				for ( var i = - size; i <= size; i += step ) {
+
+					geometry.vertices.push( new THREE.Vector3( - size, - 0.04, i ) );
+					geometry.vertices.push( new THREE.Vector3(   size, - 0.04, i ) );
+
+					geometry.vertices.push( new THREE.Vector3( i, - 0.04, - size ) );
+					geometry.vertices.push( new THREE.Vector3( i, - 0.04,   size ) );
+
+				}
+
+				var line = new THREE.Line( geometry, material, THREE.LinePieces );
+				scene.add( line );*/
+
+				
+
+				// Add the COLLADA
+
+				//scene.add(dae);
+				
+				//objects.push(dae);
+
+
+				//particleLight = new THREE.Mesh( new THREE.SphereGeometry( 2, 8, 8 ), new THREE.MeshBasicMaterial( { color: 0xffffff } ) );
+				
+
+				// Lights
+
+				scene.add( new THREE.AmbientLight( 0xcccccc ) );
+
+				//var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xeeeeee );
+				/*directionalLight.position.x = Math.random() - 0.5;
+				directionalLight.position.y = Math.random() - 0.5;
+				directionalLight.position.z = Math.random() - 0.5;
+				directionalLight.position.normalize();
+				scene.add( directionalLight );
+
+				*/
+
+
+				//var pointLight = new THREE.PointLight(0xffffff,2);
+				//pointLight.target.position.set(-46.999, PAINTING_Y, -37);
+				//particleLight.position.set(-0.8000000000000113, 62.100000000000115, -3.439999999999979);
+				//pointLight.target = paintings[1];
+				
+				//particleLight.add(pointLight);
+
+				//scene.add(particleLight);
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			var temp = new THREE.Vector3();
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+				//controls.update();
+
+				//raycaster.ray.origin.copy(camera.position);
+				//var intersections = raycaster.intersectObjects(dae.children[0].children);
+				
+				/*for (var i = 0; i < dae.children[0].children.length; i++) {
+				    dae.children[0].children[i].material.color.set(0x000000);
+				}*/
+				
+
+				/*if (intersections.length > 0) {
+
+				    
+				    for(var i=0; i < intersections.length; i++)
+				    {
+				        intersections[i].object.material.color.set(0xff0000);
+				    }
+				    //console.log(intersections);
+				}*/
+
+				if (controlsEnabled) {
+
+				    controls.update();
+
+				    //console.log(controls.getObject().position)
+				    raycaster.ray.origin.copy(controls.getObject().position);
+				    raycaster.ray.origin.y -= 10;
+				    forwardRaycaster.ray.origin.copy(controls.getObject().position);
+				    paintingRaycaster.ray.origin.copy(controls.getObject().position);
+                    
+				    var forwardIntersections = forwardRaycaster.intersectObjects(collisionObjects);
+				    var intersections = raycaster.intersectObjects(collisionObjects);
+				    var paintingIntersections = paintingRaycaster.intersectObjects(paintings);
+
+				    //drawRay(paintingRaycaster);
+
+				    /*for (var i = 0; i < dae.children[0].children.length; i++) {
+
+				        dae.children[0].children[i].material.color.set(0xFFFFFF);
+				    }*/
+
+
+				    var time = performance.now();
+				    var delta = (time - prevTime) / 1000;
+				    //console.log(delta);
+
+				    velocity.x -= velocity.x * 10.0 * delta;
+				    velocity.z -= velocity.z * 10.0 * delta;
+				    velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+
+				    if (intersections.length > 0) {
+
+				        //for (var i = 0; i < intersections.length; i++) {
+				            //intersections[i].object.material.color.set(0xff0000);
+				            //break;
+				        //}
+
+				        controls.getObject().position.y = intersections[0].point.y + 19;
+				        //controls.getObject().position.y -= temp.y;
+				        velocity.y = Math.max(0, velocity.y);
+				        //velocity.y = 0;
+
+				        //console.log(intersections);
+
+				    }
+
+				    if (moveForward) velocity.z -= (running ? RUNNING_SPEED : WALKING_SPEED) * delta;
+				    if (moveBackward) velocity.z += (running ? RUNNING_SPEED : WALKING_SPEED) * delta;
+				    if (moveLeft) velocity.x -= (running ? RUNNING_SPEED : WALKING_SPEED) * delta;
+				    if (moveRight) velocity.x += (running ? RUNNING_SPEED : WALKING_SPEED) * delta;
+
+				    controls.getObject().translateX(velocity.x * delta);
+				    controls.getObject().translateY(velocity.y * delta);
+				    controls.getObject().translateZ(velocity.z * delta);
+
+				    if (controls.getObject().position.y < SCENE_BOUNDS_Y) {
+
+				        velocity.y = 0;
+				        controls.getObject().position.y = SCENE_BOUNDS_Y;
+				        resetPlayer();
+				    }
+
+
+				    temp.x = controls.getObject().position.x - temp.x;
+				    temp.y = 0;
+				    temp.z = controls.getObject().position.z - temp.z;
+
+				    //console.log(temp.normalize());
+
+				    if (paintingIntersections.length > 0)
+				    {
+				        //console.log(controls.getObject())cll
+
+				        for (var i = 0; i < paintingIntersections.length; i++)
+				        {
+				            var url = paintingIntersections[i].object._url;
+				            if (url) {
+				                if (painting.style.display == 'none') {
+				                    painting.src = url;
+				                    painting.style.display = '';
+				                    /*setTimeout(function () {
+
+				                        painting.className = "grow";
+
+				                    }, 1000)*/
+				                    
+                                    
+				                }
+				            }
+				            else
+				                painting.style.display = 'none';
+				        }
+				    }
+				    else
+				        painting.style.display = 'none';
+
+
+				    if (forwardIntersections.length > 0) {
+
+				        var collides = true;
+
+				        for (var i = 0; i < forwardIntersections.length; i++) {
+				            //forwardIntersections[i].object.material.color.set(0x00ff00);
+				            //console.log(forwardIntersections[i].object.id);
+				            var objid = forwardIntersections[i].object.id;
+				            if (objid == "235" || objid == "241" || objid == "233" || objid == "197" || objid == "239" || objid == "263") {
+
+				                collides = false;
+				                break;
+				            }
+				            //if(forwardIntersections[i].object._exit)
+				            //{
+				            //}
+				        }
+
+				        if(collides)
+				        {
+				            controls.getObject().position.z -= temp.z;
+				            controls.getObject().position.x -= temp.x;
+				        }
+
+				        //controls.getObject().position.z -= forwardRaycaster.ray.direction.z;
+				        //controls.getObject().position.x -= forwardRaycaster.ray.direction.x;
+
+				        //controls.getObject().position.z = forwardIntersections[0].point.z - 10;
+				        //console.log(velocity.z)
+				        //console.log(forwardIntersections[0].point);
+				        //console.log(controls.getObject().position);
+				    }
+
+				    forwardRaycaster.ray.direction.copy(temp.normalize());
+				    var yAngle = controls.getObject().rotation.y + Math.PI / 2;
+				    var xAngle = controls.getObject().children[0].rotation.x + Math.PI / 2;
+				    paintingRaycaster.ray.direction.set(Math.cos(yAngle), -Math.cos(xAngle), -Math.sin(yAngle));
+
+				    //console.log(xAngle + "," + yAngle);
+
+				    prevTime = time;
+				    temp.copy(controls.getObject().position);
+
+
+				}
+
+			}
+
+			//var clock = new THREE.Clock();
+
+			function render() {
+				renderer.render( scene, camera );
+			}
+
+		</script>
+	</body>
+</html>

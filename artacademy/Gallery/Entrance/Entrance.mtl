@@ -1,0 +1,170 @@
+# Created by Every File Explorer
+
+newmtl Arch_Detail_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Arch_Detail_t.png
+
+newmtl Bench
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Bench_t.png
+
+newmtl Door_Entrance_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Door_Entrance_t.png
+
+newmtl Fabric_Red_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Fabric_Red_t.png
+
+newmtl Gold_Chrome_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Gold_Chrome_t.png
+
+newmtl Handrail_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Handrail_t.png
+
+newmtl Marble_Green_Tiles
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Marble_Tiles_Green_t.png
+
+newmtl Marble_Green_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Marble_Green_t.png
+
+newmtl Marble_Red_Vert
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Marble_Vert_Red.png
+
+newmtl Marble_Tiles_Black
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Marble_Tiles_Black_t.png
+
+newmtl Marble_Tiles_Checker_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Marble_Tiles_Checker_t.png
+
+newmtl Marble_Tiles_Cream_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Marble_Tiles_Cream_t.png
+
+newmtl Marble_Tiles_White
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Marble_Tiles_White_t.png
+
+newmtl Pillar_Detail_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Pillar_Detail_t.png
+
+newmtl Railings
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Railings_t.png
+
+newmtl Rope_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Rope_t.png
+
+newmtl Steps_Stone_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Steps_Stone_t.png
+
+newmtl Wall_Dark_Cream_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Wall_Dark_Cream_t.png
+
+newmtl Wallpaper_Floral_Yellow_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/Wallpaper_Floral_Grey_t.png
+
+newmtl coving_cream_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/coving_cream_t.png
+
+newmtl square_panel_cream_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/square_panel_cream_t.png
+
+newmtl window_ceiling_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/window_ceiling_t.png
+
+newmtl window_curved
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/window_curved_t.png
+
+newmtl wood_floor_planks_dark_t
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.8980392 0.8980392 0.8980392
+d 1
+map_Kd Tex/wood_floor_planks_dark_t.png
+

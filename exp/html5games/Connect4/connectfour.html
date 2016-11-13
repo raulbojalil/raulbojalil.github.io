@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+Connecta Cuatro
+</title>
+<style type="text/css">
+
+#gameArea
+{
+    width: 600px;
+    height: 500px;
+    background-color: Blue;
+    
+}
+
+.disc
+{
+    -webkit-transition: all 0.5s ease-in-out;
+}
+
+@-webkit-keyframes columnHover {
+	from
+	{
+        opacity: 0.1;
+    }
+	
+	to
+	{
+        opacity: 1;
+	}
+}
+
+.columnOnHover:hover
+{
+    -webkit-animation-name: columnHover;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-timing-function: ease-in;
+	
+}
+
+
+</style>
+
+
+
+</head>
+
+<body >
+
+<div id="gameArea">
+
+</div>
+
+
+<script type="text/javascript">
+
+    var gameArea = document.getElementById("gameArea");
+    var discs = new Array();
+    var player = 1;
+    var FIELD_ROWS = 6;
+    var FIELD_COLS = 7;
+
+    var DISC_VALUE_INVALID = -1;
+    var DISC_VALUE_EMPTY = 0;
+    var DISC_VALUE_HUMANPLAYER = 1;
+    var DISC_VALUE_COMPUTERPLAYER = 2; 
+
+    for (var i = 0; i < FIELD_ROWS; i++) { //rows
+
+        discs[i] = new Array();
+
+        for (var j = 0; j < FIELD_COLS; j++) { //cols
+
+            discs[i][j] = DISC_VALUE_EMPTY;
+            var hole = document.createElement("div");
+            
+            hole.style.position = "absolute";
+            hole.style.top = (20 + (i * 80)) + "px";
+            hole.style.left = (30 + (j * 80)) + "px";
+            hole.style.backgroundColor = "white";
+            hole.style.width = "70px";
+            hole.style.height = "70px";
+            hole.style.borderRadius = "35px";
+            
+            gameArea.appendChild(hole);
+        }
+    }
+
+    for (var i = 0; i < FIELD_COLS; i++) {
+
+        var column = document.createElement("div");
+        column.id = "col" + i;
+        column.onclick = new Function("placeDisc(" + i + ")");
+        column.className = "columnOnHover";
+        column.style.position = "absolute";
+        column.style.top = "20px"
+        column.style.left = (30 + (i * 80)) + "px";
+        column.style.backgroundColor = "green";
+        column.style.zIndex = 1000;
+        column.style.width = "75px";
+        column.style.height = (7 * 70) + "px";
+        column.style.opacity = 0;
+        gameArea.appendChild(column);
+    }
+
+
+    function columnIsFull(column) {
+
+        var discValue = getDiscValue(0, column);
+        if (discValue == DISC_VALUE_HUMANPLAYER || discValue == DISC_VALUE_COMPUTERPLAYER)
+            return true;
+
+        return false;
+    }
+
+    function checkWin(row, col) {
+
+        var discValue = getDiscValue(row, col);
+
+        if (discValue == DISC_VALUE_INVALID || discValue == DISC_VALUE_EMPTY) return false;
+
+        if (isVerticalStreak(row, col) ||
+            isHorizontalStreak(row, col) ||
+            isDiagonalStreak(row, col) ||
+            isBackDiagonalStreak(row, col)) {
+
+            if (player == 1)
+                alert("HAS GANADO");
+            else if (player == 2)
+                alert("HAS PERDIDO");
+
+            showWinningStreak(row, col);
+        }
+    }
+
+    function showWinningStreak(row, col) {
+
+        var winningDiscs = new Array();
+        
+        var line = document.createElement("div");
+        line.style.position = "absolute";
+        line.style.backgroundColor = "black";
+        line.style.zIndex = 1000;
+
+        if (isVerticalStreak(row, col)) {
+
+            winningDiscs.push(row + "_" + col);
+            getAdjacentDiscsArray(row, col, -1, 0, winningDiscs);
+            getAdjacentDiscsArray(row, col, 1, 0, winningDiscs);
+
+            line.style.width = "10px";
+            var top = 20 + (parseInt(winningDiscs[0].split('_')[0]) * 80) + 30;
+            var left = 30 + (parseInt(winningDiscs[0].split('_')[1]) * 80) + 30;
+            line.style.top = top + "px";
+            line.style.left = left + "px";
+            line.style.height = ((20 + (parseInt(winningDiscs[winningDiscs.length - 1].split('_')[0])) * 80) - top + 35) + "px";
+             
+        }
+        else if (isHorizontalStreak(row, col)) {
+
+            getAdjacentDiscsArray(row, col, 0, -1, winningDiscs);
+            winningDiscs.reverse();
+            winningDiscs.push(row + "_" + col);
+            getAdjacentDiscsArray(row, col, 0, 1, winningDiscs);
+
+            var top = 20 + (parseInt(winningDiscs[0].split('_')[0]) * 80) + 30;
+            var left = 30 + (parseInt(winningDiscs[0].split('_')[1]) * 80) + 30;
+            line.style.width = ((30 + (parseInt(winningDiscs[winningDiscs.length - 1].split('_')[1])) * 80) - left + 35) + "px";
+            line.style.top = top + "px";
+            line.style.left = left + "px";
+            line.style.height = "10px";
+
+        }
+        else if (isDiagonalStreak(row, col)) { ///    /
+
+            getAdjacentDiscsArray(row, col, -1, 1, winningDiscs);
+            winningDiscs.reverse();
+            winningDiscs.push(row + "_" + col);
+            getAdjacentDiscsArray(row, col, 1, -1, winningDiscs);
+
+            var top = 20 + (parseInt(winningDiscs[0].split('_')[0]) * 80) - 15;
+            var left = 30 + (parseInt(winningDiscs[0].split('_')[1]) * 80) + 30 - 120;
+            line.style.width = "10px";
+            line.style.height = ((20 + (parseInt(winningDiscs[winningDiscs.length - 1].split('_')[0])) * 80) - top + 35 + 55) + "px";
+            line.style.top = top + "px";
+            line.style.left = left + "px";
+            line.style.webkitTransform = "rotate(45deg)";
+
+        }
+        else if (isBackDiagonalStreak(row, col)) { //   \
+
+            getAdjacentDiscsArray(row, col, -1, -1, winningDiscs);
+            winningDiscs.reverse();
+            winningDiscs.push(row + "_" + col);
+            getAdjacentDiscsArray(row, col, 1, 1, winningDiscs);
+
+            var top = 20 + (parseInt(winningDiscs[0].split('_')[0]) * 80) - 15;
+            var left = 30 + (parseInt(winningDiscs[0].split('_')[1]) * 80) + 30 + 120;
+            line.style.width = "10px";
+            line.style.height = ((20 + (parseInt(winningDiscs[winningDiscs.length - 1].split('_')[0])) * 80) - top + 35 + 55) + "px";
+           
+            line.style.top = top + "px";
+            line.style.left = left + "px";
+            line.style.webkitTransform = "rotate(-45deg)";
+
+        }
+
+        gameArea.appendChild(line);
+       
+
+    }
+
+    function getAdjacentDiscs(row, col, rowInc, colInc) {
+
+        if (getDiscValue(row, col) == getDiscValue(row + rowInc, col + colInc))
+            return 1 + getAdjacentDiscs(row + rowInc, col + colInc, rowInc, colInc);
+        else
+            return 0;
+    }
+
+    function getAdjacentDiscsArray(row, col, rowInc, colInc, discsArray) {
+        if (getDiscValue(row, col) == getDiscValue(row + rowInc, col + colInc)) {
+            discsArray.push((row + rowInc) + "_" + (col + colInc));
+            getAdjacentDiscsArray(row + rowInc, col + colInc, rowInc, colInc, discsArray);
+        }
+        else
+            return discsArray;
+    }
+
+    function getDiscValue(row, col) {
+
+        if (row >= FIELD_ROWS || row < 0) return -1;
+        if (col >= FIELD_COLS || col < 0) return -1;
+        return discs[row][col];
+    }
+
+    function isVerticalStreak(row, col) {
+
+        if ((getAdjacentDiscs(row, col, 1, 0) + getAdjacentDiscs(row, col, -1, 0)) > 2) //Verticalmente
+            return true;
+    }
+
+    function isHorizontalStreak(row, col) {
+
+        if ((getAdjacentDiscs(row, col, 0, 1) + getAdjacentDiscs(row, col, 0, -1)) > 2) //Horizontalmente
+            return true;
+    }
+
+    function isBackDiagonalStreak(row, col) {  ///    \
+
+        if ((getAdjacentDiscs(row, col, -1, -1) + getAdjacentDiscs(row, col, 1, 1)) > 2) //  Diagonalmente invertido (\)
+            return true;
+    }
+
+    function isDiagonalStreak(row, col) {  ///    /
+
+        if ((getAdjacentDiscs(row, col, -1, 1) + getAdjacentDiscs(row, col, 1, -1)) > 2) //Diagonalmente (/)
+            return true;
+    }
+
+    function placeDisc(column) {
+
+        if (columnIsFull(column)) {
+            console.log("Movimiento ilegal en la columna " + column);
+            return;
+        }
+
+        var disc = document.createElement("div");
+        disc.style.position = "absolute";
+
+        disc.style.backgroundColor = (player == 1) ? "red" : "yellow";
+        disc.style.top = "-100px";
+        disc.style.left = (30 + (column * 80)) + "px";
+        disc.style.width = "70px";
+        disc.style.height = "70px";
+        disc.style.borderRadius = "35px";
+        document.body.appendChild(disc);
+
+        setTimeout(function () {
+
+            for (var i = 0; i < FIELD_ROWS; i++) {
+
+                if (discs[i][column] > 0) {
+                    disc.style.top = (20 + ((i - 1) * 80)) + "px";
+                    discs[i - 1][column] = player;
+                    disc.id = (i - 1) + "_" + column;
+                    checkWin(i - 1, column);
+                    break;
+
+                }
+
+                if (discs[i][column] == 0 && i == 5) {
+                    disc.style.top = (20 + (i * 80)) + "px";
+                    discs[i][column] = player;
+                    disc.id = i + "_" + column;
+                    checkWin(i, column);
+                    break;
+                }
+
+            }
+            disc.className = "disc";
+
+            if (columnIsFull(column)) {
+                var col = document.getElementById("col" + column);
+                gameArea.removeChild(col);
+            }
+
+            player = player == DISC_VALUE_HUMANPLAYER ? DISC_VALUE_COMPUTERPLAYER : DISC_VALUE_HUMANPLAYER;
+
+            if (player == DISC_VALUE_COMPUTERPLAYER) {
+                makeComputerMove();
+            }
+
+        }, 0);
+    }
+
+    function getPossibleMoves() {
+
+        var possibleMoves = new Array();
+        
+        var blocked = 0;
+        var bestBlocked = 0;
+
+
+        //MODO TONTO (Aleatorio, sin intentar ganar y sin intentar tapar al humano)
+        //        for (var j = 0; j < FIELD_COLS; j++) {
+
+        //            if (!columnIsFull(j))
+        //                possibleMoves.push(j);
+        //                }
+
+        //MODO DEFENSIVO (Tratar de tapar al usuario humano sin intentar ganar, es decir intentar empatar)
+//        for (var i = 0; i < FIELD_COLS; i++) { //recorre todas las columnas
+
+//            if (!columnIsFull(i)) { //checa si la columna no está llena ya
+
+//                for (var j = FIELD_ROWS - 1; j >= 0; j--) { //encuentra el primer espacio vacío en la columna empezando desde abajo
+
+//                    if (discs[j][i] == DISC_VALUE_EMPTY) {
+
+//                        discs[j][i] = DISC_VALUE_HUMANPLAYER; //Para ver que pasaría si el jugador humano tira aquí
+
+//                        blocked = getAdjacentDiscs(j, i, 0, -1) + getAdjacentDiscs(j, i, 0, 1);
+//                        blocked = Math.max(blocked, getAdjacentDiscs(j, i, -1, 0) + getAdjacentDiscs(j, i, 1, 0));
+//                        blocked = Math.max(blocked, getAdjacentDiscs(j, i, -1, -1) + getAdjacentDiscs(j, i, 1, 1));
+//                        blocked = Math.max(blocked, getAdjacentDiscs(j, i, -1, 1) + getAdjacentDiscs(j, i, 1, -1));
+
+//                        if (blocked >= bestBlocked) { 
+//                            if (blocked > bestBlocked) { //Si el movimiento actual es más efectivo que el mejor que se ha encontrado hasta el momento entonces reinicia la lista de posibles movimientos
+//                                bestBlocked = blocked;
+//                                possibleMoves = new Array();
+//                            }
+//                            possibleMoves.push(i); //Si el movimiento actual es igual o más efectivo que el mejor que se ha encontrado hasta el momento entonces es un posible movimiento
+//                        }
+
+//                        discs[j][i] = DISC_VALUE_EMPTY; //Regresa a como estaba anteriormente
+//                        break;
+
+//                    }
+
+//                }
+
+//            }
+
+//        }
+
+        //MODO OFENSIVO (Intentar ganar tapando al mismo tiempo al jugador humano evitando que éste gane)
+        for (var i = 0; i < FIELD_COLS; i++) { //recorre todas las columnas
+
+            if (!columnIsFull(i)) { //checa si la columna no está llena ya
+
+                for (var j = FIELD_ROWS - 1; j >= 0; j--) { //encuentra el primer espacio vacío en la columna empezando desde abajo
+
+                    if (discs[j][i] == DISC_VALUE_EMPTY) {
+
+                        //Primero que nada verifica que si se puede ganar en este turno.
+
+                        discs[j][i] = DISC_VALUE_COMPUTERPLAYER;
+                        
+                        if((getAdjacentDiscs(j, i, 0, -1) + getAdjacentDiscs(j, i, 0, 1)) > 2 ||
+                        (getAdjacentDiscs(j, i, -1, 0) + getAdjacentDiscs(j, i, 1, 0)) > 2 || 
+                        (getAdjacentDiscs(j, i, -1, -1) + getAdjacentDiscs(j, i, 1, 1)) > 2 ||
+                        (getAdjacentDiscs(j, i, -1, 1) + getAdjacentDiscs(j, i, 1, -1)) > 2)
+                        {
+                            discs[j][i] = DISC_VALUE_EMPTY; //Si se puede ganar en este turno ya no hagas más cálculos
+                            possibleMoves = new Array();
+                            possibleMoves.push(i);
+                            return possibleMoves;
+
+                        }
+
+                        //Hay que ver las posibles columnas para tapar al humano
+
+                        discs[j][i] = DISC_VALUE_HUMANPLAYER; //Para ver que pasaría si el jugador humano tira aquí
+
+                        blocked = getAdjacentDiscs(j, i, 0, -1) + getAdjacentDiscs(j, i, 0, 1);
+                        blocked = Math.max(blocked, getAdjacentDiscs(j, i, -1, 0) + getAdjacentDiscs(j, i, 1, 0));
+                        blocked = Math.max(blocked, getAdjacentDiscs(j, i, -1, -1) + getAdjacentDiscs(j, i, 1, 1));
+                        blocked = Math.max(blocked, getAdjacentDiscs(j, i, -1, 1) + getAdjacentDiscs(j, i, 1, -1));
+
+                        if (blocked >= bestBlocked) {
+                            if (blocked > bestBlocked) { //Si el movimiento actual es más efectivo que el mejor que se ha encontrado hasta el momento entonces reinicia la lista de posibles movimientos
+                                bestBlocked = blocked;
+                                possibleMoves = new Array();
+                            }
+                            possibleMoves.push(i); //Si el movimiento actual es igual o más efectivo que el mejor que se ha encontrado hasta el momento entonces es un posible movimiento
+                        }
+
+                        discs[j][i] = DISC_VALUE_EMPTY; //Regresa a como estaba anteriormente
+                        break;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        if (possibleMoves.length == 1)
+            return possibleMoves;
+
+        var lastPossibleMoves = new Array();
+
+        for (var i = 0; i < possibleMoves.length; i++) {
+            lastPossibleMoves.push(possibleMoves[i]);
+        }
+
+        possibleMoves = new Array();
+
+        blocked = 0;
+        bestBlocked = 0;
+
+        //Si hay más de una opción de tapar al humano entonces verifica cual es la que más nos acerca a ganar (pueden ser varias)
+        for (var i = 0; i < lastPossibleMoves.length; i++) { //recorre las posibles columnas calculadas anteriormente
+            
+            var possibleColumn = lastPossibleMoves[i];
+            for (var j = FIELD_ROWS - 1; j >= 0; j--) {  //Encontrar el primer espacio vacío en esta columna
+
+                if (discs[j][possibleColumn] == DISC_VALUE_EMPTY) {
+
+                    discs[j][possibleColumn] = DISC_VALUE_COMPUTERPLAYER;
+                    blocked = getAdjacentDiscs(j, possibleColumn, 0, -1) + getAdjacentDiscs(j, possibleColumn, 0, 1);
+                    blocked = Math.max(blocked, getAdjacentDiscs(j, possibleColumn, -1, 0) + getAdjacentDiscs(j, possibleColumn, 1, 0));
+                    blocked = Math.max(blocked, getAdjacentDiscs(j, possibleColumn, -1, -1) + getAdjacentDiscs(j, possibleColumn, 1, 1));
+                    blocked = Math.max(blocked, getAdjacentDiscs(j, possibleColumn, -1, 1) + getAdjacentDiscs(j, possibleColumn, 1, -1));
+
+                     if (blocked >= bestBlocked) { 
+                            if (blocked > bestBlocked) { //Si el movimiento actual es más efectivo que el mejor que se ha encontrado hasta el momento entonces reinicia la lista de posibles movimientos
+                                bestBlocked = blocked;
+                                possibleMoves = new Array();
+                            }
+                            possibleMoves.push(possibleColumn); //Si el movimiento actual es igual o más efectivo que el mejor que se ha encontrado hasta el momento entonces es un posible movimiento
+                        }
+
+
+                    discs[j][possibleColumn] = DISC_VALUE_EMPTY;
+                    break;
+                }
+
+            }
+
+        }
+
+        return possibleMoves;
+
+    }
+
+    function makeComputerMove() {
+
+        var movesArray = getPossibleMoves();
+        console.log(movesArray);
+        placeDisc(movesArray[Math.floor(Math.random() * movesArray.length)]);
+
+    }
+
+</script>
+
+</body>
+
+</html>

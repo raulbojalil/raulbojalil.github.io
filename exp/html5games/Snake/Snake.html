@@ -1,0 +1,564 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+<title>Snake</title>
+
+<style type="text/css">
+</style>
+
+<!--<script type="text/javascript" src="js/SnakeGame.js"></script>-->
+<!--<script type="text/javascript" src="js/Snake.js"></script>-->
+<script type="text/javascript" src="Tween.js"></script>
+<script type="text/javascript">
+
+    ///SnakeGame.js
+
+    var SNAKEGAME = SNAKEGAME || {};
+    SNAKEGAME.CANVAS_WIDTH = 600;
+    SNAKEGAME.CANVAS_HEIGHT = 600;
+    SNAKEGAME.FIELD_TILE_WIDTH = 30;
+    SNAKEGAME.FIELD_TILE_HEIGHT = 30;
+    SNAKEGAME.FIELD_WIDTH = SNAKEGAME.CANVAS_WIDTH / SNAKEGAME.FIELD_TILE_WIDTH;  // Número de cuadros del tamaño especificado anteriormente
+    SNAKEGAME.FIELD_HEIGHT = SNAKEGAME.CANVAS_HEIGHT / SNAKEGAME.FIELD_TILE_HEIGHT;
+
+    ///SnakeGameRenderer.js
+    SNAKEGAME.SnakeGameRenderer = function () {
+
+        var _canvas = document.createElement("canvas");
+        _canvas.width = SNAKEGAME.CANVAS_WIDTH;
+        _canvas.height = SNAKEGAME.CANVAS_HEIGHT;
+        var j = 0;
+
+        var snake = new SNAKEGAME.Snake(0, 0);
+        var food = [];
+        var gameStates = [];
+        var gameOver = false;
+        var wall = new SNAKEGAME.Wall(0, 0);
+        var gameOverScreen = null
+
+
+        var context = _canvas.getContext("2d");
+
+        this.canvas = _canvas;
+
+        window.addEventListener("keydown", function (evt) {
+
+            switch (evt.keyCode) {
+                case 38:  //Arriba
+                    snake.setDirection(SNAKEGAME.Direction.UP);
+                    break;
+                case 40:  //Abajo
+                    snake.setDirection(SNAKEGAME.Direction.DOWN);
+                    break;
+                case 37:  //Izquierda
+                    snake.setDirection(SNAKEGAME.Direction.LEFT);
+                    break;
+                case 39:  //Derecha
+                    snake.setDirection(SNAKEGAME.Direction.RIGHT);
+                    break;
+            }
+
+
+        }, false);
+
+        this.placeFood = function () {
+
+            var _foodPlaced = false;
+
+            while (!_foodPlaced) {
+
+                var row = Math.floor(Math.random() * SNAKEGAME.FIELD_HEIGHT);
+                var col = Math.floor(Math.random() * SNAKEGAME.FIELD_WIDTH);
+
+                for (var i = 0; i < snake.getBodyParts().length; i++) {
+
+                    if (snake.getBodyParts()[i].getX() != (col * SNAKEGAME.FIELD_TILE_WIDTH) &&
+                        snake.getBodyParts()[i].getY() != (row * SNAKEGAME.FIELD_TILE_HEIGHT)) {
+                        food.push(new SNAKEGAME.Food(col * SNAKEGAME.FIELD_TILE_WIDTH, row * SNAKEGAME.FIELD_TILE_HEIGHT));
+                        _foodPlaced = true;
+                        break;
+                    }
+
+                }
+
+            }
+
+        };
+
+        this.render = function () {
+            context.clearRect(0, 0, _canvas.width, _canvas.height);
+            this.update();
+            this.draw();
+        };
+
+        this.update = function () {
+
+            if (gameOverScreen == null) {
+                snake.update();
+                this.checkSnakeFoodCollision();
+                this.checkSnakeWallsCollisions();
+                this.checkSnakeSelfCollisions();
+            }
+        };
+
+        this.checkSnakeFoodCollision = function () {
+
+            for (var i = 0; i < food.length; i++) {
+                if (snake.getBodyParts()[0].getX() == food[i].getX() &&
+                    snake.getBodyParts()[0].getY() == food[i].getY()) {
+
+                    food.splice(i, 1);
+                    snake.grow();
+                    this.placeFood();
+                }
+            }
+        };
+
+        this.checkSnakeWallsCollisions = function () {
+
+            //Wrappea para que el nivel sea infinito
+
+            if (snake.getHead().getX() < 0)
+                snake.getHead().setX(SNAKEGAME.CANVAS_WIDTH - SNAKEGAME.FIELD_TILE_WIDTH);
+
+            if (snake.getHead().getX() > SNAKEGAME.CANVAS_WIDTH)
+                snake.getHead().setX(0);
+
+            if (snake.getHead().getY() < 0)
+                snake.getHead().setY(SNAKEGAME.CANVAS_HEIGHT - SNAKEGAME.FIELD_TILE_HEIGHT);
+
+            if (snake.getHead().getY() > SNAKEGAME.CANVAS_HEIGHT)
+                snake.getHead().setY(0);
+
+            // if (snake.getHead().getX() < 0 || snake.getHead().getX() > SNAKEGAME.CANVAS_WIDTH || snake.getHead().getY() < 0 || snake.getHead().getY() > SNAKEGAME.CANVAS_HEIGHT)
+
+        };
+
+        this.checkSnakeSelfCollisions = function () {
+
+            for (var i = 1; i < snake.getBodyParts().length; i++) {
+
+                if (snake.getBodyParts()[0].getX() == snake.getBodyParts()[i].getX() &&
+                   snake.getBodyParts()[0].getY() == snake.getBodyParts()[i].getY()) {
+
+                    gameOverScreen = new SNAKEGAME.GameOverScreen();
+                    //new TWEEN.Tween(wall.position).to({ x: 100 }, 1000).easing(TWEEN.Easing.Exponential.EaseOut).start();
+                    //gameOver = true;
+                }
+
+            }
+
+        };
+
+        this.drawBackground = function () {
+
+            context.fillStyle = "blue";
+            context.fillRect(0, 0, SNAKEGAME.CANVAS_WIDTH, SNAKEGAME.CANVAS_HEIGHT);
+        }
+
+        this.draw = function () {
+
+            this.drawBackground();
+            snake.draw(context);
+            for (var i = 0; i < food.length; i++)
+                food[i].draw(context);
+
+            //wall.draw(context);
+
+            if (gameOverScreen != null)
+                gameOverScreen.draw(context);
+
+            //            if (gameOver) {
+            //                context.fillStyle = "rgba(0,0,0,0.5)";
+            //                context.fillRect(0, 0, SNAKEGAME.CANVAS_WIDTH, SNAKEGAME.CANVAS_HEIGHT);
+            //                context.font = "60pt Calibri";
+            //                context.fillStyle = "white"; // text color
+            //                context.fillText("HAS PERDIDO", 20, 100);
+            //            }
+        };
+
+
+        this.placeFood();
+
+    }
+
+    ///SnakeBodyPartEnum.js
+    SNAKEGAME.BodyPart = 
+    {     
+        HEAD : 0,     
+        BODY : 1,
+        TAIL: 2 
+    };
+
+
+    //GameOverScreen.js
+    SNAKEGAME.GameOverScreen = function () {
+
+        this.position0 = { x: 0, y: -10 }; //H
+        this.position1 = { x: 50, y: -10 }; //A
+        this.position2 = { x: 100, y: -10 }; //S
+        this.position3 = { x: 250, y: -10 }; //P
+        this.position4 = { x: 300, y: -10 }; //E
+        this.position5 = { x: 350, y: -10 }; //R
+        this.position6 = { x: 400, y: -10 }; //D
+        this.position7 = { x: 450, y: -10 }; //I
+        this.position8 = { x: 500, y: -10 }; //D
+        this.position9 = { x: 550, y: -10 }; //O 
+
+        this.position10 = { x: 0 };
+
+        new TWEEN.Tween(this.position0).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 1000).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position1).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 1200).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position2).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 1400).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position3).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 1600).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position4).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 1800).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position5).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 2000).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position6).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 2200).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position7).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 2400).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position8).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 2600).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position9).to({ y: SNAKEGAME.CANVAS_HEIGHT / 2 }, 2800).easing(TWEEN.Easing.Bounce.EaseOut).start();
+
+        new TWEEN.Tween(this.position10).to({ x: 0.7 }, 3000).easing(TWEEN.Easing.Linear.EaseNone).start();
+
+        this.draw = function (context) {
+
+            context.fillStyle = "rgba(0,0,0," + this.position10.x + ")";
+            context.fillRect(0, 0, SNAKEGAME.CANVAS_WIDTH, SNAKEGAME.CANVAS_HEIGHT);
+            context.font = "60pt Calibri";
+            context.fillStyle = "white"; // text color
+            context.fillText("H", this.position0.x, this.position0.y);
+            context.fillText("A", this.position1.x, this.position1.y);
+            context.fillText("S", this.position2.x, this.position2.y);
+            context.fillText("P", this.position3.x, this.position3.y);
+            context.fillText("E", this.position4.x, this.position4.y);
+            context.fillText("R", this.position5.x, this.position5.y);
+            context.fillText("D", this.position6.x, this.position6.y);
+            context.fillText("I", this.position7.x, this.position7.y);
+            context.fillText("D", this.position8.x, this.position8.y);
+            context.fillText("O", this.position9.x, this.position9.y);
+        }
+
+    }
+
+    ///Snake.js
+
+    SNAKEGAME.Snake = function (x, y) {
+
+        var _x = x || 0;
+        var _y = y || 0;
+        var _grow = false;
+        var _currentDirection = SNAKEGAME.Direction.DOWN;
+
+        var snakeBodyParts = [];
+
+        snakeBodyParts.push(new SNAKEGAME.SnakeBodyPart(SNAKEGAME.BodyPart.HEAD, 0, SNAKEGAME.FIELD_TILE_HEIGHT * 4));
+        snakeBodyParts.push(new SNAKEGAME.SnakeBodyPart(SNAKEGAME.BodyPart.BODY, 0, SNAKEGAME.FIELD_TILE_HEIGHT * 3));
+        snakeBodyParts.push(new SNAKEGAME.SnakeBodyPart(SNAKEGAME.BodyPart.BODY, 0, SNAKEGAME.FIELD_TILE_HEIGHT * 2));
+        snakeBodyParts.push(new SNAKEGAME.SnakeBodyPart(SNAKEGAME.BodyPart.BODY, 0, SNAKEGAME.FIELD_TILE_HEIGHT));
+
+        this.setDirection = function (direction) {
+
+            if (_currentDirection == SNAKEGAME.Direction.LEFT && direction == SNAKEGAME.Direction.RIGHT) return;
+            if (_currentDirection == SNAKEGAME.Direction.RIGHT && direction == SNAKEGAME.Direction.LEFT) return;
+            if (_currentDirection == SNAKEGAME.Direction.UP && direction == SNAKEGAME.Direction.DOWN) return;
+            if (_currentDirection == SNAKEGAME.Direction.DOWN && direction == SNAKEGAME.Direction.UP) return;
+            _currentDirection = direction;
+        }
+
+        this.getBodyParts = function () {
+            return snakeBodyParts;
+        };
+
+        this.getHead = function () {
+            return snakeBodyParts[0];
+
+        };
+
+        this.update = function () {
+            this.move();
+        };
+
+        this.grow = function () {
+            _grow = true;
+        };
+
+        this.move = function () {
+
+            if (_grow)
+                _grow = false;
+            else
+                snakeBodyParts.pop();
+
+            var newX = snakeBodyParts[0].getX();
+            var newY = snakeBodyParts[0].getY();
+
+            snakeBodyParts[0].move(_currentDirection);
+            snakeBodyParts.splice(1, 0, new SNAKEGAME.SnakeBodyPart(SNAKEGAME.BodyPart.BODY, newX, newY));
+
+        };
+
+
+        this.draw = function (canvasCtx) {
+            for (var i = 0; i < snakeBodyParts.length; i++) {
+                snakeBodyParts[i].draw(canvasCtx);
+            }
+        };
+    };
+
+    ///Wall.js
+    SNAKEGAME.Wall = function (xs, ys) {
+
+        this.position = { x: xs, y: ys };
+
+        this.draw = function (context) {
+
+            context.fillStyle = "gray";
+            context.fillRect(this.position.x, this.position.y, SNAKEGAME.FIELD_TILE_WIDTH, SNAKEGAME.FIELD_TILE_HEIGHT);
+
+        };
+
+    }
+
+
+
+     ///Food.js
+        SNAKEGAME.Food = function (x, y) {
+
+            var _x = x || 0;
+            var _y = y || 0;
+
+            this.getX = function()
+            {
+                return _x;
+            };
+
+            this.getY = function()
+            {
+                return _y;
+            };
+
+            this.draw = function (context) {
+
+                context.beginPath();
+                context.arc(_x + SNAKEGAME.FIELD_TILE_WIDTH/2, _y + SNAKEGAME.FIELD_TILE_HEIGHT/2, (SNAKEGAME.FIELD_TILE_HEIGHT + SNAKEGAME.FIELD_TILE_WIDTH) / 4, 0, 2 * Math.PI, false);
+
+                var grd = context.createRadialGradient(_x+10, _y+10, 4,
+	            _x + 10, _y + 10, 15);
+                grd.addColorStop(0, "#F3E0E3"); // ROJO CLARO
+                grd.addColorStop(1, "#FF0000"); // ROJO OBSCURO
+
+                context.fillStyle = grd;
+                context.fill();
+
+
+                //canvasCtx.fillStyle = "rgb(255,0,255)";
+                //canvasCtx.fillRect(_x, _y, SNAKEGAME.FIELD_TILE_WIDTH, SNAKEGAME.FIELD_TILE_HEIGHT);
+            };
+
+        };
+
+    ///DirectionEnum.js
+
+    SNAKEGAME.Direction =
+    {
+        UP: 0,
+        LEFT: 1,
+        RIGHT: 2,
+        DOWN: 3
+    };
+
+    ///SnakeBodyPart.js
+
+    SNAKEGAME.SnakeBodyPart = function (type, x, y) {
+
+        var _x = x;
+        var _y = y;
+        var _type = type;
+
+        var _direction = SNAKEGAME.Direction.DOWN;
+
+        this.getX = function () {
+            return _x;
+        };
+
+        this.getY = function () {
+            return _y;
+        };
+
+        this.setX = function (value) {
+            _x = value;
+        };
+
+        this.setY = function (value) {
+            _y = value;
+        };
+
+        this.move = function (direction) {
+
+            _direction = direction;
+            switch (direction) {
+                case SNAKEGAME.Direction.LEFT:
+                    _x -= SNAKEGAME.FIELD_TILE_WIDTH;
+                    break;
+                case SNAKEGAME.Direction.RIGHT:
+                    _x += SNAKEGAME.FIELD_TILE_WIDTH;
+                    break;
+                case SNAKEGAME.Direction.DOWN:
+                    _y += SNAKEGAME.FIELD_TILE_HEIGHT;
+                    break;
+                case SNAKEGAME.Direction.UP:
+                    _y -= SNAKEGAME.FIELD_TILE_HEIGHT;
+                    break;
+            }
+        }
+
+        this.draw = function (context) {
+
+            switch (_type) {
+
+                case SNAKEGAME.BodyPart.HEAD:
+                    var startingPointX = -SNAKEGAME.FIELD_TILE_WIDTH / 2;
+                    var startingPointY = -SNAKEGAME.FIELD_TILE_HEIGHT / 2;
+                    var width = SNAKEGAME.FIELD_TILE_WIDTH;
+                    var height = SNAKEGAME.FIELD_TILE_HEIGHT;
+
+                    context.save();
+
+                    context.translate(_x + SNAKEGAME.FIELD_TILE_WIDTH / 2, _y + SNAKEGAME.FIELD_TILE_HEIGHT / 2);
+
+                    switch (_direction) {
+
+                        case SNAKEGAME.Direction.LEFT:
+                            context.rotate(Math.PI + Math.PI / 2);
+                            break;
+                        case SNAKEGAME.Direction.RIGHT:
+                            context.rotate(Math.PI / 2);
+                            break;
+                        case SNAKEGAME.Direction.DOWN:
+                            context.rotate(Math.PI);
+                            break;
+                        case SNAKEGAME.Direction.UP:
+                            context.rotate(0);
+                            break;
+                    }
+
+                    context.beginPath();
+
+                    context.moveTo(startingPointX, startingPointY + height);
+                    context.quadraticCurveTo(startingPointX + (width / 2), startingPointY + height / 3, startingPointX + width, startingPointY + height);
+
+                    context.bezierCurveTo(startingPointX + width, startingPointY - width / 3, startingPointX, startingPointY - width / 3, startingPointX, startingPointY + ((height)));
+                    context.stroke();
+
+                    var grd = context.createLinearGradient(startingPointX, startingPointY, startingPointX + SNAKEGAME.FIELD_TILE_WIDTH, startingPointY + SNAKEGAME.FIELD_TILE_HEIGHT);
+
+                    grd.addColorStop(0, "#00FF00"); // verde
+                    grd.addColorStop(1, "#009900"); // verde fuerte
+                    context.fillStyle = grd;
+                    context.fill();
+
+                    context.restore();
+                    break;
+
+                case SNAKEGAME.BodyPart.TAIL:
+                    context.fillStyle = "rgb(0,0,0)";
+                    context.fillRect(_x, _y, SNAKEGAME.FIELD_TILE_WIDTH, SNAKEGAME.FIELD_TILE_HEIGHT);
+                    break;
+
+                case SNAKEGAME.BodyPart.BODY:
+                    var rectWidth = SNAKEGAME.FIELD_TILE_WIDTH;
+                    var rectHeight = SNAKEGAME.FIELD_TILE_HEIGHT;
+                    var startingPointX = _x;
+                    var startingPointY = _y;
+
+                    var cornerRadius = 7;
+
+                    context.beginPath();
+                    context.moveTo(startingPointX + cornerRadius, startingPointY);
+
+                    //Línea superior
+                    context.lineTo(startingPointX + rectWidth - cornerRadius, startingPointY);
+
+                    //Esquina
+                    //context.lineTo(startingPointX + rectWidth, startingPointY + cornerRadius);
+                    context.arcTo(startingPointX + rectWidth - cornerRadius, startingPointY + cornerRadius, startingPointX + rectWidth, startingPointY + cornerRadius, cornerRadius);
+                    //context.arcTo(startingPointX + rectWidth, startingPointY, startingPointX + rectWidth, startingPointY + cornerRadius, cornerRadius);  //Convexo
+
+                    //Línea derecha
+                    context.lineTo(startingPointX + rectWidth, startingPointY + rectHeight - cornerRadius);
+
+                    //Esquina
+                    context.arcTo(startingPointX + rectWidth - cornerRadius, startingPointY + rectHeight - cornerRadius, startingPointX + rectWidth - cornerRadius, startingPointY + rectHeight, cornerRadius);
+
+                    context.lineTo(startingPointX + cornerRadius, startingPointY + rectHeight);
+
+                    //Esquina
+                    context.arcTo(startingPointX + cornerRadius, startingPointY + rectHeight - cornerRadius, startingPointX, startingPointY + rectHeight - cornerRadius, cornerRadius);
+
+                    context.lineTo(startingPointX, startingPointY + cornerRadius);
+
+                    //Esquina
+                    context.arcTo(startingPointX + cornerRadius, startingPointY + cornerRadius, startingPointX + cornerRadius, startingPointY, cornerRadius);
+
+
+                    context.lineWidth = 2;
+
+                    var grd = context.createLinearGradient(startingPointX, startingPointY, startingPointX + rectWidth, startingPointY + rectHeight);
+                    grd.addColorStop(0, "#00FF00"); // verde
+                    grd.addColorStop(1, "#009900"); // verde fuerte
+
+                    context.fillStyle = grd;
+                    context.fill();
+                    context.strokeStyle = "#009900";
+                    context.stroke();
+
+
+
+                    break;
+            }
+        }
+    };
+
+    ////////////////////
+
+    var canvas;
+    var ctx;
+    var snake;
+    var snake2;
+    var snakeGame;
+
+    window.onload = function () {
+
+        //canvas = document.getElementById("canvas");
+        //ctx = canvas.getContext("2d");
+
+        snakeGame = new SNAKEGAME.SnakeGameRenderer();
+        document.body.appendChild(snakeGame.canvas);
+        //snake = new SNAKEGAME.Snake(0, 30);
+        //snake2 = new SNAKEGAME.Snake(30, 40);
+
+        //alert(SNAKEGAME.WINDOW_HEIGHT);
+        //alert(SNAKEGAME.Algo());
+        setInterval(loop, 100);
+
+    }
+
+function loop() {
+
+    snakeGame.render();
+    TWEEN.update();
+
+    //ctx.clearRect(0, 0, 500, 600);
+    //snake.draw(ctx);
+    //snake2.draw(ctx);
+    
+
+}
+
+</script>
+
+</head>
+<body>
+
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style type="text/css">
+
+body{ height:100% }
+
+@-webkit-keyframes cardHover {
+	from
+	{
+        opacity: 0.5;
+    }
+	
+	to
+	{
+        opacity: 1;
+	}
+}
+
+#gameArea{
+    display:block;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    
+    /*background: -webkit-gradient(radial, 430 50, 0, 430 50, 502, from(white), to(gray));*/
+    background-color: #C8C8C8 ;
+    background-image: url('arrastre.png');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+.card_container {
+	float: left;
+	margin: 10px;
+	width: 200px;
+	height: 250px;
+	z-index: 1;
+	-webkit-perspective: 1000;
+	
+}
+
+.card_container:hover
+{
+    -webkit-animation-name: cardHover;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-timing-function: ease-in;
+}
+
+.card {
+	width: 100%;
+	height: 100%;	
+	-webkit-transform-style: preserve-3d;
+	-webkit-transition: all 0.5s linear;
+	
+}
+
+.face {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	-webkit-backface-visibility: hidden;
+	background-image: url('cardback.jpg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.face.back 
+{
+    display: block;
+	-webkit-transform: rotateY(180deg);
+	-webkit-box-sizing: border-box;
+}
+
+</style>
+	<!--background-image:url('aol.jpg'); background-repeat:no-repeat; background-position:center center; background-size: contain;-->
+
+<script type="text/javascript">
+
+    var gameArea;
+    var idCounter = 0;
+    var cardTypeCounter = 0;
+    var currentlySelectedCardId = -1;
+    var isAnimating = false;
+    var pairs = 0;
+    var moves = 0;
+
+    function onCardSelected(cardId) {
+
+        if (isAnimating)
+            return;
+
+        if (currentlySelectedCardId == cardId) 
+            return;
+
+        isAnimating = true;
+
+        var selectedCard = document.getElementById(cardId);
+        var selectedCardType = selectedCard.getAttribute("type");
+
+        selectedCard.style.webkitTransform = "rotateY(180deg) scale(1.1)";
+
+        if (currentlySelectedCardId == -1) {
+            setTimeout(function () { isAnimating = false; }, 500);
+            currentlySelectedCardId = cardId;
+        }
+        else {
+
+            moves++;
+            var currentlySelectedCard = document.getElementById(currentlySelectedCardId);
+
+            if (currentlySelectedCard.getAttribute("type") === selectedCard.getAttribute("type")) {
+
+                setTimeout(function () {
+                    currentlySelectedCard.style.webkitTransform = "";
+                    selectedCard.style.webkitTransform = "";
+
+                    setTimeout(function () {
+
+                        currentlySelectedCard.style.height = "0px";
+                        selectedCard.style.height = "0px";
+                        currentlySelectedCard.style.width = "0px";
+                        selectedCard.style.width = "0px";
+
+                        setTimeout(function () {
+
+                            pairs--;
+
+                            if (pairs == 0) {
+
+                                alert("Has ganado. Utilizaste " + moves + " movimiento(s)");
+                                moves = 0;
+                                var cell = document.getElementById("cell");
+
+                                while (gameArea.hasChildNodes()) {
+                                    gameArea.removeChild(gameArea.firstChild);
+                                }
+
+                            }
+                            currentlySelectedCardId = -1;
+                            isAnimating = false;
+
+                        }, 500);
+
+                    }, 500);
+
+                }, 600);
+
+            }
+
+            else {
+
+                    setTimeout(function () {
+                        currentlySelectedCard.style.webkitTransform = "";
+                        selectedCard.style.webkitTransform = "";
+                        currentlySelectedCardId = -1;
+                        setTimeout(function () { isAnimating = false; }, 500);
+                    }, 700);
+
+            }
+
+        }
+                
+
+//        if (document.getElementById(cardId).style.webkitTransform)
+//            document.getElementById(cardId).style.webkitTransform = "";
+//        else {
+//            document.getElementById(cardId).style.webkitTransform = "rotateY(180deg) scale(1.1)";
+        //}
+
+        //document.getElementById(cardId).style.boxShadow = "-5px 5px 5px #aaa";
+    }
+
+    window.onload = function () {
+
+        gameArea = document.getElementById("gameArea");
+
+        gameArea.ondragenter = function () {
+            gameArea.style.border = '8px solid #b1ecb3';
+            return false;
+        };
+
+        gameArea.ondragover = function () {
+            return false;
+        };
+
+        gameArea.ondragleave = function () {
+            gameArea.style.border = '';
+            return false;
+        };
+
+        gameArea.ondrop = function (event) {
+            gameArea.style.border = '';
+
+            for (var i = 0; i < event.dataTransfer.files.length; i++)
+                addCards(event.dataTransfer.files[i]);
+
+            return false;
+        };
+
+    }
+
+    function shuffle(elems) {
+
+        allElems = (function () {
+            var ret = [], l = elems.length;
+            while (l--) { ret[ret.length] = elems[l]; }
+            return ret;
+        })();
+
+        var shuffled = (function () {
+            var l = allElems.length, ret = [];
+            while (l--) {
+                var random = Math.floor(Math.random() * allElems.length),
+                randEl = allElems[random].cloneNode(true);
+                allElems.splice(random, 1);
+                ret[ret.length] = randEl;
+            }
+            return ret;
+        })(), l = elems.length;
+
+        while (l--) {
+            elems[l].parentNode.insertBefore(shuffled[l], elems[l].nextSibling);
+            elems[l].parentNode.removeChild(elems[l]);
+        }
+
+    }
+
+    function addCards(file) {
+
+        var reader = new FileReader();
+
+        reader.onload = function (evt) {
+
+            for (var i = 0; i < 2; i++) {
+                gameArea.innerHTML += '<div name="cardcontainer" id="c_' + idCounter + '" class="card_container" onclick="onCardSelected(' + idCounter + ')">' +
+	                    '<div id="' + idCounter + '" type=' + cardTypeCounter + ' class="card">' +
+		                    '<div class="front face">' +
+		                    '</div>' +
+		                '<div class="back face center">' +
+                        '<img width="200px" height="250px" src="' + evt.target.result + '"/>';
+                '</div>' +
+ 		                '</div>';
+                idCounter++;
+            }
+
+            cardTypeCounter++;
+
+            shuffle(document.getElementsByName("cardcontainer"));
+
+        };
+
+        pairs++;
+        reader.readAsDataURL(file);
+
+    }
+
+
+
+</script>
+
+</head>
+
+<body>
+
+<div id="gameArea"></div>
+
+</body>
+
+</html>

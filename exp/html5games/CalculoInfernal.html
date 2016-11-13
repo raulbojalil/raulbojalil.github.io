@@ -1,0 +1,152 @@
+﻿
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+        <title>Cálculo infernal</title>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js"></script>
+        <style type="text/css">
+            .numpad {
+                margin: 2px;
+                width: 50px;
+                height: 50px;
+            }
+        </style>
+
+        <script type="text/javascript">
+
+            $(window).load(function () {
+
+                $("#level").val(3);
+
+                $("#level").change(function () {
+                    reset();
+                });
+
+                var ops = [];
+                var score = 0;
+                var playing = false;
+
+                var getRandomInt = function (min, max) {
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+
+                var startLevel = function (level, wait) {
+                    playing = false;
+                    if (level >= 0) {
+                        if (wait) {
+                            setTimeout(function () {
+                                pushOp(function () { startLevel(level - 1, true); });
+                            }, 1000);
+                        }
+                        else {
+                            pushOp(function () { startLevel(level - 1, true); });
+                        }
+                    }
+                    else { playing = true; }
+                }
+
+                var pushOp = function (callback) {
+                    playing = false;
+                    var op = { result: getRandomInt(0, 9), op: "" };
+                    if (getRandomInt(0, 1)) //Suma
+                    {
+                        var firstNum = getRandomInt(0, op.result);
+                        var secondNum = op.result - firstNum;
+                        var pos = getRandomInt(0, 1);
+
+                        op.op = (pos ? firstNum : secondNum) + " + " +
+                            (pos ? secondNum : firstNum);
+                    }
+                    else   //Resta
+                    {
+                        var firstNum = getRandomInt(op.result, 9);
+                        var secondNum = firstNum - op.result;
+
+                        op.op = firstNum + " - " + secondNum;
+                    }
+
+                    ops.unshift(op);
+
+                    $("#up").html(op.op).animate({
+                        "margin-top": 0
+                    }, 300, function () {
+                        $(this).css("margin-top", -30);
+                    });
+
+                    $("#down").animate({
+                        "margin-top": 30
+                    }, 300, function () {
+                        playing = true;
+                        $(this).html(op.op).css("margin-top", 0);
+                        if (callback) callback();
+
+                    });
+
+                };
+
+                var reset = function () {
+                    playing = false;
+                    score = 0;
+                    $("#up").html("");
+                    $("#down").html("");
+                    ops = [];
+                    startLevel($("#level").val());
+                };
+
+                var numPressed = function (num) {
+                    if (!playing)
+                        return;
+
+                    var a = ops.pop();
+                    if (num != a.result) {
+                        alert("Has perdido! Puntuación: " + score);
+                        reset();
+                    }
+                    else {
+                        score++;
+                        pushOp();
+                    }
+                };
+
+                reset();
+
+                $(document).keydown(function (e) {
+
+                    if (e.which >= 96 && e.which <= 105)
+                        numPressed(e.which - 96);
+                    if (e.which >= 48 && e.which <= 57)
+                        numPressed(e.which - 48);
+                });
+
+                $(".numpad").click(function () {
+                    numPressed(parseInt($(this).html()))
+                });
+
+
+
+            });
+
+        </script>
+
+    </head>
+    <body>
+
+        <select style="top: 53px; position: absolute;width: 70px;" id="level"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select>
+
+
+        <div style="height: 33px; width: 83px;overflow: hidden; font-family: Arial; font-size: 30px; position: relative; background-color: rgb(248, 248, 248);display: inline-block;" id="current">
+            <div style="margin-top: -30px; position: absolute;" id="up"></div>
+            <div style="margin-top: 0px; position: absolute;" id="down"></div>
+        </div>
+
+        <div style="position: absolute; left: 100px; display: inline-block">
+            <button class="numpad">1</button><button class="numpad">2</button><button class="numpad">3</button><br>
+            <button class="numpad">4</button><button class="numpad">5</button><button class="numpad">6</button><br>
+            <button class="numpad">7</button><button class="numpad">8</button><button class="numpad">9</button><br>
+            <button style="width: 158px;" class="numpad">0</button>
+        </div>
+               
+    </body>
+</html>

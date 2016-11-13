@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <contributor>
+      <authoring_tool>Every File Explorer</authoring_tool>
+    </contributor>
+    <created>2015-06-29T20:11:08.3821796-05:00</created>
+    <modified>2015-06-29T20:11:08.3821796-05:00</modified>
+    <unit meter="1" name="meter" />
+  </asset>
+  <library_geometries>
+    <geometry id="ID7">
+      <mesh>
+        <source id="ID9">
+          <float_array id="ID10" count="48">-232.100006103516 593.148010253906 -0.0317382998764515 -232.188995361328 0 0.0317382998764515 -332.188995361328 0 0.0317382998764515 -332.188995361328 0 0.0317382998764515 -332.100006103516 695.184020996094 -0.0317382998764515 -232.100006103516 593.148010253906 -0.0317382998764515 232.188995361328 593.148010253906 -0.0317382998764515 -232.100006103516 593.148010253906 -0.0317382998764515 -332.100006103516 695.184020996094 -0.0317382998764515 332.188995361328 695.184020996094 -0.0317382998764515 332.188995361328 695.184020996094 -0.0317382998764515 332.100006103516 0 0.0317382998764515 232.100006103516 0 0.0317382998764515 232.100006103516 0 0.0317382998764515 232.188995361328 593.148010253906 -0.0317382998764515 332.188995361328 695.184020996094 -0.0317382998764515 </float_array>
+          <technique_common>
+            <accessor count="16" source="#ID10" stride="3">
+              <param name="X" type="float" />
+              <param name="Y" type="float" />
+              <param name="Z" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="ID11">
+          <float_array id="ID12" count="48">0 -0.000107016996480525 -1 0 -0.000107016996480525 -1 0 -0.000107016996480525 -1 -9.31558970478363E-05 -9.12972973310389E-05 -1 -9.31558970478363E-05 -9.12972973310389E-05 -1 -9.31558970478363E-05 -9.12972973310389E-05 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 -9.13090989342891E-05 -1 0 -9.13090989342891E-05 -1 0 -9.13090989342891E-05 -1 0.000109212000097614 -0.000107033003587276 -1 0.000109212000097614 -0.000107033003587276 -1 0.000109212000097614 -0.000107033003587276 -1 </float_array>
+          <technique_common>
+            <accessor count="16" source="#ID12" stride="3">
+              <param name="X" type="float" />
+              <param name="Y" type="float" />
+              <param name="Z" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="ID13">
+          <float_array id="ID14" count="32">0.150998994708061 0.852872014045715 0.150866001844406 0.000499457004480064 0.00049972499255091 0.000499457004480064 0.00049972499255091 0.000499457004480064 0.000632763025350869 0.99950098991394 0.150998994708061 0.852872014045715 0.849134027957916 0.852872014045715 0.150998994708061 0.852872014045715 0.000632763025350869 0.99950098991394 0.99950098991394 0.99950098991394 0.99950098991394 0.99950098991394 0.999366998672485 0.000499457004480064 0.849000990390778 0.000499457004480064 0.849000990390778 0.000499457004480064 0.849134027957916 0.852872014045715 0.99950098991394 0.99950098991394 </float_array>
+          <technique_common>
+            <accessor count="16" source="#ID14" stride="2">
+              <param name="S" type="float" />
+              <param name="T" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="ID15">
+          <float_array id="ID16" count="64">1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 </float_array>
+          <technique_common>
+            <accessor count="16" source="#ID16" stride="4">
+              <param name="R" type="float" />
+              <param name="G" type="float" />
+              <param name="B" type="float" />
+              <param name="A" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="ID8">
+          <input semantic="POSITION" source="#ID9" />
+          <input semantic="NORMAL" source="#ID11" />
+        </vertices>
+        <triangles count="6" material="Standard_15">
+          <input offset="0" semantic="VERTEX" source="#ID8" />
+          <input offset="1" semantic="TEXCOORD" source="#ID13" />
+          <input offset="2" semantic="COLOR" source="#ID15" />
+          <p>0 0 0 1 1 1 2 2 2 3 3 3 4 4 4 5 5 5 6 6 6 7 7 7 8 8 8 8 8 8 9 9 9 6 6 6 10 10 10 11 11 11 12 12 12 13 13 13 14 14 14 15 15 15 </p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_effects>
+    <effect id="ID3">
+      <profile_COMMON>
+        <newparam sid="ID5">
+          <surface type="2D">
+            <init_from>ID4</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="ID6">
+          <sampler2D>
+            <source>ID5</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="COMMON">
+          <lambert>
+            <diffuse>
+              <texture texture="ID6" texcoord="UVSET0" />
+            </diffuse>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_images>
+    <image id="ID4">
+      <init_from>Tex/Highlight_Door.png</init_from>
+    </image>
+  </library_images>
+  <library_materials>
+    <material id="ID2" name="Standard_15">
+      <instance_effect url="#ID3" />
+    </material>
+  </library_materials>
+  <library_visual_scenes>
+    <visual_scene id="ID1">
+      <node name="Door_Highlight">
+        <instance_geometry url="#ID7">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Standard_15" target="#ID2">
+                <bind_vertex_input semantic="UVSET0" input_semantic="TEXCOORD" input_set="0" />
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#ID1" />
+  </scene>
+</COLLADA>

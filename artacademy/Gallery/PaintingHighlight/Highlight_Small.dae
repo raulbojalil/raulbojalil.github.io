@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <contributor>
+      <authoring_tool>Every File Explorer</authoring_tool>
+    </contributor>
+    <created>2015-06-29T20:14:25.1519294-05:00</created>
+    <modified>2015-06-29T20:14:25.1519294-05:00</modified>
+    <unit meter="1" name="meter" />
+  </asset>
+  <library_geometries>
+    <geometry id="ID7">
+      <mesh>
+        <source id="ID9">
+          <float_array id="ID10" count="12">189.555694580078 -163.149002075195 -0.0484314300119877 189.555694580078 167.824996948242 -0.0484314300119877 -182.738296508789 167.824996948242 -0.0483789704740047 -182.738296508789 -163.149002075195 -0.0483789704740047 </float_array>
+          <technique_common>
+            <accessor count="4" source="#ID10" stride="3">
+              <param name="X" type="float" />
+              <param name="Y" type="float" />
+              <param name="Z" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="ID11">
+          <float_array id="ID12" count="12">1.40889000022071E-07 0 1 1.40889000022071E-07 0 1 1.40889000022071E-07 0 1 1.40889000022071E-07 0 1 </float_array>
+          <technique_common>
+            <accessor count="4" source="#ID12" stride="3">
+              <param name="X" type="float" />
+              <param name="Y" type="float" />
+              <param name="Z" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="ID13">
+          <float_array id="ID14" count="8">0.999499976634979 0.000499517016578466 0.999499976634979 0.99950098991394 0.000499517016578466 0.999499976634979 0.000499517016578466 0.000499517016578466 </float_array>
+          <technique_common>
+            <accessor count="4" source="#ID14" stride="2">
+              <param name="S" type="float" />
+              <param name="T" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="ID8">
+          <input semantic="POSITION" source="#ID9" />
+          <input semantic="NORMAL" source="#ID11" />
+        </vertices>
+        <triangles count="2" material="Highlight">
+          <input offset="0" semantic="VERTEX" source="#ID8" />
+          <input offset="1" semantic="TEXCOORD" source="#ID13" />
+          <p>0 0 1 1 2 2 2 2 3 3 0 0 </p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_effects>
+    <effect id="ID3">
+      <profile_COMMON>
+        <newparam sid="ID5">
+          <surface type="2D">
+            <init_from>ID4</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="ID6">
+          <sampler2D>
+            <source>ID5</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="COMMON">
+          <lambert>
+            <diffuse>
+              <texture texture="ID6" texcoord="UVSET0" />
+            </diffuse>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_images>
+    <image id="ID4">
+      <init_from>Tex/Highlight_t.png</init_from>
+    </image>
+  </library_images>
+  <library_materials>
+    <material id="ID2" name="Highlight">
+      <instance_effect url="#ID3" />
+    </material>
+  </library_materials>
+  <library_visual_scenes>
+    <visual_scene id="ID1">
+      <node name="Highlight_Small">
+        <instance_geometry url="#ID7">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Highlight" target="#ID2">
+                <bind_vertex_input semantic="UVSET0" input_semantic="TEXCOORD" input_set="0" />
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#ID1" />
+  </scene>
+</COLLADA>

@@ -1,0 +1,687 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+<title>El videojuego de las joyitas</title>
+
+<style type="text/css">
+
+
+div.jewel
+{
+    /*
+	border-top-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    */
+   border-radius: 30px;
+    -webkit-transition: all 0.5s ease-in-out;
+    /*-webkit-box-shadow: 5px 5px 2px #888 ;*/
+}
+
+
+#score {
+  position: absolute;
+  left: 600px;
+  -webkit-text-fill-color: white;
+  -webkit-text-stroke-color: gray;
+  -webkit-text-stroke-width: 2px; 
+  font-size: 70px;
+  text-shadow: 2px 2px 3px #000;
+
+}
+
+#combo
+{
+    position: absolute;
+    left: 300px;
+    top: 30px;
+    -webkit-text-fill-color: white;
+    -webkit-text-stroke-color: black;
+    -webkit-text-stroke-width: 1px; 
+    font-size: 50px;
+    text-shadow: 0 0 4px white, 0 -5px 4px #FFFF33, 2px -10px 6px #FFDD33, -2px -15px 11px #FF8800, 2px -25px 18px #FF2200
+}
+
+
+@-webkit-keyframes jewelSelected {
+	from
+	{
+        opacity: 0.5;
+		-webkit-transform:scale(1);
+    }
+	
+	to
+	{
+        opacity: 1;
+	    -webkit-transform:scale(1.25);
+	}
+}
+
+@-webkit-keyframes jewelRemoved {
+	0% 
+	{
+		-webkit-transform:translate(0px, 0px);
+    }
+	
+	50% 
+	{
+	    -webkit-transform:translate(15px, 15px);
+	}
+	100% 
+	{
+		-webkit-transform:translate(30px, 30px); 
+	}
+}
+	
+@-webkit-keyframes hintArrowDown {
+ from {
+   -webkit-transform:translate(0px, 0px);
+ }
+ to {
+   -webkit-transform:translate(0px, 70px);
+   opacity: 0;
+ }
+}
+
+@-webkit-keyframes hintArrowRight {
+ from {
+   -webkit-transform:translate(0px, 0px);
+ }
+ to {
+   -webkit-transform:translate(70px, 0px);
+   opacity: 0;
+ }
+}
+	
+	
+div.jewel:hover
+{
+	-webkit-animation-name: jewelSelected;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-timing-function: ease-in;
+}
+
+.jewelRemoved
+{ 
+    -webkit-transition: all 0.5s linear;
+    -webkit-animation-name: jewelRemoved;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-iteration-count: 1;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-timing-function: linear;  
+}
+
+.hint
+{
+    -webkit-animation-name: jewelSelected;
+	-webkit-animation-duration: 0.2s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-timing-function: linear;
+}
+
+#hintArrowDown
+{
+    width: 0;
+    height: 0;
+	z-index: 100;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid black;
+    -webkit-animation-name: hintArrowDown;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: normal;
+	-webkit-animation-timing-function: ease-out;
+}
+
+#hintArrowRight
+{
+    width: 0;
+    height: 0;
+	z-index: 100;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid black;
+    -webkit-animation-name: hintArrowRight;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: normal;
+	-webkit-animation-timing-function: ease-out;
+}
+
+</style>
+
+</head>
+<body>
+
+<div id="score">00000000</div>
+<div id="combo" style=" visibility: hidden"></div>
+<input type="button" value="VER AYUDA" onclick="showHint()"/>
+<div id="gameArea" style="position: absolute; top:90px; left: 300px; height: 800px; width: 800px">
+<div id="hintArrowDown" style="visibility:hidden; position: absolute;"></div> 
+<div id="hintArrowRight" style="visibility:hidden; position: absolute;"></div>
+<div id="selector" style="visibility:hidden; z-index: 100; position:absolute; top: 2px; left: 2px; width: 40px; height: 40px; border-width: 10px; border-style: double; border-radius: 50px; border-color: black"></div> 
+</div>
+
+
+<script type="text/javascript">
+
+    //var colors = [ "blue", "red", "yellow", "green", "orange", "purple" ];
+    var shapes = ['<svg><defs><linearGradient id="grad1" x1="70%" y1="40%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:blue;stop-opacity:1" /><stop offset="100%" style="stop-color:white;stop-opacity:1" /></linearGradient></defs><polygon points="20,0,40,0,60,20,60,40,40,60,20,60,0,40,0,20" style="fill:url(#grad1)" /></svg>',
+                   '<svg><defs><linearGradient id="grad1" x1="0%" y1="50%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:purple;stop-opacity:1" /><stop offset="100%" style="stop-color:white;stop-opacity:1" /></linearGradient></defs><polygon points="30,0,60,60,0,60" style="fill:url(#grad1)" /></svg>',
+                   '<svg><defs><linearGradient id="grad1" x1="100%" y1="100%" x2="0%" y2="0%"><stop offset="0%" style="stop-color:orange;stop-opacity:1" /><stop offset="200%" style="stop-color:red;stop-opacity:1" /></linearGradient></defs><polygon points="30,0,60,30,30,60,0,30" style="fill:url(#grad1)" /></svg>',
+                   '<svg><defs><radialGradient id="grad1" cx="30%" cy="30%" r="50%" fx="30%" fy="30%"><stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:1" /><stop offset="100%" style="stop-color:yellow;stop-opacity:1" /></radialGradient></defs><circle cx="30" cy="30" r="30" fill="url(#grad1)"/></svg>',
+                   '<svg><defs><linearGradient id="grad1" x1="100%" y1="100%" x2="0%" y2="0%"><stop offset="50%" style="stop-color:red;stop-opacity:1" /><stop offset="200%" style="stop-color:white;stop-opacity:1" /></linearGradient></defs><svg><rect rx="10" ry="10" width="60" height="60" style="fill:url(#grad1)"/></svg>',
+                   '<svg><defs><radialGradient id="grad1" cx="25%" cy="25%" r="50%" fx="25%" fy="25%"><stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:1" /><stop offset="100%" style="stop-color:green;stop-opacity:1" /></radialGradient></defs><polygon points="15,0,45,0,60,20,30,60,0,20" style="fill:url(#grad1)" /></svg>',
+                   '<svg><defs><radialGradient id="grad1" cx="25%" cy="25%" r="50%" fx="25%" fy="25%"><stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:1" /><stop offset="100%" style="stop-color:brown;stop-opacity:1" /></radialGradient></defs><polygon points="30,0,50,60,0,20,60,20,10,60" style="fill:url(#grad1)"/></svg>'];
+    
+    //'<defs><filter id="f1" x="0" y="0" width="200%" height="200%"><feOffset result="offOut" in="SourceGraphic" dx="10" dy="10" /><feGaussianBlur result="blurOut" in="offOut" stdDeviation="10" /><feBlend in="SourceGraphic" in2="blurOut" mode="normal" /></filter></defs>'
+
+
+    
+
+    var currentlySelectedRow = -1;
+    var currentlySelectedCol = -1;
+    var isAnimating = false;
+    var globalScore = 0;
+    var combo = 1;
+
+    window.onload = function () {
+        initJewels();
+    }
+
+    function padDigits(n, totalDigits) {
+        n = n.toString();
+        var pd = '';
+        if (totalDigits > n.length) {
+            for (i = 0; i < (totalDigits - n.length); i++) {
+                pd += '0';
+            }
+        }
+        return pd + n.toString();
+    }
+
+    function increaseScore(score) {
+        globalScore += score;
+        document.getElementById("score").innerHTML = padDigits(globalScore, 8);
+    }
+
+    function initJewels() {
+
+        var posX = 2;
+        var posY = 2;
+
+        for (var i = 0; i < 8; i++) {
+
+            posY = (i * 70);
+
+            for (var j = 0; j < 8; j++) {
+
+                posX = (j * 70);
+
+                var cell = document.createElement("div");
+                cell.id = i + "_" + j;
+                cell.setAttribute("type", Math.floor(Math.random() * shapes.length));
+                cell.className = "jewel";
+                cell.style.position = "absolute";
+				cell.style.height = "60px";
+				cell.style.width = "60px";
+                //"-webkit-gradient(linear, left top, left bottom, from(#00abeb), to(white), color-stop(0.5, white), color-stop(0.5, #66cc00))";
+
+                cell.innerHTML = shapes[cell.getAttribute("type")];
+                //cell.style.background = "-webkit-gradient(linear, left top, left bottom, from(" + colors[Math.floor(Math.random() * 6)] + "), to(white))";
+                cell.style.top = (posY) + "px";
+                cell.style.left = (posX) + "px";
+
+
+                cell.onclick = new Function("onCellSelected(" + i + "," + j + ")");
+                document.getElementById("gameArea").appendChild(cell);
+
+                while (isStreak(i, j)) {
+
+                    cell.setAttribute("type", Math.floor(Math.random() * shapes.length));
+                    cell.innerHTML = shapes[cell.getAttribute("type")];
+                    //cell.style.background = "-webkit-gradient(linear, left top, left bottom, from(" + colors[Math.floor(Math.random() * 6)] + "), to(white))";
+                }
+
+            }
+        }
+    }
+
+    function isStreak(row, col) {
+
+        return (isHorizontalStreak(row, col) || isVerticalStreak(row, col));
+    }
+
+    function isHorizontalStreak(row, col) {
+
+        var startingCell = document.getElementById(row + "_" + col);
+        var streak = 0;
+
+        if (startingCell == null)
+            return false;
+
+        //Buscar hacia la izquierda
+        var temp = col;
+
+        while (temp > 0 && checkJewel(row, (temp - 1), startingCell.getAttribute("type"))) {
+
+            streak++;
+            temp--;
+        }
+
+        //Buscar hacia la derecha 
+        temp = col;
+
+        while (temp < 7 && checkJewel(row, (temp + 1), startingCell.getAttribute("type"))) {
+
+            streak++;
+            temp++;
+        }
+
+        return streak > 1;
+    }
+
+    function isVerticalStreak(row, col) {
+
+        var streak = 0;
+        var startingCell = document.getElementById(row + "_" + col);
+
+        if (startingCell == null) 
+            return false;
+
+        //Buscar hacia arriba 
+        var temp = row;
+
+        while (temp > 0 && checkJewel((temp - 1), col, startingCell.getAttribute("type"))) {
+
+            streak++;
+            temp--;
+        }
+
+        //Buscar hacia abajo 
+        temp = row;
+
+        while (temp < 7 && checkJewel((temp + 1), col, startingCell.getAttribute("type"))) {
+
+            streak++;
+            temp++;
+        }
+
+        return streak > 1;
+    }
+
+    function checkJewel(row, col, type) {
+
+        var jewel = document.getElementById(row + "_" + col);
+        if (jewel == null) return false;
+
+        return jewel.getAttribute("type") == type;
+    }
+
+
+    function onCellSelected(row, col) {
+
+        if (isAnimating) return;
+
+        var selector = document.getElementById('selector');
+        var selectedCell = document.getElementById(row + '_' + col);
+        document.getElementById("hintArrowRight").style.visibility = "hidden";
+        document.getElementById("hintArrowDown").style.visibility = "hidden";
+
+        //alert(selectedCell.id + " " + selectedCell.style.backgroundColor);
+
+        if (isAdjacent(row, col, currentlySelectedRow, currentlySelectedCol)) {
+
+            isAnimating = true;
+            swap(row, col, currentlySelectedRow, currentlySelectedCol);
+
+            setTimeout(function () {
+
+                if (isStreak(row, col) || isStreak(currentlySelectedRow, currentlySelectedCol)) {
+
+                    if (isStreak(row, col)) {
+                        remove(row, col);
+                    }
+                    if (isStreak(currentlySelectedRow, currentlySelectedCol)) {
+                        remove(currentlySelectedRow, currentlySelectedCol);
+                    }
+
+                }
+                else {
+
+                    swap(row, col, currentlySelectedRow, currentlySelectedCol);
+                    setTimeout(function () { isAnimating = false; }, 500);
+                }
+
+                currentlySelectedRow = -1;
+                currentlySelectedCol = -1;
+
+
+            }, 500); 
+
+//            selectedCell.addEventListener('webkitTransitionEnd', function (e) {
+//                }, false);
+
+            selector.style.visibility = "hidden";
+            selector.style.visibility = "hidden";
+        }
+
+        else {
+            currentlySelectedRow = row;
+            currentlySelectedCol = col;
+            selector.style.visibility = "visible";
+            selector.style.visibility = "visible";
+
+            selector.style.left = selectedCell.style.left;
+            selector.style.top = selectedCell.style.top;
+        }
+
+    }
+
+    function swap(row1, col1, row2, col2) {
+
+        var cell1 = document.getElementById(row1 + '_' + col1);
+        var cell2 = document.getElementById(row2 + '_' + col2);
+        var temp1Id = cell1.id;
+        var temp2Id = cell2.id;
+        var tempPosx = cell1.style.left;
+        var tempPosy = cell1.style.top;
+
+        cell1.id = null;
+        cell2.id = null;
+
+        cell1.id = temp2Id;
+        cell2.id = temp1Id;
+        cell1.style.left = cell2.style.left;
+        cell1.style.top = cell2.style.top;
+        cell2.style.left = tempPosx;
+        cell2.style.top = tempPosy;
+
+        cell1.onclick = new Function("onCellSelected(" + row2 + "," + col2 + ")");
+        cell2.onclick = new Function("onCellSelected(" + row1 + "," + col1 + ")");
+
+    }
+
+    function checkMoves() {
+
+        var moves = new Array();
+
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 8; j++) {
+
+                if (i < 7) {
+
+                    virtualSwap(i, j, i + 1, j);
+
+                    if (isStreak(i, j) || isStreak(i + 1, j)) {
+                        moves.push(i + "_" + j + "-" + (i + 1) + "_" + j);
+                    }
+
+                    virtualSwap(i,j, i+1, j)
+
+                }
+
+                if (j < 7) {
+
+                    virtualSwap(i, j, i, j+1);
+
+                    if (isStreak(i, j) || isStreak(i, j + 1)) {
+                        moves.push(i + "_" + j + "-" + i + "_" + (j+1));
+                    }
+
+                    virtualSwap(i, j, i, j+1)
+
+                }
+
+            }
+        }
+
+        return moves;
+
+    }
+
+    function virtualSwap(row1, col1, row2, col2) {
+
+        var cell1 = document.getElementById(row1 + '_' + col1);
+        var cell2 = document.getElementById(row2 + '_' + col2);
+        var temp1Id = cell1.id;
+        var temp2Id = cell2.id;
+        cell1.id = null;
+        cell2.id = null;
+        cell1.id = temp2Id;
+        cell2.id = temp1Id;
+
+        cell1.onclick = new Function("onCellSelected(" + row2 + "," + col2 + ")");
+        cell2.onclick = new Function("onCellSelected(" + row1 + "," + col1 + ")");
+        
+    }
+
+    function remove(row, col) {
+
+        var temp;
+
+        var startingCell = document.getElementById(row + "_" + col);
+
+
+        if (startingCell.getAttribute("type") == -1) return;
+
+        var jewelsToDelete = new Array();
+        jewelsToDelete.push(row + "_" + col);
+
+        if (isVerticalStreak(row, col)) {
+
+            //Buscar hacia arriba 
+            temp = row;
+            
+            while (temp > 0 &&  checkJewel((temp - 1), col, startingCell.getAttribute("type"))) {
+                jewelsToDelete.push((temp - 1) + "_" + col);
+                temp--;
+            }
+
+            //Buscar hacia abajo 
+            temp = row;
+
+            while (temp < 7 && checkJewel((temp + 1), col, startingCell.getAttribute("type"))) {
+                jewelsToDelete.push((temp + 1) + "_" + col);
+                temp++;
+            }
+        }
+
+        if (isHorizontalStreak(row, col)) {
+
+            //Buscar hacia la izquierda
+            temp = col;
+
+            while (temp > 0 && checkJewel(row, (temp - 1), startingCell.getAttribute("type"))) {
+                jewelsToDelete.push(row + "_" + (temp - 1));
+                temp--;
+            }
+
+            //Buscar hacia la derecha 
+            temp = col;
+
+            while (temp < 7 && checkJewel(row, (temp + 1), startingCell.getAttribute("type"))) {
+                jewelsToDelete.push(row + "_" + (temp + 1));
+                temp++;
+            }
+        }
+
+        for(var i=0; i < jewelsToDelete.length; i++) {
+            var rowCol = jewelsToDelete[i].split("_");
+            var cell = document.getElementById(rowCol[0] + '_' + rowCol[1]);
+            cell.className = "jewelRemoved";
+            cell.style.width = "0px";
+            cell.style.height = "0px";
+
+            cell.setAttribute("type", -1);
+            //cell.style.background = "white";
+        }
+
+        increaseScore(jewelsToDelete.length * (100 * combo));
+
+        setTimeout(adjustJewels, 500);
+        
+        
+    }
+
+    function placeNewJewels() {
+
+        var noJewelsToRemove = true;
+
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 8; j++) {
+                var jewel = document.getElementById(i + "_" + j);
+                if (jewel.getAttribute("type") == -1) {
+
+                    jewel.setAttribute("type", Math.floor(Math.random() * shapes.length));
+
+                    jewel.innerHTML = shapes[jewel.getAttribute("type")];
+
+                    //jewel.style.background = "-webkit-gradient(linear, left top, left bottom, from(" + colors[Math.floor(Math.random() * 6)] + "), to(white))";
+                    jewel.style.width = "60px";
+                    jewel.style.height = "60px";
+                    jewel.className = "jewel";
+
+                    if (isStreak(i, j)) {
+                        noJewelsToRemove = false;
+                        setTimeout(new Function("remove(" + i + "," + j + ")"), 500);
+                    }
+                }
+            }
+        }
+
+        if (noJewelsToRemove) {
+			setTimeout(function () { isAnimating = false; }, 500);
+            if (checkMoves().length == 0)
+                alert("Ya no hay movimientos disponibles que realizar");
+        }
+    }
+
+
+    function showHint() {
+        var hints = checkMoves();
+
+        if (hints.length > 0) {
+            //alert(hints[0]);
+            var randomHint = Math.floor(Math.random() * hints.length);
+            var row1 = hints[randomHint].split('-')[0].split('_')[0];
+            var col1 = hints[randomHint].split('-')[0].split('_')[1];
+            var row2 = hints[randomHint].split('-')[1].split('_')[0];
+            var col2 = hints[randomHint].split('-')[1].split('_')[1];
+
+            var top = document.getElementById(row1 + "_" + col1).style.top;
+            var left = document.getElementById(row1 + "_" + col1).style.left;
+
+            top = top.replace("px", "");
+            left = left.replace("px", "");
+
+            if (row1 == row2) {
+
+                document.getElementById("hintArrowRight").style.visibility = "visible";
+                document.getElementById("hintArrowRight").style.top = (parseInt(top) + 20) + "px";
+                document.getElementById("hintArrowRight").style.left = (parseInt(left) + 20) + "px";
+            }
+            else if (col1 == col2) {
+
+                document.getElementById("hintArrowDown").style.visibility = "visible";
+                document.getElementById("hintArrowDown").style.top = (parseInt(top) + 20) + "px";
+                document.getElementById("hintArrowDown").style.left = (parseInt(left) + 20) + "px";
+            }
+
+            
+        }
+    }
+
+    function adjustJewels() {
+
+        var noJewelsToRemove = true;
+
+        for (var i = 7; i >= 0; i--) {
+            for (var j = 0; j < 8; j++) {
+
+                var cell = document.getElementById(i + "_" + j);
+                if (cell.getAttribute("type") == -1) {
+
+                    for (var k = i - 1; k >= 0; k--) {
+
+                        var cell = document.getElementById(k + "_" + j);
+                        if (cell.getAttribute("type") != -1) {
+
+                            swap(k, j, i, j);
+                            if (isStreak(i, j)) {
+                                noJewelsToRemove = false;
+                                setTimeout(new Function("remove(" + i + "," + j + ")"), 500);
+                            }
+                            break;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        if (noJewelsToRemove)
+            setTimeout(placeNewJewels, 500);
+
+    }
+
+    function scan() {
+
+        var jewels = new Array();
+
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 8; j++) {
+                if (isStreak(i, j)) {
+
+                    if (combo > 1) {
+                        document.getElementById("combo").style.visibility = "visible";
+                        document.getElementById("combo").innerHTML = "Combo X" + combo;
+                    }
+                 
+                 remove(i, j);
+                    jewels.push(i + "_" + j);
+                }
+            }
+        }
+
+
+        if (jewels.length == 0)
+            combo = 1;
+        else {
+            combo *= 2;
+        }
+
+        for (var j = 0; j < jewels.length; j++) {
+
+            isAnimating = true;
+            setTimeout(function () { isAnimating = false; }, 1500);
+
+            setTimeout(new Function("adjustJewels(" + jewels[j].split('_')[0] + "," + jewels[j].split('_')[1] + ")"), 500);
+
+        }
+
+        if (jewels.length > 0) {
+            setTimeout(placeNewJewels, 1000);
+            setTimeout(scan, 1500);
+        }
+        else {
+            setTimeout(function () { document.getElementById("combo").style.visibility = "hidden"; }, 3000);
+        }
+    }
+
+   
+
+    function isAdjacent(row1, col1, row2, col2) {
+
+        return (Math.abs(row1 - row2) + Math.abs(col1 - col2)) == 1;
+    }
+
+</script>
+
+
+
+</body>
+</html>

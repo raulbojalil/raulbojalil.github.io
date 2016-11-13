@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+Buscaminas
+</title>
+<style type="text/css">
+
+.cell:hover
+{
+    background-color: #B5F0F1;
+}
+
+.cell
+{
+    width: 20px;
+    height: 20px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    text-align: center;
+    color: white;
+    background-color: Blue;
+}  
+
+.flag
+{
+    width: 20px;
+    height: 20px;
+    background-color: green;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    text-align: center;
+    color: white;
+}
+
+</style>
+
+<script type="text/javascript">
+
+    const NUM_MINES = 9;
+    const FIELD_HEIGHT = 8;
+    const FIELD_WIDTH = 8;
+    
+    const TILE_COVERED = 0;
+    const TILE_UNCOVERED = 1;
+    const TILE_FLAG = 2;
+    const TILE_MINE = 3;
+
+    var firstClick = true;
+    var cells;
+    var uncoveredTiles = 0;
+
+    window.onload = function() {
+
+        initBoard();
+    }
+
+    function onCellSelected(row, col) {
+
+    if(getTileFrame(row, col) != TILE_COVERED)
+            return;
+
+        if(firstClick)
+        {
+          initMineField(row, col);
+          firstClick = false;
+        }
+
+        uncoverCell(row, col);
+    }
+
+    function uncoverCell(row, col)
+    {
+        
+
+        var cellValue = getCellValue(row, col);
+
+        if(cellValue == 0)
+        {
+            floodUncoverEmptyCells(row,col);
+            checkWin();
+        }
+        else if(cellValue > 0 && cellValue < 9)
+        {
+            setNumberTileFrame(row, col, cellValue);
+            uncoveredTiles++;
+            checkWin();
+        }
+        else if(cellValue == 9)
+        {
+            setTileFrame(row, col, TILE_MINE);
+            alert("Lo sentimos, perdió este juego. Mejor suerte para la siguiente ocasión");
+            uncoverAllCells();
+        }
+    }
+
+    function checkWin()
+    {
+        if(uncoveredTiles == ((FIELD_HEIGHT * FIELD_WIDTH)-NUM_MINES) )
+            alert("Enhorabuena, usted ha ganado este juego");
+        
+    }
+
+    function uncoverAllCells()
+    {
+        for (var i = 0; i < FIELD_HEIGHT; i++) {
+
+            for (var j = 0; j < FIELD_WIDTH; j++) {
+
+                if(getTileFrame(i, j) == TILE_COVERED)
+                {
+                   var cellValue = getCellValue(i, j);
+
+                    if(cellValue == 0)
+                       setTileFrame(i, j, TILE_UNCOVERED); 
+                    else if(cellValue > 0 && cellValue < 9)
+                        setNumberTileFrame(i, j, cellValue);
+                    else if(cellValue == 9)
+                        setTileFrame(i, j, TILE_MINE);
+                }
+            }
+        }
+    }
+
+    function floodUncoverEmptyCells(row, col)
+    {
+        setTileFrame(row, col, TILE_UNCOVERED);
+        uncoveredTiles++;
+
+        for(var k=-1; k <= 1; k++)
+        {
+            for(var l=-1; l <= 1; l++)
+             {
+                   var cellValue = getCellValue((row+k),(col+l));
+
+                   if(cellValue == 0 && getTileFrame((row+k), (col+l)) == TILE_COVERED)
+                       floodUncoverEmptyCells((row+k),(col+l));
+             }
+        }
+    }
+
+    function getCellValue(row, col)
+    {
+        if(row < 0 || row >= FIELD_HEIGHT || col < 0 || col >= FIELD_WIDTH)
+            return -1;
+
+        return cells[row][col];
+        
+    }
+
+    function dragStart(event, row, col)
+                {
+                    event.dataTransfer.setData('Text', row + "_" + col);
+                    event.dataTransfer.effectAllowed = "move";
+
+                }
+
+    function initBoard()
+    {
+         for (var i = 0; i < FIELD_HEIGHT; i++) {
+
+            for (var j = 0; j < FIELD_WIDTH; j++) {
+
+                var cell = document.createElement("div");
+                cell.className = "cell";
+                cell.id = i + "_" + j;
+                cell.style.position = "absolute";
+                //cell.addEventListener('click', new Function("onCellSelected(" + i + ", " + j + ")"), false);
+                cell.onclick = new Function("onCellSelected(" + i + ", " + j + ")");
+                cell.style.top = (i * 20) + "px";
+                cell.style.left = (j * 20) + "px";
+
+                cell.ondragenter =  function () { return false; };
+                cell.ondragleave = function () { return false; };
+                cell.ondrop = function () { return false; };
+
+                cell.ondragover = function () { 
+                
+                    if(event.dataTransfer.getData('Text') != "flag" || event.target.getAttribute("frameType") != TILE_COVERED)
+                        event.dataTransfer.dropEffect = "none";
+                    return false; 
+                };
+                
+                cell.ondrop = onFlagDropped;
+
+                
+
+                cell.addEventListener("dragstart", new Function("dragStart(event," + i + "," + j + ")"), false); 
+//                cell.ondragstart = function(event) { 
+//        
+//                    event.dataTransfer.setData('Text', i + "_" + j);
+//                    event.dataTransfer.effectAllowed = "move";
+//                };
+
+
+                
+
+                document.getElementById("gameArea").appendChild(cell);
+                setTileFrame(i, j, TILE_COVERED);
+
+            }
+        }
+
+        var dragIcon = document.createElement("img");
+        dragIcon.src = "drop.gif";
+
+        var canvas = document.createElement("canvas");
+        
+        canvas.width = canvas.height = 50;
+
+          var ctx = canvas.getContext("2d");
+          ctx.lineWidth = 7;
+          ctx.moveTo(0, 0);
+          ctx.lineTo(50, 50);
+          ctx.moveTo(0, 50);
+          ctx.lineTo(50, 0);
+          ctx.stroke();
+
+        var flagCell = document.createElement("div");
+        flagCell.className = "flag";
+        flagCell.id = "flag";
+        flagCell.style.position = "absolute";
+        flagCell.draggable="true";
+        
+        flagCell.ondragenter =  function () { return false; };
+        flagCell.ondragleave = function () { return false; };
+        flagCell.ondrop = function () { return false; };
+        flagCell.ondragstart = function(event) { 
+        
+             event.dataTransfer.setData('Text', 'flag');
+             event.dataTransfer.setDragImage(dragIcon, -10, -10);
+             event.dataTransfer.effectAllowed = "copy";
+
+            };
+
+        flagCell.ondragover = function () { 
+                
+                    //if(event.dataTransfer.getData('Text') != "flag")
+                        //event.dataTransfer.dropEffect = "none";
+                    return false; 
+                };
+                
+        flagCell.ondrop = function (event) {
+            
+            var id = event.dataTransfer.getData('Text');
+            setTileFrame(id.split('_')[0], id.split('_')[1], TILE_COVERED);
+
+           return false;
+        
+        };
+
+        flagCell.style.top = (0) + "px";
+        flagCell.style.left = (400) + "px";
+        
+        document.getElementById("gameArea").appendChild(flagCell);
+
+    }
+
+    function onFlagDropped(event)
+    {
+        var cellId = event.target.id;                
+        setTileFrame(cellId.split('_')[0], cellId.split('_')[1], TILE_FLAG);
+        document.getElementById(cellId.split('_')[0] + "_" + cellId.split('_')[1]).draggable = true;
+    }
+
+    function getTileFrame(row, col)
+    {
+        var cell = document.getElementById(row + "_" + col);
+        return cell.getAttribute("frameType");
+    }
+
+    function setNumberTileFrame(row, col, number)
+    {
+        var cell = document.getElementById(row + "_" + col);
+        setTileFrame(row, col, TILE_UNCOVERED);
+        cell.innerHTML = number;
+    }
+
+    function setTileFrame(row, col, frameType)
+    {
+        var cell = document.getElementById(row + "_" + col);
+
+        switch(frameType)
+        {
+            case TILE_COVERED:
+                cell.style.backgroundColor = "Blue";
+                cell.setAttribute("frameType", TILE_COVERED);
+                break;
+            case TILE_UNCOVERED:
+                cell.style.backgroundColor = "gray";
+                cell.setAttribute("frameType", TILE_UNCOVERED);
+                break;
+            case TILE_FLAG:
+                cell.style.backgroundColor = "green";
+                cell.setAttribute("frameType", TILE_FLAG);
+                break;
+            case TILE_MINE:
+                cell.style.backgroundColor = "red";
+                cell.setAttribute("frameType", TILE_MINE);   
+                break;
+        }
+        
+    }
+
+    function initMineField(firstRow, firstCol) {
+
+        cells = new Array(FIELD_HEIGHT);
+
+        for (var i = 0; i < FIELD_HEIGHT; i++) {
+
+            cells[i] = new Array(FIELD_WIDTH);
+
+            for (var j = 0; j < FIELD_WIDTH; j++) {
+
+                cells[i][j] = 0;
+            }
+        }
+
+        var mines = 0;
+        while(mines < NUM_MINES)
+        {
+            var row = Math.floor(Math.random() * FIELD_HEIGHT);
+            var col = Math.floor(Math.random() * FIELD_WIDTH);
+            if(cells[row][col] == 0 && row != firstRow && col != firstCol )
+            {
+                cells[row][col] = 9;  
+                mines++;
+            }
+        }
+
+        for (var i = 0; i < FIELD_HEIGHT; i++) {
+
+            for (var j = 0; j < FIELD_WIDTH; j++) {
+
+                if(cells[i][j] == 9)
+                {
+                    for(var k=-1; k <= 1; k++)
+                    {
+                        for(var l=-1; l <= 1; l++)
+                        {
+                            var cellValue = getCellValue((i+k),(j+l));
+                            if(cellValue >= 0 && cellValue < 9)
+                                cells[i+k][j+l] += 1;
+                        }
+                    }
+                }
+
+            }
+        }
+
+        var log = "";
+
+        for (var i = 0; i < FIELD_HEIGHT; i++) {
+
+            log += "[ ";
+
+            for (var j = 0; j < FIELD_WIDTH; j++) {
+
+                    log += cells[i][j];  
+            }
+
+            log += " ]\n";
+        }
+        
+        console.log(log);
+
+    }
+
+</script>
+
+</head>
+
+<body>
+
+<div id="gameArea"></div>
+
+</body>
+
+</html>

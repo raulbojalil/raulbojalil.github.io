@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+Peg Solitaire
+</title>
+<style type="text/css">
+    
+#gameArea
+{
+    width: 600px;
+    height: 600px;
+    border-radius: 300px;
+    background-color: Green
+}
+
+.hole
+{
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background-color: White;
+}
+    
+.peg
+{
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background-color: Blue;
+    cursor: move;
+   
+}
+    
+</style>
+</head>
+<body>
+
+<div id="gameArea">
+
+
+</div>
+
+
+<script type="text/javascript">
+
+    var gameArea = document.getElementById("gameArea");
+    var pegs = new Array();
+    var pegCount = 0;
+
+    initBoard();
+
+    function initBoard() {
+
+        for (var i = 0; i < 7; i++) { //rows
+
+            pegs[i] = new Array();
+
+            for (var j = 0; j < 7; j++) { //cols
+
+                if ((i < 2 || i > 4) && (j < 2 || j > 4)) { //Espacios vacíos
+                    pegs[i][j] = -1;
+                }
+                else {
+
+                    var hole = document.createElement("div");
+                    hole.id = "hole_" + i + "-" + j;
+                    hole.className = "hole";
+                    hole.style.position = "absolute";
+                    hole.style.top = (50 + (i * 75)) + "px";
+                    hole.style.left = (60 + (j * 75)) + "px";
+                    hole.ondragenter = function () { return false; };
+                    hole.ondragleave = function () { return false; };
+
+                    hole.ondragover = holeOnDragOver;
+
+                    hole.ondrop = holeOnDrop;
+
+
+                    if (i == 3 && j == 3) {
+                        pegs[i][j] = 0;
+                    }
+                    else {
+
+                        var peg = document.createElement("div");
+                        peg.id = "peg_" + i + "-" + j;
+                        peg.className = "peg";
+                        peg.draggable = "true";
+                        peg.ondragenter = function () { return false; };
+                        peg.ondragleave = function () { return false; };
+                        peg.ondrop = function () { return false; };
+                        peg.ondragstart = function (event) {
+
+                            document.getElementById(event.currentTarget.id).style.opacity = 0.4;
+                            event.dataTransfer.setData('Text', event.currentTarget.id);
+                            event.dataTransfer.effectAllowed = "move";
+
+                        };
+
+                        peg.ondragend = function (event) {
+
+                            document.getElementById(event.currentTarget.id).style.opacity = 1;
+                        };
+
+                 
+                        peg.ondragover = function () {
+                            event.dataTransfer.dropEffect = "none";
+                            return false;
+                        };
+
+                        hole.appendChild(peg);
+
+                        pegs[i][j] = 1;
+                        pegCount++;
+                    }
+
+                    gameArea.appendChild(hole);
+
+                    
+                }
+                
+            }
+        }
+
+    }
+
+
+    function holeOnDrop(event) {
+
+        var hole = document.getElementById(event.currentTarget.id); //el hoyo donde se está poniendo
+        var peg = document.getElementById(event.dataTransfer.getData('Text'));
+
+        var pegRow = parseInt(peg.id.split("_")[1].split("-")[0]);
+        var pegCol = parseInt(peg.id.split("_")[1].split("-")[1]);
+
+        var holeRow = parseInt(hole.id.split("_")[1].split("-")[0]);
+        var holeCol = parseInt(hole.id.split("_")[1].split("-")[1]);
+
+        var pegToRemoveRow = pegRow + ((holeRow - pegRow) / 2);
+        var pegToRemoveCol = pegCol + ((holeCol - pegCol) / 2);
+
+        var pegToRemove = document.getElementById("peg_" + pegToRemoveRow + "-" + pegToRemoveCol);
+
+        pegToRemove.parentNode.removeChild(pegToRemove);
+
+        peg.id = "peg_" + hole.id.split('_')[1];
+        peg.style.opacity = "1";
+        hole.appendChild(peg);
+
+        if (pegCount == 1)
+            alert("HAS GANADO");
+
+    }
+
+    function holeOnDragOver(event) {
+
+        var peg = document.getElementById(event.dataTransfer.getData('Text'));
+        var hole = document.getElementById(event.currentTarget.id);
+
+        var pegRow = parseInt(peg.id.split("_")[1].split("-")[0]);
+        var pegCol = parseInt(peg.id.split("_")[1].split("-")[1]);
+
+        var holeRow = parseInt(hole.id.split("_")[1].split("-")[0]);
+        var holeCol = parseInt(hole.id.split("_")[1].split("-")[1]);
+
+
+        if ((pegRow == holeRow && (Math.abs(holeCol - pegCol) == 2)) ||
+             (pegCol == holeCol && (Math.abs(holeRow - pegRow) == 2))) {
+            return false; //Si puedes soltar
+        }
+        else
+            return true;  //No puedes soltar
+
+    }
+
+
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+﻿
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+        <title>Adición explosiva</title>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js"></script>
+        <style type="text/css">
+            .numpad {
+                margin: 2px;
+                width: 50px;
+                height: 50px;
+            }
+            .number{
+
+                font-size: 30px;
+            }
+        </style>
+
+        <script type="text/javascript">
+
+            $(window).load(function () {
+
+                var randomPositions = [[40, 60], [70, 40], [30, 90], [10,40], [70, 88], [10, 90], [20, 50], [90, 30], [50, 20], [60, 30], [70, 30]];
+                var nums = [];
+                var score = 0;
+                var result = 0;
+                var qty = 2;
+                var userNum = "";
+                var start;
+
+                function shuffle(array) {
+                    var currentIndex = array.length, temporaryValue, randomIndex;
+
+                    // While there remain elements to shuffle...
+                    while (0 !== currentIndex) {
+
+                        // Pick a remaining element...
+                        randomIndex = Math.floor(Math.random() * currentIndex);
+                        currentIndex -= 1;
+
+                        // And swap it with the current element.
+                        temporaryValue = array[currentIndex];
+                        array[currentIndex] = array[randomIndex];
+                        array[randomIndex] = temporaryValue;
+                    }
+
+                    return array;
+                }
+
+                var getRandomInt = function (min, max) {
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+
+                var generateNumbers = function (qty) {
+
+                    userNum = "";
+                    $("#usernum").html(userNum);
+                    result = 0;
+                    $(".number").remove();
+                    randomPositions = shuffle(randomPositions);
+                    nums = [];
+                    for (var i = 0; i < qty; i++) {
+                        var num = getRandomInt(1,9);
+                        nums.push(num);
+                        result += num;
+                        var randomPos = randomPositions[i];
+                        $("body").append('<div class="number" style="position: absolute; left: ' + randomPos[0] + 'px; top: ' + randomPos[1] + 'px">' + num + '</div>')
+                    }
+                }
+
+                var reset = function () {
+                    qty = 2;
+                    generateNumbers(qty);
+                    start = new Date().getTime();
+                };
+
+                var numPressed = function (num) {
+
+                    userNum += num;
+                    $("#usernum").html(userNum);
+
+                    if ("" + result == userNum) {
+                        qty += 1;
+
+                        if (qty <= 8)
+                            generateNumbers(qty);
+                        else 
+                        {
+                            var time = (new Date().getTime()) - start;
+                            time = Math.floor(time / 1000);
+
+                            if (time < 60) {
+                                time = "" + time;
+                                if (time.length == 1) time = "0" + time;
+                                time = "00:" + time;
+                            }
+                            else
+                            {
+                                var mins = "" + Math.floor(time / 60);
+                                var seconds = "" + (time % 60);
+
+                                if (mins.length == 1) mins = "0" + mins;
+                                if (seconds.length == 1) seconds = "0" + seconds;
+
+                                time = mins + ":" + seconds;
+                            }
+
+                            alert("¡Has ganado! " + time);
+                            reset();
+                        }
+                    }
+                    else
+                    {
+                        if (userNum.length == 2) {
+                            alert("¡Has perdido!");
+                            reset();
+                        }
+                    }
+                };
+
+                reset();
+
+                $(document).keydown(function (e) {
+
+                    if (e.which >= 96 && e.which <= 105)
+                        numPressed(e.which - 96);
+                    if (e.which >= 48 && e.which <= 57)
+                        numPressed(e.which - 48);
+                });
+
+                $(".numpad").click(function () {
+                    numPressed(parseInt($(this).html()));
+                });
+
+
+
+            });
+
+        </script>
+
+    </head>
+    <body>
+
+        <div style="position: absolute; top:0px; left: 0px;" id="usernum"></div>
+
+        <div style="position: absolute; left: 150px; top: 0px;">
+            <button class="numpad">1</button><button class="numpad">2</button><button class="numpad">3</button><br>
+            <button class="numpad">4</button><button class="numpad">5</button><button class="numpad">6</button><br>
+            <button class="numpad">7</button><button class="numpad">8</button><button class="numpad">9</button><br>
+            <button style="width: 158px;" class="numpad">0</button>
+        </div>
+               
+    </body>
+</html>

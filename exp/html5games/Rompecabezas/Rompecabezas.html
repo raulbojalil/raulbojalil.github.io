@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+Rompecabezas
+</title>
+<style type="text/css">
+  
+#backgroundGuide
+{
+    background-size: 400px 400px;
+    width: 400px; 
+    height: 400px;
+    opacity: 0.1;
+    margin: 0 0 0 0;
+}
+
+#guide
+{
+    background-size: 400px 400px;
+    width: 400px; 
+    height: 400px;
+    position: absolute;
+    left: 500px;
+    top: 0px;
+    
+}
+  
+.puzzlePiece
+{
+    -webkit-transition: all 0.5s ease-in-out;
+    width:100px;
+    height:100px; 
+
+}
+
+.puzzleImage
+{
+   background-size: 400px 400px;
+    width:100px;
+    height:100px; 
+}
+      
+</style>
+</head>
+<body>
+
+<div id="backgroundGuide" > </div>
+<div id="guide" > </div>
+
+<script type="text/javascript">
+
+	var puzzlePieces = new Array();
+	var puzzleIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
+	
+	window.onload = function()
+	{
+		
+		gameArea = document.getElementById("guide");
+
+        gameArea.ondragenter = function () {
+            gameArea.style.border = '8px solid #b1ecb3';
+            return false;
+        };
+
+        gameArea.ondragover = function () {
+            return false;
+        };
+
+        gameArea.ondragleave = function () {
+            gameArea.style.border = '';
+            return false;
+        };
+
+        gameArea.ondrop = function (event) {
+            gameArea.style.border = '';
+
+            
+
+            return false;
+        };
+
+	}
+	
+	
+    
+
+	function initPieces(imageUrl)
+	{
+		document.getElementById("backgroundGuide").style.background = "url(" + imageUrl + ")";
+		document.getElementById("guide").style.background = "url(" + imageUrl + ")";
+	
+		puzzlePieces = new Array();
+
+		for (var i = 0; i < 4; i++) {
+
+			puzzlePieces[i] = new Array();
+
+			for (var j = 0; j < 4; j++) {
+	 
+				if (i == 3 && j == 3) {
+					puzzlePieces[i][j] = 15;
+					continue;
+				}
+
+				var random = Math.floor(Math.random() * puzzleIndexes.length);
+				puzzlePieces[i][j] = puzzleIndexes[random];
+				puzzleIndexes.splice(random,1);
+
+				var puzzlePiece = document.createElement("div");
+
+				puzzlePiece.id = i + "_" + j;
+				puzzlePiece.className = "puzzlePiece";
+				puzzlePiece.style.position = "absolute";
+				puzzlePiece.style.top = (i * 100) + "px";
+				puzzlePiece.style.left = (j * 100) + "px";
+				puzzlePiece.onclick = new Function("onPuzzlePieceSelected('" + i + "_" + j + "')");
+
+				var puzzleImage = document.createElement("img");
+				puzzleImage.className = "puzzleImage";
+				puzzleImage.style.background = "url(" + imageUrl + ") -" + (((puzzlePieces[i][j] % 4)) * 100) + "px -" + (Math.floor(puzzlePieces[i][j] / 4) * 100) + "px";
+				
+				puzzlePiece.appendChild(puzzleImage);
+				document.body.appendChild(puzzlePiece); 
+
+			}
+		}
+	}
+
+    function onPuzzlePieceSelected(puzzlePieceId) {
+
+        var row = parseInt(puzzlePieceId.split("_")[0]);
+        var col = parseInt(puzzlePieceId.split("_")[1]);
+        var puzzlePiece = document.getElementById(puzzlePieceId);
+
+        for (var i = 0; i < 4; i++) {
+
+            if (puzzlePieces[row][i] == 15) {
+                
+                if (col < i) { //Hay que mover hacia la derecha
+
+                    for (var j = col; j < i; j++) {
+                        var p = document.getElementById(row + "_" + j);
+                        if(p != undefined)
+                            p.style.left = ((j + 1) * 100) + "px";
+                    }
+
+                    for (var k = i; k >= col; k--) {
+                        if (k > 0)
+                            puzzlePieces[row][k] = puzzlePieces[row][k - 1];
+                        
+                        var p = document.getElementById(row + "_" + k);
+                        if (p != undefined) {
+                            p.id = row + "_" + (k + 1);
+                            p.onclick = new Function("onPuzzlePieceSelected('" + row + "_" + (k + 1) + "')");
+                        }
+                    }
+
+                    puzzlePieces[row][col] = 15;
+
+                    console.log(puzzlePieces);
+                    checkWin();  
+                }
+                else if (col > i) { //Izquierda
+
+                    for (var j = col; j > i; j--) {
+
+                        var p = document.getElementById(row + "_" + j);
+                        if(p != undefined)
+                            p.style.left = ((j - 1) * 100) + "px"; 
+
+                    }
+
+                    for (var k = i; k <= col; k++) {
+                        if(k < 3)
+                        puzzlePieces[row][k] = puzzlePieces[row][k + 1];
+
+                        var p = document.getElementById(row + "_" + k);
+                        if (p != undefined) {
+
+                            p.id = row + "_" + (k - 1);
+                            p.onclick = new Function("onPuzzlePieceSelected('" + row + "_" + (k - 1) + "')");
+                        }
+                    }
+
+                        puzzlePieces[row][col] = 15;
+                        console.log(puzzlePieces);
+                        checkWin();
+                }
+
+                
+
+            }
+            else if (puzzlePieces[i][col] == 15) {
+
+                if (row < i) { //Hay que mover hacia abajo
+
+                    for (var j = row; j < i; j++) {
+                        document.getElementById(j + "_" + col).style.top = ((j + 1) * 100) + "px";
+                    }
+
+                    for (var k = i; k >= row; k--) {
+                        if(k > 0)
+                            puzzlePieces[k][col] = puzzlePieces[k - 1][col];
+
+                        var p = document.getElementById(k + "_" + col);
+                        if (p != undefined) {
+                            p.id = (k + 1) + "_" + col;
+                            p.onclick = new Function("onPuzzlePieceSelected('" + (k + 1) + "_" + col + "')");
+                        }
+
+                    }
+
+                    puzzlePieces[row][col] = 15;
+                    console.log(puzzlePieces);
+
+                    checkWin();
+                }
+                else if (row > i) { //arriba
+
+                    for (var j = row; j > i; j--) {
+
+                        var p = document.getElementById(j + "_" + col);
+                        p.style.top = ((j - 1) * 100) + "px";
+                      
+                    }
+
+                    for (var k = i; k <= row; k++) {
+                        if(k < 3)
+                            puzzlePieces[k][col] = puzzlePieces[k + 1][col];
+
+                        var p = document.getElementById(k + "_" + col);
+                        if (p != undefined) {
+
+                            p.id = (k - 1) + "_" + col;
+                            p.onclick = new Function("onPuzzlePieceSelected('" + (k - 1) + "_" + col + "')");
+                        }
+
+                    }
+
+
+                    puzzlePieces[row][col] = 15;
+                    console.log(puzzlePieces);
+                    
+                    checkWin();
+                    
+                }
+
+                
+            }
+
+        }
+
+       
+            
+    }
+
+
+    function checkWin() {
+
+        var counter = 0;
+
+        for (var i = 0; i < 4; i++) {
+
+            for (var j = 0; j < 4; j++) {
+
+                if (puzzlePieces[i][j] == counter) {
+                    counter++;
+                }
+                return;
+            }
+
+        }
+
+        alert("HAS GANADO");
+
+    }
+
+    function getPiece(row, col)
+    {
+        if(row >= 4 || row < 0) return -1;
+        if(col >= 4 || col < 0) return -1;
+        
+        return puzzlePieces[row][col]; 
+    }
+
+</script>
+
+</body>
+</html>

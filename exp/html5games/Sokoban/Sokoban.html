@@ -1,0 +1,2035 @@
+<html>
+<head>
+    <title>Puzzle Bobble</title>
+</head>
+<body>
+</body>
+<script type="text/javascript" src="js/RequestAnimationFrame.js"></script>
+<script type="text/javascript" src="js/Tween.js"></script>
+<script type="text/javascript">
+
+    ///GameStateManagement.js
+    var GAMESTATEMANAGEMENT = GAMESTATEMANAGEMENT || {};
+    var SOKOBANGAME = SOKOBANGAME || {};
+
+    GAMESTATEMANAGEMENT.CANVAS_WIDTH = 600;
+    GAMESTATEMANAGEMENT.CANVAS_HEIGHT = 600;
+    SOKOBANGAME.TILE_SIZE = 32;
+    SOKOBANGAME.FIELD_TILE_WIDTH = 10;
+    SOKOBANGAME.FIELD_TILE_HEIGHT = 10;
+    SOKOBANGAME.SCORE_FONT = "17pt Calibri";
+
+    //Common.js
+    var COMMON = COMMON || {};
+
+    //ScreenState.js
+    GAMESTATEMANAGEMENT.ScreenState = {
+
+        TransitionOn: 0,
+        Active: 1,
+        TransitionOff: 2,
+        Hidden: 3
+    };
+
+    COMMON.Keys = {
+
+        Up: 0,
+        Down: 1,
+        Left: 2,
+        Right: 3,
+        Enter: 4
+    };
+
+    GAMESTATEMANAGEMENT.Timer = function (screenManager) {
+        var _cyclic = false;
+        var _cycleStart;
+        var _period;
+        var _screenManager = screenManager;
+
+        this.start = function (period, cyclic) {
+            _period = period || 0;
+            
+            if (cyclic != undefined) 
+                cyclic = _cyclic;
+
+            _cycleStart = _screenManager.getTotalGameTime();
+        };
+
+        this.stop = function () {
+            this.start(0);
+        };
+
+        this.check = function () {
+            if (_period == 0)
+                return false;
+
+            if (_screenManager.getTotalGameTime() - _cycleStart >= _period) {
+                if (_cyclic) {
+                    _cycleStart = _screenManager.getTotalGameTime() - ((_screenManager.getTotalGameTime() - _cycleStart) % _period);
+                } else {
+                    period = 0;
+                }
+                return true;
+            }
+
+            return false;
+
+        };
+    };
+
+    //InputState.js
+    GAMESTATEMANAGEMENT.InputState = function () {
+
+        var currentKeyStates = [false, false, false, false, false];
+        var lastKeyStates = [false, false, false, false, false];
+
+        document.addEventListener("keydown", onKeyDown, false);
+        document.addEventListener("keyup", onKeyUp, false);
+
+        function onKeyDown(ev) {
+
+            //alert(ev.keyCode);
+
+            if (ev.keyCode == 38)
+                currentKeyStates[COMMON.Keys.Up] = true;
+            if (ev.keyCode == 40)
+                currentKeyStates[COMMON.Keys.Down] = true;
+            if (ev.keyCode == 13)
+                currentKeyStates[COMMON.Keys.Enter] = true;
+            if (ev.keyCode == 37)
+                currentKeyStates[COMMON.Keys.Left] = true;
+            if (ev.keyCode == 39)
+                currentKeyStates[COMMON.Keys.Right] = true;
+        }
+
+        function onKeyUp(ev) {
+
+            //Para que funcione en Chrome la tecla Enter en onKeyUp
+            currentKeyStates[COMMON.Keys.Enter] = false;
+            lastKeyStates[COMMON.Keys.Enter] = false;
+
+            if (ev.keyCode == 38) {
+                currentKeyStates[COMMON.Keys.Up] = false;
+                lastKeyStates[COMMON.Keys.Up] = false;
+            }
+            if (ev.keyCode == 40) {
+                currentKeyStates[COMMON.Keys.Down] = false;
+                lastKeyStates[COMMON.Keys.Down] = false;
+            }
+            if (ev.keyCode == 13) {
+                currentKeyStates[COMMON.Keys.Enter] = false;
+                lastKeyStates[COMMON.Keys.Enter] = false;
+            }
+            if (ev.keyCode == 37) {
+                currentKeyStates[COMMON.Keys.Left] = false;
+                lastKeyStates[COMMON.Keys.Left] = false;
+            }
+            if (ev.keyCode == 39) {
+                currentKeyStates[COMMON.Keys.Right] = false;
+                lastKeyStates[COMMON.Keys.Right] = false;
+            }
+            
+        }
+
+
+        this.isKeyDown = function (key) {
+            return currentKeyStates[key];
+        };
+
+        this.isNewKeyPress = function (key) {
+
+            if (lastKeyStates[key] == true) return false;
+
+            if (currentKeyStates[key] == true) {
+                lastKeyStates[key] = true;
+                return true;
+            }
+
+        };
+
+    };
+
+    //ScreenManager.js
+    GAMESTATEMANAGEMENT.ScreenManager = function () {
+
+        var gameTime = { elapsedGameTime: 0, totalGameTime: 0 };
+        var screens = new Array();
+        var screensToUpdate = new Array();
+        var lastDate = new Date().getTime();
+        var input = new GAMESTATEMANAGEMENT.InputState();
+
+        var canvas = document.createElement("canvas");
+        canvas.id = "myCanvas";
+        canvas.width = GAMESTATEMANAGEMENT.CANVAS_WIDTH;
+        canvas.height = GAMESTATEMANAGEMENT.CANVAS_HEIGHT;
+        document.body.appendChild(canvas);
+
+        this.context = canvas.getContext("2d");
+
+        this.getTotalGameTime = function () {
+            return gameTime.totalGameTime;
+        };
+
+        this.getElapsedGameTime = function () {
+            return gameTime.elapsedGameTime;
+        };
+
+
+        this.getScreenCount = function () {
+            return screens.length;
+        };
+
+        this.getScreens = function () {
+            var screensArray = new Array();
+            for (var i = 0; i < screens.length; i++) {
+                screensArray.push(screens[i]);
+            }
+            return screensArray;
+        };
+
+        this.clear = function () {
+
+            this.context.clearRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+        };
+
+        this.setSettingValue = function (key, value) {
+            localStorage.setItem(key, value);
+        };
+
+        this.getSettingValue = function (key) {
+            return localStorage.getItem(key);
+        };
+
+        this.update = function (gameTime) {
+
+            screensToUpdate.splice(0, screensToUpdate.length);
+            for (var i = 0; i < screens.length; i++) {
+                screensToUpdate.push(screens[i]);
+            }
+
+            var otherScreenHasFocus = false;
+            var coveredByOtherScreen = false;
+
+            while (screensToUpdate.length > 0) {
+                // Pop the topmost screen off the waiting list.
+                var screen = screensToUpdate.pop();
+
+                // Update the screen.
+                screen.update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+                if (screen.screenState == GAMESTATEMANAGEMENT.ScreenState.TransitionOn ||
+                screen.screenState == GAMESTATEMANAGEMENT.ScreenState.Active) {
+                    // If this is the first active screen we came across,
+                    // give it a chance to handle input.
+                    if (!otherScreenHasFocus) {
+
+                        screen.handleInput(input);
+                        otherScreenHasFocus = true;
+                    }
+
+                    // If this is an active non-popup, inform any subsequent
+                    // screens that they are covered by it.
+                    if (!screen.isPopup)
+                        coveredByOtherScreen = true;
+                }
+            }
+        };
+
+        this.draw = function (gameTime) {
+
+            this.context.clearRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+
+            for (var i = 0; i < screens.length; i++) {
+                if (screens[i].screenState == GAMESTATEMANAGEMENT.ScreenState.Hidden)
+                    continue;
+
+                screens[i].draw(gameTime, this.context);
+            }
+        };
+
+        this.render = function (elapsedTime) {
+
+            //gameTime.elapsedGameTime = elapsedTime;
+            //gameTime.elapsedGameTime = new Date().getTime() - lastDate;
+            gameTime.elapsedGameTime = elapsedTime;
+       
+            gameTime.totalGameTime += gameTime.elapsedGameTime;
+
+            //console.log("" + elapsedTime);
+
+            // 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            this.update(gameTime);
+            this.clear();
+            this.draw(gameTime);
+
+            //lastDate = new Date().getTime();
+
+
+
+        };
+
+        this.addScreen = function (screen) {
+
+            screen.screenManager = this;
+            screen.isExiting = false;
+            screens.push(screen);
+            screen.loadContent();
+        };
+
+        this.removeScreen = function (screen) {
+
+            for (var i = 0; i < screens.length; i++) {
+
+                if (screens[i] == screen) {
+                    screen.unloadContent();
+                    screens.splice(i, 1);
+                }
+            }
+        };
+
+        this.fadeBackBufferToBlack = function (alpha) {
+
+            this.context.fillStyle = "rgba(0,0,0," + alpha + ")";
+            this.context.fillRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+        };
+
+    };
+
+    //GameScreen.js
+    GAMESTATEMANAGEMENT.GameScreen = function () {
+
+        this.isPopup = false;
+        this.transitionOnTime = 0;
+        this.transitionOffTime = 0;
+        this.screenManager = null;
+
+        //Gets the current position of the screen transition, ranging
+        //from zero (fully active, no transition) to one (transitioned
+        //fully off to nothing).
+        this.transitionPosition = 1;
+
+        //Gets the current alpha of the screen transition, ranging
+        //from 1 (fully active, no transition) to 0 (transitioned
+        //fully off to nothing).
+        this.getTransitionAlpha = function () {
+            return 1 - this.transitionPosition;
+        };
+
+        this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOn;
+
+        this.isExiting = false;
+
+        var _otherScreenHasFocus;
+        this.isActive = function () {
+            return !_otherScreenHasFocus && (this.screenState == GAMESTATEMANAGEMENT.ScreenState.TransitionOn ||
+                        this.screenState == GAMESTATEMANAGEMENT.ScreenState.Active);
+        };
+
+        this.updateTransition = function (gameTime, time, direction) {
+            // How much should we move by?
+            var transitionDelta;
+
+            if (time == 0)
+                transitionDelta = 1;
+            else
+                transitionDelta = gameTime.elapsedGameTime / time;
+
+            // Update the transition position.
+            this.transitionPosition += transitionDelta * direction;
+
+            // Did we reach the end of the transition?
+            if (((direction < 0) && (this.transitionPosition <= 0)) ||
+                ((direction > 0) && (this.transitionPosition >= 1))) {
+                this.transitionPosition = this.clamp(this.transitionPosition, 0, 1);
+                return false;
+            }
+
+            // Otherwise we are still busy transitioning.
+            return true;
+        };
+
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            _otherScreenHasFocus = otherScreenHasFocus;
+
+            if (this.isExiting) {
+                // If the screen is going away to die, it should transition off.
+                this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOff;
+
+                if (!this.updateTransition(gameTime, this.transitionOffTime, 1)) {
+                    // When the transition finishes, remove the screen.
+                    this.screenManager.removeScreen(this);
+                }
+            }
+            else if (coveredByOtherScreen) {
+
+                // If the screen is covered by another, it should transition off.
+                if (this.updateTransition(gameTime, this.transitionOffTime, 1)) {
+                    // Still busy transitioning.
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOff;
+                }
+                else {
+                    // Transition finished!
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.Hidden;
+                }
+            }
+            else {
+                // Otherwise the screen should transition on and become active.
+                if (this.updateTransition(gameTime, this.transitionOnTime, -1)) {
+                    // Still busy transitioning.
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.TransitionOn;
+                }
+                else {
+                    // Transition finished!
+                    this.screenState = GAMESTATEMANAGEMENT.ScreenState.Active;
+                }
+            }
+
+        };
+
+        this.clamp = function (value, min, max) {
+
+            if (value < min) return min;
+            if (value > max) return max;
+
+            return value;
+        };
+
+        //virtual
+        this.draw = function (gameTime, context) {
+        };
+
+        //virtual
+        this.loadContent = function () {
+        };
+
+        //virtual
+        this.unloadContent = function () {
+        };
+
+        //virtual
+        this.handleInput = function(inputState) {
+        };
+
+        this.exitScreen = function () {
+
+            if (this.transitionOffTime == 0) {
+                // If the screen has a zero transition time, remove it immediately.
+                this.screenManager.removeScreen(this);
+            }
+            else {
+                // Otherwise flag that it should transition off and then exit.
+                this.isExiting = true;
+            }
+        };
+    };
+
+    ///BackgroundScreen.js
+    GAMESTATEMANAGEMENT.BackgroundScreen = function () {
+
+        this.transitionOnTime = 500;
+        this.transitionOffTime = 500;
+        var scrollX = 0;
+        var scrollY = 0;
+        var backgroundImage;
+        var backgroundImage2;
+
+        var scrollFactor = 1;
+        var scrollFactor2 = 0.5;
+
+        var test = 0;
+
+        var baseUpdate = this.update;
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            scrollX++;
+            baseUpdate.call(this, gameTime, otherScreenHasFocus, false);
+        };
+
+
+        this.loadContent()
+        {
+            backgroundImage = new Image();
+            backgroundImage.src = "b2.png";
+            backgroundImage2 = new Image();
+            backgroundImage2.src = "b3.png";
+        };
+
+        this.draw = function (gameTime, context) {
+
+
+            context.fillStyle = "green";
+            context.fillRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+
+            //context.drawImage(backgroundImage, 0, 0);
+            var areaDrawn = [0, 0];
+
+            for (var y = 0; y < GAMESTATEMANAGEMENT.CANVAS_HEIGHT; y += areaDrawn[1]) {
+                for (var x = 0; x < GAMESTATEMANAGEMENT.CANVAS_WIDTH; x += areaDrawn[0]) {
+                    // the top left corner to start drawing the next tile from
+                    var newPosition = [0 + x, 0 + y];
+                    // the amount of space left in which to draw
+                    var newFillArea = [GAMESTATEMANAGEMENT.CANVAS_WIDTH - x, GAMESTATEMANAGEMENT.CANVAS_HEIGHT - y];
+                    // the first time around you have to start drawing from the middle of the image
+                    // subsequent tiles alwyas get drawn from the top or left
+                    var newScrollPosition = [0, 0];
+                    if (x == 0) newScrollPosition[0] = scrollX * scrollFactor;
+                    if (y == 0) newScrollPosition[1] = scrollY * scrollFactor;
+                    areaDrawn = this.drawRepeat(context, newPosition, newFillArea, newScrollPosition);
+                }
+            }
+
+
+
+            var areaDrawn2 = [0, 0];
+
+            for (var y = 0; y < GAMESTATEMANAGEMENT.CANVAS_HEIGHT; y += areaDrawn2[1]) {
+                for (var x = 0; x < GAMESTATEMANAGEMENT.CANVAS_WIDTH; x += areaDrawn2[0]) {
+                    // the top left corner to start drawing the next tile from
+                    var newPosition = [0 + x, 0 + y];
+                    // the amount of space left in which to draw
+                    var newFillArea = [GAMESTATEMANAGEMENT.CANVAS_WIDTH - x, GAMESTATEMANAGEMENT.CANVAS_HEIGHT - y];
+                    // the first time around you have to start drawing from the middle of the image
+                    // subsequent tiles alwyas get drawn from the top or left
+                    var newScrollPosition = [0, 0];
+                    if (x == 0) newScrollPosition[0] = scrollX * scrollFactor2;
+                    if (y == 0) newScrollPosition[1] = scrollY * scrollFactor2;
+                    areaDrawn2 = this.drawRepeat2(context, newPosition, newFillArea, newScrollPosition);
+                }
+            }
+
+
+        };
+
+        this.drawRepeat = function (context, newPosition, newFillArea, newScrollPosition) {
+            // find where in our repeating texture to start drawing (the top left corner)
+            var xOffset = Math.abs(newScrollPosition[0]) % backgroundImage.width;
+            var yOffset = Math.abs(newScrollPosition[1]) % backgroundImage.height;
+            var left = newScrollPosition[0] < 0 ? backgroundImage.width - xOffset : xOffset;
+            var top = newScrollPosition[1] < 0 ? backgroundImage.height - yOffset : yOffset;
+            var width = newFillArea[0] < backgroundImage.width - left ? newFillArea[0] : backgroundImage.width - left;
+            var height = newFillArea[1] < backgroundImage.height - top ? newFillArea[1] : backgroundImage.height - top;
+
+            // draw the image
+            context.drawImage(backgroundImage, left, top, width, height, newPosition[0], newPosition[1], width, height);
+
+            return [width, height];
+        };
+
+
+        this.drawRepeat2 = function (context, newPosition, newFillArea, newScrollPosition) {
+            // find where in our repeating texture to start drawing (the top left corner)
+            var xOffset = Math.abs(newScrollPosition[0]) % backgroundImage2.width;
+            var yOffset = Math.abs(newScrollPosition[1]) % backgroundImage2.height;
+            var left = newScrollPosition[0] < 0 ? backgroundImage2.width - xOffset : xOffset;
+            var top = newScrollPosition[1] < 0 ? backgroundImage2.height - yOffset : yOffset;
+            var width = newFillArea[0] < backgroundImage2.width - left ? newFillArea[0] : backgroundImage2.width - left;
+            var height = newFillArea[1] < backgroundImage2.height - top ? newFillArea[1] : backgroundImage2.height - top;
+
+            // draw the image
+            context.drawImage(backgroundImage2, left, top, width, height, newPosition[0], newPosition[1], width, height);
+
+            return [width, height];
+        };
+
+
+    };
+
+    GAMESTATEMANAGEMENT.BackgroundScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.BackgroundScreen.constructor = GAMESTATEMANAGEMENT.BackgroundScreen;
+
+    ///GameOverScreen.js
+    GAMESTATEMANAGEMENT.GameOverScreen = function (score) {
+
+        var gameOverPhrase = new Array();
+        var timer = 0;
+        var _score = score;
+
+        this.transitionOffTime = 100;
+        this.transitionOnTime = 100;
+
+        this.accepted = new COMMON.Event();
+        this.canceled = new COMMON.Event();
+
+        gameOverPhrase.push("H");
+        gameOverPhrase.push("A");
+        gameOverPhrase.push("S");
+        gameOverPhrase.push("P");
+        gameOverPhrase.push("E");
+        gameOverPhrase.push("R");
+        gameOverPhrase.push("D");
+        gameOverPhrase.push("I");
+        gameOverPhrase.push("D");
+        gameOverPhrase.push("O");
+
+
+        this.position0 = { x: 50, y: -10 }; //H
+        this.position1 = { x: 100, y: -10 }; //A
+        this.position2 = { x: 150, y: -10 }; //S
+        this.position3 = { x: 250, y: -10 }; //C
+        this.position4 = { x: 300, y: -10 }; //H
+        this.position5 = { x: 350, y: -10 }; //O
+        this.position6 = { x: 400, y: -10 }; //C
+        this.position7 = { x: 450, y: -10 }; //A
+        this.position8 = { x: 500, y: -10 }; //D
+        this.position9 = { x: 550, y: -10 }; //O 
+        this.position10 = { x: GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, y: -500 }; //O 
+
+
+        new TWEEN.Tween(this.position0).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 1000).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position1).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 1200).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position2).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 1400).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position3).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 1600).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position4).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 1800).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position5).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 2000).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position6).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 2200).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position7).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 2400).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position8).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 2600).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position9).to({ y: GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 }, 2800).easing(TWEEN.Easing.Bounce.EaseOut).start();
+        new TWEEN.Tween(this.position10).to({ y: (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) + 100 }, 4000).easing(TWEEN.Easing.Bounce.EaseOut).start();
+
+        this.isPopup = true;
+
+        this.draw = function (gameTime, context) {
+
+            this.screenManager.fadeBackBufferToBlack(this.getTransitionAlpha() * 2 / 3);
+            context.font = "30pt Calibri";
+            context.textAlign = "center";
+            context.fillStyle = "rgba(255,255,255," + this.getTransitionAlpha() + ")";
+
+            context.fillText(gameOverPhrase[0], this.position0.x, this.position0.y);
+            context.fillText(gameOverPhrase[1], this.position1.x, this.position1.y);
+            context.fillText(gameOverPhrase[2], this.position2.x, this.position2.y);
+            context.fillText(gameOverPhrase[3], this.position3.x, this.position3.y);
+            context.fillText(gameOverPhrase[4], this.position4.x, this.position4.y);
+            context.fillText(gameOverPhrase[5], this.position5.x, this.position5.y);
+            context.fillText(gameOverPhrase[6], this.position6.x, this.position6.y);
+            context.fillText(gameOverPhrase[7], this.position7.x, this.position7.y);
+            context.fillText(gameOverPhrase[8], this.position8.x, this.position8.y);
+            context.fillText(gameOverPhrase[9], this.position9.x, this.position9.y);
+
+            context.fillText("Puntuación final: " + _score, this.position10.x, this.position10.y);
+
+        };
+
+
+        this.onAccepted = function (sender, eventArgs, object) {
+
+            object.accepted.fire(this, null);
+            object.exitScreen();
+
+        };
+
+        this.onCanceled = function (sender, eventArgs, object) {
+
+            object.canceled.fire(this, null);
+            object.exitScreen();
+
+        };
+
+        this.handleInput = function (inputState) {
+
+            if (inputState.isNewKeyPress(COMMON.Keys.Enter)) {
+
+                var youLoseMBox = new GAMESTATEMANAGEMENT.MessageBoxScreen("¿Reintentar?");
+                youLoseMBox.accepted.subscribe(this, this.onAccepted);
+                youLoseMBox.canceled.subscribe(this, this.onCanceled);
+
+                this.screenManager.addScreen(youLoseMBox);
+            }
+
+        };
+
+        var baseUpdate = this.update;
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            TWEEN.update();
+
+            timer++;
+
+            if (timer > 200) {
+
+                this.position0.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin(gameTime.totalGameTime / 100)));
+                this.position1.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 10)));
+                this.position2.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 20)));
+                this.position3.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 30)));
+                this.position4.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 40)));
+                this.position5.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 50)));
+                this.position6.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 60)));
+                this.position7.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 70)));
+                this.position8.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 80)));
+                this.position9.y = (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - (30 * Math.abs(Math.sin((gameTime.totalGameTime / 100) - 90)));
+
+            }
+
+            baseUpdate.call(this, gameTime, otherScreenHasFocus, coveredByOtherScreen);
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.GameOverScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.GameOverScreen.constructor = GAMESTATEMANAGEMENT.GameOverScreen;
+
+    ///MessageBoxScreen.js
+    GAMESTATEMANAGEMENT.MessageBoxScreen = function (text) {
+
+        this.transitionOnTime = 100;
+        this.transitionOffTime = 100;
+        this.isPopup = true;
+        this.isNoSelected = true;
+
+        this.accepted = new COMMON.Event();
+        this.canceled = new COMMON.Event();
+
+        var prueba = 0;
+
+        this.handleInput = function (inputState) {
+            if (inputState.isNewKeyPress(COMMON.Keys.Up)) {
+                if (!this.isNoSelected)
+                    this.isNoSelected = true;
+            }
+            if (inputState.isNewKeyPress(COMMON.Keys.Down)) {
+                if (this.isNoSelected)
+                    this.isNoSelected = false;
+            }
+            if (inputState.isNewKeyPress(COMMON.Keys.Enter)) {
+                this.exitScreen();
+                this.isNoSelected ? this.canceled.fire(this, null) : this.accepted.fire(this, null);
+            }
+        };
+
+        this.draw = function (gameTime, context) {
+
+            this.screenManager.fadeBackBufferToBlack(this.getTransitionAlpha() * 2 / 3);
+            context.font = "30pt Calibri";
+            context.textAlign = "center";
+            context.fillStyle = "rgba(255,255,255," + this.getTransitionAlpha() + ")";
+            context.fillText(text, GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2);
+
+            context.font = "23pt Calibri";
+
+            if (this.isNoSelected)
+                context.fillStyle = "rgba(255,255,0," + this.getTransitionAlpha() + ")";
+            else
+                context.fillStyle = "rgba(255,255,255," + this.getTransitionAlpha() + ")"
+
+            context.fillText("No", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) + 100);
+
+            if (this.isNoSelected)
+                context.fillStyle = "rgba(255,255,255," + this.getTransitionAlpha() + ")";
+            else
+                context.fillStyle = "rgba(255,255,0," + this.getTransitionAlpha() + ")";
+
+            context.fillText("Sí", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) + 130);
+
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.MessageBoxScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.MessageBoxScreen.constructor = GAMESTATEMANAGEMENT.MessageBoxScreen;
+
+    ///CompanySplashScreen.js
+    GAMESTATEMANAGEMENT.CompanySplashScreen = function () {
+
+        this.transitionOnTime = 1000;
+        this.transitionOffTime = 1000;
+        var splashTimer;
+        var nextScreenTimer;
+
+        var position0 = { x: 0 };
+        var position1 = { x: Math.PI / 2 };
+        var position2 = { x: 0 };
+        var position3 = { x: Math.PI * 1.5 };
+        var position4 = { x: 0 };
+        var position5 = { x: 0 };
+        var position6 = { x: 0 };
+        var position7 = { x: 0 };
+        var position8 = { x: 0 };
+        var position9 = { x: Math.PI / 2 };
+        var position10 = { x: Math.PI / 2 };
+        var position11 = { x: 0 };
+
+        this.loadContent = function () {
+            splashTimer = new GAMESTATEMANAGEMENT.Timer(this.screenManager);
+            splashTimer.start(3000);
+            nextScreenTimer = new GAMESTATEMANAGEMENT.Timer(this.screenManager);
+
+            new TWEEN.Tween(position0).to({ x: 100 }, 1000).easing(TWEEN.Easing.Bounce.EaseOut).start();
+            new TWEEN.Tween(position1).to({ x: Math.PI * 1.5 }, 2000).easing(TWEEN.Easing.Elastic.EaseOut).start();
+            new TWEEN.Tween(position2).to({ x: 40 }, 1000).easing(TWEEN.Easing.Bounce.EaseInOut).start();
+            new TWEEN.Tween(position3).to({ x: Math.PI }, 1000).easing(TWEEN.Easing.Linear.EaseNone).start();
+            new TWEEN.Tween(position4).to({ x: 80 }, 1000).easing(TWEEN.Easing.Circular.EaseOut).start();
+            new TWEEN.Tween(position5).to({ x: 100 }, 1000).easing(TWEEN.Easing.Circular.EaseInOut).start();
+            new TWEEN.Tween(position6).to({ x: 50 }, 1000).easing(TWEEN.Easing.Sinusoidal.EaseIn).start();
+            new TWEEN.Tween(position7).to({ x: 20 }, 1000).easing(TWEEN.Easing.Sinusoidal.EaseOut).start();
+            new TWEEN.Tween(position8).to({ x: 100 }, 1000).easing(TWEEN.Easing.Quartic.EaseIn).start();
+            new TWEEN.Tween(position9).to({ x: Math.PI * 1.5 }, 1000).easing(TWEEN.Easing.Quartic.EaseOut).start();
+            new TWEEN.Tween(position10).to({ x: 0 }, 1000).easing(TWEEN.Easing.Quintic.EaseOut).start();
+            new TWEEN.Tween(position11).to({ x: 1 }, 3000).easing(TWEEN.Easing.Exponential.EaseIn).start();
+
+        };
+
+        this.draw = function (gameTime, context) {
+
+            context.save();
+            context.translate((GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2) - 140, (GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2) - 100);
+
+            //R
+
+            context.fillStyle = "black";
+            context.lineWidth = 20;
+            context.fillRect(30, 30, 20, position0.x);    // I
+
+            context.beginPath();         //  )
+            context.arc(50, 50, 30, position1.x, Math.PI / 2, false);
+            context.stroke();
+
+            context.fillRect(60, 90, 20, position2.x); //  \
+
+            //A
+
+            context.beginPath();  //Arco
+            context.arc(150, 50, 30, position3.x, Math.PI * 1.5, false);
+            context.stroke();
+
+            context.fillRect(110, 50, 20, position4.x); //   /
+            context.fillRect(150, 30, 20, position5.x); //  \ 
+
+            context.fillRect(110, 70, position6.x, 20);  // --
+
+            context.fillStyle = "white";
+            context.fillRect(150, 70, position7.x, 20); // -
+
+            //B
+            context.fillStyle = "black";  //I
+            context.fillRect(190, 30, 20, position8.x);
+            context.beginPath();         //)
+            context.arc(210, 50, 30, position9.x, Math.PI / 2, false);
+            context.stroke();
+                                       
+            context.beginPath();         //)
+            context.arc(210, 90, 30, position10.x, Math.PI / 2, false);
+            context.stroke();
+
+            context.fillStyle = "rgba(0,0,0," + position11.x + ")";
+            context.font = "40pt Arial";
+            context.fillText("GAMES", 40, 180);
+
+            context.restore();
+
+            this.screenManager.fadeBackBufferToBlack(1 - this.getTransitionAlpha());
+
+            //            context.font = "30pt Calibri";
+            //            context.textAlign = "center";
+            //            context.fillStyle = "black";
+            //            context.fillText("RAB GAMES", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2);
+        };
+
+        var baseUpdate = this.update;
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            TWEEN.update();
+            if (splashTimer.check()) {
+                splashTimer.stop();
+                nextScreenTimer.start(900);
+                this.exitScreen();
+            }
+
+            if (nextScreenTimer.check()) {
+                this.screenManager.addScreen(new GAMESTATEMANAGEMENT.TitleScreen());
+                //this.screenManager.addScreen(new GAMESTATEMANAGEMENT.BackgroundScreen());
+                //this.screenManager.addScreen(new GAMESTATEMANAGEMENT.MainMenuScreen());
+            }
+            baseUpdate.call(this, gameTime, otherScreenHasFocus, coveredByOtherScreen);
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.CompanySplashScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.CompanySplashScreen.constructor = GAMESTATEMANAGEMENT.CompanySplashScreen;
+
+    ///MenuScreen.js
+
+    GAMESTATEMANAGEMENT.MenuScreen = function (menuTitle) {
+
+        var y = 100;
+
+        var _menuTitle = menuTitle;
+        this.menuEntries = new Array();
+        this.selectedEntry = 0;
+        this.transitionOffTime = 100;
+        this.transitionOnTime = 100;
+
+        //document.body.menuScreen = this;
+        //document.body.addEventListener("keydown", this.handleKeyboardInput, false);
+
+        this.handleInput = function (inputState) {
+
+
+            if (this.menuEntries[this.selectedEntry] instanceof GAMESTATEMANAGEMENT.NumericLeftRightMenuEntry) {
+                if (inputState.isNewKeyPress(COMMON.Keys.Left)) {
+                    this.menuEntries[this.selectedEntry].decrease();
+                };
+
+                if (inputState.isNewKeyPress(COMMON.Keys.Right)) {
+                    this.menuEntries[this.selectedEntry].increase();
+                };
+            }
+
+            if (inputState.isNewKeyPress(COMMON.Keys.Down)) //Abajo
+            {
+                //console.log("Abajo");
+                this.selectedEntry = Math.min(this.menuEntries.length - 1, this.selectedEntry + 1);
+            }
+            else if (inputState.isNewKeyPress(COMMON.Keys.Up)) //Arriba
+            {
+                //console.log("Arriba");
+                this.selectedEntry = Math.max(0, this.selectedEntry - 1);
+
+            }
+            else if (inputState.isNewKeyPress(COMMON.Keys.Enter)) //Enter
+                this.selectCurrentEntry();
+
+        };
+
+        //virtual
+        this.selectCurrentEntry = function () {
+
+        };
+
+        this.draw = function (gameTime, context) {
+
+            context.font = "40pt Calibri";
+            context.fillStyle = "rgba(255,255,255," + this.getTransitionAlpha() + ")";
+            context.textAlign = "center";
+            context.fillText(_menuTitle, GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, 45);
+
+
+            //console.log(this.selectedEntry);
+
+            for (var i = 0; i < this.menuEntries.length; i++) {
+
+                this.menuEntries[i].isSelected = this.selectedEntry == i;
+                this.menuEntries[i].position.x = GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2;
+                this.menuEntries[i].position.y = y + (i * 40);
+                this.menuEntries[i].draw(this);
+            }
+        };
+
+        this.loadContent = function () {
+
+
+            for (var i = 0; i < this.menuEntries.length; i++)
+                this.menuEntries[i].loadContent();
+        }
+
+        this.unloadContent = function () {
+
+            for (var i = 0; i < this.menuEntries.length; i++)
+                this.menuEntries[i].unloadContent();
+        }
+
+    };
+
+    GAMESTATEMANAGEMENT.MenuScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.MenuScreen.constructor = GAMESTATEMANAGEMENT.MenuScreen;
+
+
+    ///MainMenuScreen.js
+
+    GAMESTATEMANAGEMENT.MainMenuScreen = function () {
+
+        GAMESTATEMANAGEMENT.MenuScreen.call(this, "Menú principal");
+
+        var onExit = function () {
+            window.close();
+        };
+
+        var onPlayGame = function () {
+        };
+
+        var onOptions = function () {
+        };
+
+        this.selectCurrentEntry = function () {
+            if (this.selectedEntry == 0) //Jugar
+            {
+                var gamePlayScreen = new Array();
+                gamePlayScreen.push(new GAMESTATEMANAGEMENT.GameplayScreen());
+                GAMESTATEMANAGEMENT.LoadingScreen.load(this.screenManager, true, gamePlayScreen);
+            }
+            else if (this.selectedEntry == 1) //Opciones
+                this.screenManager.addScreen(new GAMESTATEMANAGEMENT.OptionsScreen());
+            else if (this.selectedEntry == 2) //Salir
+            {
+                var confirmationBox = new GAMESTATEMANAGEMENT.MessageBoxScreen("¿Estás seguro?");
+                confirmationBox.accepted.subscribe(this, this.close);
+
+                this.screenManager.addScreen(confirmationBox);
+
+            }
+        };
+
+        this.close = function () {
+            window.open('', '_self', '');
+            window.close();
+        };
+
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Jugar"));
+        //this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Opciones"));
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Salir"));
+
+    };
+
+    GAMESTATEMANAGEMENT.MainMenuScreen.prototype = new GAMESTATEMANAGEMENT.MenuScreen();
+    GAMESTATEMANAGEMENT.MainMenuScreen.constructor = GAMESTATEMANAGEMENT.MainMenuScreen;
+
+
+    ///PauseMenuScreen.js
+    GAMESTATEMANAGEMENT.PauseMenuScreen = function () {
+
+        GAMESTATEMANAGEMENT.MenuScreen.call(this, "Pausa");
+        this.isPopup = true;
+
+        this.transitionOffTime = 0;
+        this.transitionOnTime = 0;
+
+        this.onContinue = new COMMON.Event();
+        this.onExit = new COMMON.Event();
+        this.onRetry = new COMMON.Event();
+
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Continuar"));
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Reintentar"));
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Salir"));
+
+        var baseDraw = this.draw;
+        this.draw = function (gameTime, context) {
+            this.screenManager.fadeBackBufferToBlack(this.getTransitionAlpha() * 2 / 3);
+            baseDraw.call(this, gameTime, context);
+        };
+
+        this.exitAccepted = function (sender, eventArgs, object) {
+            object.onExit.fire(this, null);
+            object.exitScreen();
+        };
+
+        this.retryAccepted = function (sender, eventArgs, object) {
+            object.onRetry.fire(this, null);
+            object.exitScreen();
+        };
+
+        this.selectCurrentEntry = function () {
+            if (this.selectedEntry == 0) {  //Continuar
+                this.onContinue.fire(this, null);
+                this.exitScreen();
+            }
+            else if (this.selectedEntry == 1) {  //Reintentar
+
+                var confirmationBox = new GAMESTATEMANAGEMENT.MessageBoxScreen("¿Quieres reintentar?");
+
+                window.pauseMenuScreen = this;
+                confirmationBox.accepted.subscribe(this, this.retryAccepted);
+                this.screenManager.addScreen(confirmationBox);
+                
+            }
+            else if (this.selectedEntry == 2) {  //Salir
+
+                var confirmationBox = new GAMESTATEMANAGEMENT.MessageBoxScreen("¿Quieres salir?");
+
+                window.pauseMenuScreen = this;
+                confirmationBox.accepted.subscribe(this, this.exitAccepted);
+                this.screenManager.addScreen(confirmationBox);
+            }
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.PauseMenuScreen.prototype = new GAMESTATEMANAGEMENT.MenuScreen();
+    GAMESTATEMANAGEMENT.PauseMenuScreen.constructor = GAMESTATEMANAGEMENT.PauseMenuScreen;
+
+    ///OptionsScreen.js
+
+    GAMESTATEMANAGEMENT.OptionsScreen = function () {
+
+        GAMESTATEMANAGEMENT.MenuScreen.call(this, "Opciones");
+
+        this.selectCurrentEntry = function () {
+            if (this.selectedEntry == 2) {
+                this.saveData();
+                this.exitScreen();
+
+            }
+
+        };
+
+        this.loadData = function () {
+
+            var speed = this.screenManager.getSettingValue(SNAKEGAME.SETTINGKEY_SPEED);
+            var level = this.screenManager.getSettingValue(SNAKEGAME.SETTINGKEY_LEVEL);
+
+            if(speed != null)
+                this.menuEntries[0].setValue(parseInt(speed));
+
+            if (level != null)
+                this.menuEntries[1].setValue(parseInt(level));
+        };
+
+        this.saveData = function () {
+
+            this.screenManager.setSettingValue(SNAKEGAME.SETTINGKEY_SPEED, this.menuEntries[0].getValue());
+            this.screenManager.setSettingValue(SNAKEGAME.SETTINGKEY_LEVEL, this.menuEntries[1].getValue());
+        };
+
+        //        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Opción 1"));
+        //        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Opción 2"));
+        //        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Opción 3"));
+
+
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.NumericLeftRightMenuEntry("Velocidad", 0, 9));
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.NumericLeftRightMenuEntry("Laberinto", 0, 9));
+        this.menuEntries.push(new GAMESTATEMANAGEMENT.MenuEntry("Regresar"));
+
+        this.loadContent = function () {
+            this.loadData();
+        };
+
+
+
+    };
+
+    GAMESTATEMANAGEMENT.OptionsScreen.prototype = new GAMESTATEMANAGEMENT.MenuScreen();
+    GAMESTATEMANAGEMENT.OptionsScreen.constructor = GAMESTATEMANAGEMENT.OptionsScreen;
+
+
+    ///TitleScreen.js
+
+    GAMESTATEMANAGEMENT.TitleScreen = function () {
+
+        this.transitionOnTime = 500;
+        this.transitionOffTime = 500;
+        var prueba = 0;
+        var grd;
+
+        var imageObj;
+
+        //        this.loadContent = function () {
+        //            grd = this.screenManager.context.createRadialGradient(238, 50, 10, 238, 50, 200);
+        //            grd.addColorStop(0, "#8ED6FF"); // light blue
+        //            grd.addColorStop(1, "#004CB3"); // dark blue
+        //        };
+
+        this.loadContent = function () {
+
+            imageObj = new Image();
+            imageObj.onload = function () {
+
+            };
+            imageObj.src = "b1.png";
+        }
+
+        this.draw = function (gameTime, context) {
+
+ 
+            //context.fillStyle = "red";
+            //context.fillRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+
+            context.drawImage(imageObj, 0, 0);
+
+            context.font = "23pt Calibri";
+            context.fillStyle = "rgba(255,255,255," + Math.abs(Math.sin((gameTime.totalGameTime / 1000) * 3)) + ")";
+            context.textAlign = "center";
+            context.fillText("Presiona ENTER", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 + 100);
+
+            context.font = "40pt Calibri";
+            context.fillStyle = "white";
+            context.textAlign = "center";
+            context.fillText("PUZZLE BOBBLE", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2 - 40);
+
+            this.screenManager.fadeBackBufferToBlack(1 - this.getTransitionAlpha());
+
+        };
+
+        this.handleInput = function (inputState) {
+
+            if (inputState.isNewKeyPress(COMMON.Keys.Enter)) {
+                this.exitScreen();
+                this.screenManager.addScreen(new GAMESTATEMANAGEMENT.BackgroundScreen());
+                this.screenManager.addScreen(new GAMESTATEMANAGEMENT.MainMenuScreen());
+            }
+
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.TitleScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.TitleScreen.constructor = GAMESTATEMANAGEMENT.TitleScreen;
+
+
+    ///LoadingScreen.js //Se debe utilizar el método estático LOAD, no instanciar directamente
+
+    GAMESTATEMANAGEMENT.LoadingScreen = function (loadingIsSlow, screensToLoad) {
+
+        var _loadingIsSlow = loadingIsSlow;
+        var _otherScreensAreGone;
+        var _screensToLoad = screensToLoad;
+
+        this.transitionOnTime = 500;
+        this.transitionOffTime = 500;
+
+        var baseUpdate = this.update;
+
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            baseUpdate.call(this, gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+            //console.log("update");
+
+            if (_otherScreensAreGone) {
+                this.screenManager.removeScreen(this);
+
+                for (var i = 0; i < _screensToLoad.length; i++) {
+                    if (_screensToLoad[i] != null) {
+                        this.screenManager.addScreen(_screensToLoad[i]);
+                    }
+                }
+
+                // Once the load has finished, we use ResetElapsedTime to tell
+                // the  game timing mechanism that we have just finished a very
+                // long frame, and that it should not try to catch up.
+                //ScreenManager.Game.ResetElapsedTime();
+            }
+        };
+
+        this.draw = function (gameTime, context) {
+
+
+            if ((this.screenState == GAMESTATEMANAGEMENT.ScreenState.Active) &&
+                (this.screenManager.getScreenCount() == 1)) {
+                //console.log(this.screenManager.getScreens());
+                _otherScreensAreGone = true;
+            }
+
+            if (_loadingIsSlow) {
+                context.fillStyle = "black";
+                context.fillRect(0, 0, GAMESTATEMANAGEMENT.CANVAS_WIDTH, GAMESTATEMANAGEMENT.CANVAS_HEIGHT);
+                context.font = "23pt Calibri";
+                context.fillStyle = "white";
+                context.fillText("Cargando...", GAMESTATEMANAGEMENT.CANVAS_WIDTH / 2, GAMESTATEMANAGEMENT.CANVAS_HEIGHT / 2);
+            }
+
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.LoadingScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.LoadingScreen.constructor = GAMESTATEMANAGEMENT.LoadingScreen;
+    
+    //static
+    GAMESTATEMANAGEMENT.LoadingScreen.load = function (screenManager, loadingIsSlow, screensToLoad) {
+
+        var screens = screenManager.getScreens();
+
+        for(var i=0; i < screens.length; i++)
+        {   
+            screens[i].exitScreen();
+        }
+
+        var loadingScreen = new GAMESTATEMANAGEMENT.LoadingScreen(loadingIsSlow, screensToLoad);
+        screenManager.addScreen(loadingScreen);
+    };
+
+
+    ///GameplayScreen.js
+    GAMESTATEMANAGEMENT.GameplayScreen = function () {
+
+
+        this.transitionOnTime = 500;
+        this.transitionOffTime = 500;
+
+        var _isPaused = false;
+
+        var sokobanGame;
+
+        this.loadContent = function () {
+
+            sokobanGame = new SOKOBANGAME.SokobanGame(this);
+            sokobanGame.reset();
+        };
+
+        this.draw = function (gameTime, context) {
+
+            sokobanGame.draw(gameTime, context);
+        };
+
+        var baseUpdate = this.update;
+        this.update = function (gameTime, otherScreenHasFocus, coveredByOtherScreen) {
+
+            if (!_isPaused) {
+                sokobanGame.update(gameTime);
+                baseUpdate.call(this, gameTime, otherScreenHasFocus, coveredByOtherScreen);
+            }
+        };
+
+        this.onRetry = function () {
+            _isPaused = false;
+            sokobanGame.reset();
+        };
+
+        this.onContinue = function () {
+            _isPaused = false;
+        };
+
+        this.onExit = function (sender, eventArgs, object) {
+
+
+            object.exitScreen();
+            object.screenManager.addScreen(new GAMESTATEMANAGEMENT.BackgroundScreen());
+            object.screenManager.addScreen(new GAMESTATEMANAGEMENT.MainMenuScreen());
+            _isPaused = false;
+        };
+
+        this.handleInput = function (inputState) {
+
+            if (inputState.isNewKeyPress(COMMON.Keys.Enter)) {          //Pausa
+
+                _isPaused = true;
+
+                var pauseMenuScreen = new GAMESTATEMANAGEMENT.PauseMenuScreen();
+                pauseMenuScreen.onContinue.subscribe(this, this.onContinue);
+                pauseMenuScreen.onRetry.subscribe(this, this.onRetry);
+                pauseMenuScreen.onExit.subscribe(this, this.onExit);
+
+                this.screenManager.addScreen(pauseMenuScreen);
+            }
+
+            if (inputState.isNewKeyPress(COMMON.Keys.Left)) {
+                sokobanGame.movePlayer(COMMON.Direction.LEFT);
+            }
+            if (inputState.isNewKeyPress(COMMON.Keys.Right)) {
+                sokobanGame.movePlayer(COMMON.Direction.RIGHT);
+            }
+            if (inputState.isNewKeyPress(COMMON.Keys.Up)) {
+                sokobanGame.movePlayer(COMMON.Direction.UP);
+            }
+            if (inputState.isNewKeyPress(COMMON.Keys.Down)) {
+                sokobanGame.movePlayer(COMMON.Direction.DOWN);
+            }
+
+        };
+
+    };
+
+    GAMESTATEMANAGEMENT.GameplayScreen.prototype = new GAMESTATEMANAGEMENT.GameScreen();
+    GAMESTATEMANAGEMENT.GameplayScreen.constructor = GAMESTATEMANAGEMENT.GameplayScreen;
+
+
+    /////////////////// SOKOBAN GAME
+
+    SOKOBANGAME.SokobanGame = function (parentScreen) {
+
+        var _player;
+        var _tiles;
+        var _boxes;
+        var _boxInSlotCount;
+        var _movements;
+        var _levels;
+
+        var _currentLevel = 0;
+
+        var level1 = JSON.parse('{ "ID" : "Level 1",' +
+            ' "Tiles" : [' +
+            ' { "type": "black", "row": 0, "col": 0 }, {"type": "black", "row": 0, "col": 1 }, {"type": "black", "row": 0, "col": 2 }, {"type": "black", "row": 0, "col": 3 }, {"type": "black", "row": 0, "col": 4 }, {"type": "black", "row": 0, "col": 5 }, {"type": "black", "row": 0, "col": 6 },  {"type": "black", "row": 0, "col": 7 }, {"type": "black", "row": 0, "col": 8 }, {"type": "black", "row": 0, "col": 9 },' +
+            ' { "type": "black", "row": 1, "col": 0 }, {"type": "black", "row": 1, "col": 1 }, {"type": "black", "row": 1, "col": 2 }, {"type": "wall", "row": 1, "col": 3 }, {"type": "wall", "row": 1, "col": 4 }, {"type": "wall", "row": 1, "col": 5 }, {"type": "black", "row": 1, "col": 6 },  {"type": "black", "row": 1, "col": 7 }, {"type": "black", "row": 1, "col": 8 }, {"type": "black", "row": 1, "col": 9 },' +
+            ' { "type": "black", "row": 2, "col": 0 }, {"type": "black", "row": 2, "col": 1 }, {"type": "black", "row": 2, "col": 2 }, {"type": "wall", "row": 2, "col": 3 }, {"type": "boxslot", "row": 2, "col": 4 }, {"type": "wall", "row": 2, "col": 5 }, {"type": "black", "row": 2, "col": 6 },  {"type": "black", "row": 2, "col": 7 }, {"type": "black", "row": 2, "col": 8 }, {"type": "black", "row": 2, "col": 9 },' +
+            ' { "type": "black", "row": 3, "col": 0 }, {"type": "black", "row": 3, "col": 1 }, {"type": "black", "row": 3, "col": 2 }, {"type": "wall", "row": 3, "col": 3 }, {"type": "empty", "row": 3, "col": 4 }, {"type": "wall", "row": 3, "col": 5 }, {"type": "wall", "row": 3, "col": 6 },  {"type": "wall", "row": 3, "col": 7 }, {"type": "wall", "row": 3, "col": 8 }, {"type": "black", "row": 3, "col": 9 },' +
+            ' { "type": "black", "row": 4, "col": 0 }, {"type": "wall", "row": 4, "col": 1 }, {"type": "wall", "row": 4, "col": 2 }, {"type": "wall", "row": 4, "col": 3 }, {"type": "empty", "row": 4, "col": 4 }, {"type": "empty", "row": 4, "col": 5 }, {"type": "empty", "row": 4, "col": 6 },  {"type": "boxslot", "row": 4, "col": 7 }, {"type": "wall", "row": 4, "col": 8 }, {"type": "black", "row": 4, "col": 9 },' +
+            ' { "type": "black", "row": 5, "col": 0 }, {"type": "wall", "row": 5, "col": 1 }, {"type": "boxslot", "row": 5, "col": 2 }, {"type": "empty", "row": 5, "col": 3 }, {"type": "empty", "row": 5, "col": 4 }, {"type": "empty", "row": 5, "col": 5 }, {"type": "wall", "row": 5, "col": 6 },  {"type": "wall", "row": 5, "col": 7 }, {"type": "wall", "row": 5, "col": 8 }, {"type": "black", "row": 5, "col": 9 },' +
+            ' { "type": "black", "row": 6, "col": 0 }, {"type": "wall", "row": 6, "col": 1 }, {"type": "wall", "row": 6, "col": 2 }, {"type": "wall", "row": 6, "col": 3 }, {"type": "wall", "row": 6, "col": 4 }, {"type": "empty", "row": 6, "col": 5 }, {"type": "wall", "row": 6, "col": 6 },  {"type": "black", "row": 6, "col": 7 }, {"type": "black", "row": 6, "col": 8 }, {"type": "black", "row": 6, "col": 9 },' +
+            ' { "type": "black", "row": 7, "col": 0 }, {"type": "black", "row": 7, "col": 1 }, {"type": "black", "row": 7, "col": 2 }, {"type": "black", "row": 7, "col": 3 }, {"type": "wall", "row": 7, "col": 4 }, {"type": "boxslot", "row": 7, "col": 5 }, {"type": "wall", "row": 7, "col": 6 },  {"type": "black", "row": 7, "col": 7 }, {"type": "black", "row": 7, "col": 8 }, {"type": "black", "row": 7, "col": 9 },' +
+            ' { "type": "black", "row": 8, "col": 0 }, {"type": "black", "row": 8, "col": 1 }, {"type": "black", "row": 8, "col": 2 }, {"type": "black", "row": 8, "col": 3 }, {"type": "wall", "row": 8, "col": 4 }, {"type": "wall", "row": 8, "col": 5 }, {"type": "wall", "row": 8, "col": 6 },  {"type": "black", "row": 8, "col": 7 }, {"type": "black", "row": 8, "col": 8 }, {"type": "black", "row": 8, "col": 9 },' +
+            ' { "type": "black", "row": 9, "col": 0 }, {"type": "black", "row": 9, "col": 1 }, {"type": "black", "row": 9, "col": 2 }, {"type": "black", "row": 9, "col": 3 }, {"type": "black", "row": 9, "col": 4 }, {"type": "black", "row": 9, "col": 5 }, {"type": "black", "row": 9, "col": 6 },  {"type": "black", "row": 9, "col": 7 }, {"type": "black", "row": 9, "col": 8 }, {"type": "black", "row": 9, "col": 9 } ], ' +
+            ' "Entities" : [' +
+            ' { "type": "box", "row": 4, "col": 4 }, { "type": "box", "row": 5, "col": 4 }, { "type": "box", "row": 4, "col": 6 }, { "type": "box", "row": 6, "col": 5 }, { "type": "player", "row": 5, "col": 5 }' +
+            '] }');
+
+        var level2 = JSON.parse('{ "ID" : "Level 2",' +
+            ' "Tiles" : [' +
+            ' { "type": "wall",  "row": 0, "col": 0 }, {"type": "wall",  "row": 0, "col": 1 }, {"type": "wall",  "row": 0, "col": 2 }, {"type": "wall",  "row": 0, "col": 3 }, {"type": "wall",  "row": 0, "col": 4 }, {"type": "black", "row": 0, "col": 5 }, {"type": "black", "row": 0, "col": 6 },  {"type": "black",   "row": 0, "col": 7 }, {"type": "black", "row": 0, "col": 8 }, {"type": "black", "row": 0, "col": 9 },' +
+            ' { "type": "wall",  "row": 1, "col": 0 }, {"type": "empty", "row": 1, "col": 1 }, {"type": "empty", "row": 1, "col": 2 }, {"type": "empty", "row": 1, "col": 3 }, {"type": "wall",  "row": 1, "col": 4 }, {"type": "black", "row": 1, "col": 5 }, {"type": "black", "row": 1, "col": 6 },  {"type": "black",   "row": 1, "col": 7 }, {"type": "black", "row": 1, "col": 8 }, {"type": "black", "row": 1, "col": 9 },' +
+            ' { "type": "wall",  "row": 2, "col": 0 }, {"type": "empty", "row": 2, "col": 1 }, {"type": "empty", "row": 2, "col": 2 }, {"type": "empty", "row": 2, "col": 3 }, {"type": "wall",  "row": 2, "col": 4 }, {"type": "black", "row": 2, "col": 5 }, {"type": "wall",  "row": 2, "col": 6 },  {"type": "wall",    "row": 2, "col": 7 }, {"type": "wall",  "row": 2, "col": 8 }, {"type": "black", "row": 2, "col": 9 },' +
+            ' { "type": "wall",  "row": 3, "col": 0 }, {"type": "empty", "row": 3, "col": 1 }, {"type": "empty", "row": 3, "col": 2 }, {"type": "empty", "row": 3, "col": 3 }, {"type": "wall",  "row": 3, "col": 4 }, {"type": "black", "row": 3, "col": 5 }, {"type": "wall",  "row": 3, "col": 6 },  {"type": "boxslot", "row": 3, "col": 7 }, {"type": "wall",  "row": 3, "col": 8 }, {"type": "black", "row": 3, "col": 9 },' +
+            ' { "type": "wall",  "row": 4, "col": 0 }, {"type": "wall",  "row": 4, "col": 1 }, {"type": "wall",  "row": 4, "col": 2 }, {"type": "empty", "row": 4, "col": 3 }, {"type": "wall",  "row": 4, "col": 4 }, {"type": "wall",  "row": 4, "col": 5 }, {"type": "wall",  "row": 4, "col": 6 },  {"type": "boxslot", "row": 4, "col": 7 }, {"type": "wall",  "row": 4, "col": 8 }, {"type": "black", "row": 4, "col": 9 },' +
+            ' { "type": "black", "row": 5, "col": 0 }, {"type": "wall",  "row": 5, "col": 1 }, {"type": "wall",  "row": 5, "col": 2 }, {"type": "empty", "row": 5, "col": 3 }, {"type": "empty", "row": 5, "col": 4 }, {"type": "empty", "row": 5, "col": 5 }, {"type": "empty", "row": 5, "col": 6 },  {"type": "boxslot", "row": 5, "col": 7 }, {"type": "wall",  "row": 5, "col": 8 }, {"type": "black", "row": 5, "col": 9 },' +
+            ' { "type": "black", "row": 6, "col": 0 }, {"type": "wall",  "row": 6, "col": 1 }, {"type": "empty", "row": 6, "col": 2 }, {"type": "empty", "row": 6, "col": 3 }, {"type": "empty", "row": 6, "col": 4 }, {"type": "wall",  "row": 6, "col": 5 }, {"type": "empty", "row": 6, "col": 6 },  {"type": "empty",   "row": 6, "col": 7 }, {"type": "wall",  "row": 6, "col": 8 }, {"type": "black", "row": 6, "col": 9 },' +
+            ' { "type": "black", "row": 7, "col": 0 }, {"type": "wall",  "row": 7, "col": 1 }, {"type": "empty", "row": 7, "col": 2 }, {"type": "empty",  "row": 7, "col": 3 }, {"type": "empty", "row": 7, "col": 4 }, {"type": "wall",  "row": 7, "col": 5 }, {"type": "wall",  "row": 7, "col": 6 },  {"type": "wall",    "row": 7, "col": 7 }, {"type": "wall",  "row": 7, "col": 8 }, {"type": "black", "row": 7, "col": 9 },' +
+            ' { "type": "black", "row": 8, "col": 0 }, {"type": "wall",  "row": 8, "col": 1 }, {"type": "wall",  "row": 8, "col": 2 }, {"type": "wall",  "row": 8, "col": 3 }, {"type": "wall",  "row": 8, "col": 4 }, {"type": "wall",  "row": 8, "col": 5 }, {"type": "black", "row": 8, "col": 6 },  {"type": "black",   "row": 8, "col": 7 }, {"type": "black", "row": 8, "col": 8 }, {"type": "black", "row": 8, "col": 9 },' +
+            ' { "type": "black", "row": 9, "col": 0 }, {"type": "black", "row": 9, "col": 1 }, {"type": "black", "row": 9, "col": 2 }, {"type": "black", "row": 9, "col": 3 }, {"type": "black", "row": 9, "col": 4 }, {"type": "black", "row": 9, "col": 5 }, {"type": "black", "row": 9, "col": 6 },  {"type": "black",   "row": 9, "col": 7 }, {"type": "black", "row": 9, "col": 8 }, {"type": "black", "row": 9, "col": 9 } ], ' +
+            ' "Entities" : [' +
+            ' { "type": "box", "row": 2, "col": 2 }, { "type": "box", "row": 2, "col": 3 }, { "type": "box", "row": 3, "col": 2 }, { "type": "player", "row": 1, "col": 1 }' +
+            '] }');
+
+        var level3 = JSON.parse('{ "ID" : "Level 3",' +
+            ' "Tiles" : [' +
+            ' { "type": "black", "row": 0, "col": 0 }, {"type": "black", "row": 0, "col": 1 }, {"type": "black", "row": 0, "col": 2 }, {"type": "black", "row": 0, "col": 3 }, {"type": "black", "row": 0, "col": 4 }, {"type": "black", "row": 0, "col": 5 }, {"type": "black", "row": 0, "col": 6 },  {"type": "black", "row": 0, "col": 7 }, {"type": "black", "row": 0, "col": 8 }, {"type": "black", "row": 0, "col": 9 },' +
+            ' { "type": "black", "row": 1, "col": 0 }, {"type": "wall", "row": 1, "col": 1 }, {"type": "wall", "row": 1, "col": 2 }, {"type": "wall", "row": 1, "col": 3 }, {"type": "wall", "row": 1, "col": 4 }, {"type": "wall", "row": 1, "col": 5 }, {"type": "wall", "row": 1, "col": 6 },  {"type": "wall", "row": 1, "col": 7 }, {"type": "black", "row": 1, "col": 8 }, {"type": "black", "row": 1, "col": 9 },' +
+            ' { "type": "black", "row": 2, "col": 0 }, {"type": "wall", "row": 2, "col": 1 }, {"type": "empty", "row": 2, "col": 2 }, {"type": "empty", "row": 2, "col": 3 }, {"type": "empty", "row": 2, "col": 4 }, {"type": "empty", "row": 2, "col": 5 }, {"type": "empty", "row": 2, "col": 6 },  {"type": "wall", "row": 2, "col": 7 }, {"type": "wall", "row": 2, "col": 8 }, {"type": "wall", "row": 2, "col": 9 },' +
+            ' { "type": "wall", "row": 3, "col": 0 }, {"type": "wall", "row": 3, "col": 1 }, {"type": "empty", "row": 3, "col": 2 }, {"type": "wall", "row": 3, "col": 3 }, {"type": "wall", "row": 3, "col": 4 }, {"type": "wall", "row": 3, "col": 5 }, {"type": "empty", "row": 3, "col": 6 },  {"type": "empty", "row": 3, "col": 7 }, {"type": "empty", "row": 3, "col": 8 }, {"type": "wall", "row": 3, "col": 9 },' +
+            ' { "type": "wall", "row": 4, "col": 0 }, {"type": "empty", "row": 4, "col": 1 }, {"type": "empty", "row": 4, "col": 2 }, {"type": "empty", "row": 4, "col": 3 }, {"type": "empty", "row": 4, "col": 4 }, {"type": "empty", "row": 4, "col": 5 }, {"type": "empty", "row": 4, "col": 6 },  {"type": "empty", "row": 4, "col": 7 }, {"type": "empty", "row": 4, "col": 8 }, {"type": "wall", "row": 4, "col": 9 },' +
+            ' { "type": "wall", "row": 5, "col": 0 }, {"type": "empty", "row": 5, "col": 1 }, {"type": "boxslot", "row": 5, "col": 2 }, {"type": "boxslot", "row": 5, "col": 3 }, {"type": "wall", "row": 5, "col": 4 }, {"type": "empty", "row": 5, "col": 5 }, {"type": "empty", "row": 5, "col": 6 },  {"type": "empty", "row": 5, "col": 7 }, {"type": "wall", "row": 5, "col": 8 }, {"type": "wall", "row": 5, "col": 9 },' +
+            ' { "type": "wall", "row": 6, "col": 0 }, {"type": "wall", "row": 6, "col": 1 }, {"type": "boxslot", "row": 6, "col": 2 }, {"type": "boxslot", "row": 6, "col": 3 }, {"type": "wall", "row": 6, "col": 4 }, {"type": "empty", "row": 6, "col": 5 }, {"type": "empty", "row": 6, "col": 6 },  {"type": "empty", "row": 6, "col": 7 }, {"type": "wall", "row": 6, "col": 8 }, {"type": "black", "row": 6, "col": 9 },' +
+            ' { "type": "black", "row": 7, "col": 0 }, {"type": "wall", "row": 7, "col": 1 }, {"type": "wall", "row": 7, "col": 2 }, {"type": "wall", "row": 7, "col": 3 }, {"type": "wall", "row": 7, "col": 4 }, {"type": "wall", "row": 7, "col": 5 }, {"type": "wall", "row": 7, "col": 6 },  {"type": "wall", "row": 7, "col": 7 }, {"type": "wall", "row": 7, "col": 8 }, {"type": "black", "row": 7, "col": 9 },' +
+            ' { "type": "black", "row": 8, "col": 0 }, {"type": "black", "row": 8, "col": 1 }, {"type": "black", "row": 8, "col": 2 }, {"type": "black", "row": 8, "col": 3 }, {"type": "black", "row": 8, "col": 4 }, {"type": "black", "row": 8, "col": 5 }, {"type": "black", "row": 8, "col": 6 },  {"type": "black", "row": 8, "col": 7 }, {"type": "black", "row": 8, "col": 8 }, {"type": "black", "row": 8, "col": 9 },' +
+            ' { "type": "black", "row": 9, "col": 0 }, {"type": "black", "row": 9, "col": 1 }, {"type": "black", "row": 9, "col": 2 }, {"type": "black", "row": 9, "col": 3 }, {"type": "black", "row": 9, "col": 4 }, {"type": "black", "row": 9, "col": 5 }, {"type": "black", "row": 9, "col": 6 },  {"type": "black", "row": 9, "col": 7 }, {"type": "black", "row": 9, "col": 8 }, {"type": "black", "row": 9, "col": 9 } ], ' +
+            ' "Entities" : [' +
+            ' { "type": "box", "row": 3, "col": 2 }, { "type": "box", "row": 4, "col": 4 }, { "type": "box", "row": 4, "col": 7 }, { "type": "box", "row": 5, "col": 6 }, { "type": "player", "row": 4, "col": 2 }' +
+            '] }');
+
+        _levels = new Array();
+        _levels.push(level1);
+        _levels.push(level2);
+        _levels.push(level3);
+
+        //this.loadLevel(0);
+
+
+        this.reset = function () {
+
+
+            this.loadLevel(_currentLevel);
+            //_currentLevel = 0;
+
+            //            var level = JSON.parse('{ "ID" : "Level 0",' +
+            //            ' "Tiles" : [' +
+            //            ' { "type": "black", "row": 0, "col": 0 }, {"type": "black", "row": 0, "col": 1 }, {"type": "black", "row": 0, "col": 2 }, {"type": "black", "row": 0, "col": 3 }, {"type": "black", "row": 0, "col": 4 }, {"type": "black", "row": 0, "col": 5 }, {"type": "black", "row": 0, "col": 6 },  {"type": "black", "row": 0, "col": 7 }, {"type": "black", "row": 0, "col": 8 }, {"type": "black", "row": 0, "col": 9 },' +
+            //            ' { "type": "black", "row": 1, "col": 0 }, {"type": "black", "row": 1, "col": 1 }, {"type": "black", "row": 1, "col": 2 }, {"type": "black", "row": 1, "col": 3 }, {"type": "black", "row": 1, "col": 4 }, {"type": "black", "row": 1, "col": 5 }, {"type": "black", "row": 1, "col": 6 },  {"type": "black", "row": 1, "col": 7 }, {"type": "black", "row": 1, "col": 8 }, {"type": "black", "row": 1, "col": 9 },' +
+            //            ' { "type": "black", "row": 2, "col": 0 }, {"type": "black", "row": 2, "col": 1 }, {"type": "black", "row": 2, "col": 2 }, {"type": "black", "row": 2, "col": 3 }, {"type": "black", "row": 2, "col": 4 }, {"type": "black", "row": 2, "col": 5 }, {"type": "black", "row": 2, "col": 6 },  {"type": "black", "row": 2, "col": 7 }, {"type": "black", "row": 2, "col": 8 }, {"type": "black", "row": 2, "col": 9 },' +
+            //            ' { "type": "black", "row": 3, "col": 0 }, {"type": "black", "row": 3, "col": 1 }, {"type": "black", "row": 3, "col": 2 }, {"type": "black", "row": 3, "col": 3 }, {"type": "black", "row": 3, "col": 4 }, {"type": "black", "row": 3, "col": 5 }, {"type": "black", "row": 3, "col": 6 },  {"type": "black", "row": 3, "col": 7 }, {"type": "black", "row": 3, "col": 8 }, {"type": "black", "row": 3, "col": 9 },' +
+            //            ' { "type": "black", "row": 4, "col": 0 }, {"type": "black", "row": 4, "col": 1 }, {"type": "black", "row": 4, "col": 2 }, {"type": "black", "row": 4, "col": 3 }, {"type": "black", "row": 4, "col": 4 }, {"type": "black", "row": 4, "col": 5 }, {"type": "black", "row": 4, "col": 6 },  {"type": "black", "row": 4, "col": 7 }, {"type": "black", "row": 4, "col": 8 }, {"type": "black", "row": 4, "col": 9 },' +
+            //            ' { "type": "black", "row": 5, "col": 0 }, {"type": "black", "row": 5, "col": 1 }, {"type": "black", "row": 5, "col": 2 }, {"type": "black", "row": 5, "col": 3 }, {"type": "black", "row": 5, "col": 4 }, {"type": "black", "row": 5, "col": 5 }, {"type": "black", "row": 5, "col": 6 },  {"type": "black", "row": 5, "col": 7 }, {"type": "black", "row": 5, "col": 8 }, {"type": "black", "row": 5, "col": 9 },' +
+            //            ' { "type": "black", "row": 6, "col": 0 }, {"type": "black", "row": 6, "col": 1 }, {"type": "black", "row": 6, "col": 2 }, {"type": "black", "row": 6, "col": 3 }, {"type": "black", "row": 6, "col": 4 }, {"type": "black", "row": 6, "col": 5 }, {"type": "black", "row": 6, "col": 6 },  {"type": "black", "row": 6, "col": 7 }, {"type": "black", "row": 6, "col": 8 }, {"type": "black", "row": 6, "col": 9 },' +
+            //            ' { "type": "black", "row": 7, "col": 0 }, {"type": "black", "row": 7, "col": 1 }, {"type": "black", "row": 7, "col": 2 }, {"type": "black", "row": 7, "col": 3 }, {"type": "black", "row": 7, "col": 4 }, {"type": "black", "row": 7, "col": 5 }, {"type": "black", "row": 7, "col": 6 },  {"type": "black", "row": 7, "col": 7 }, {"type": "black", "row": 7, "col": 8 }, {"type": "black", "row": 7, "col": 9 },' +
+            //            ' { "type": "black", "row": 8, "col": 0 }, {"type": "black", "row": 8, "col": 1 }, {"type": "black", "row": 8, "col": 2 }, {"type": "black", "row": 8, "col": 3 }, {"type": "black", "row": 8, "col": 4 }, {"type": "black", "row": 8, "col": 5 }, {"type": "black", "row": 8, "col": 6 },  {"type": "black", "row": 8, "col": 7 }, {"type": "black", "row": 8, "col": 8 }, {"type": "black", "row": 8, "col": 9 },' +
+            //            ' { "type": "black", "row": 9, "col": 0 }, {"type": "black", "row": 9, "col": 1 }, {"type": "black", "row": 9, "col": 2 }, {"type": "black", "row": 9, "col": 3 }, {"type": "black", "row": 9, "col": 4 }, {"type": "black", "row": 9, "col": 5 }, {"type": "black", "row": 9, "col": 6 },  {"type": "black", "row": 9, "col": 7 }, {"type": "black", "row": 9, "col": 8 }, {"type": "black", "row": 9, "col": 9 } ], ' +
+            //            ' "Entities" : [' +
+            //            ' { "type": "box", "row": 4, "col": 4 }, { "type": "box", "row": 5, "col": 4 }, { "type": "box", "row": 4, "col": 6 }, { "type": "box", "row": 6, "col": 5 }, { "type": "player", "row": 5, "col": 5 }' +
+            //            '] }');
+          
+        };
+
+
+        this.loadLevel = function (levelIndex) {
+
+            _boxes = new Array();
+            _tiles = new Array();
+            _boxInSlotCount = 0;
+            _movements = 0;
+
+            var level = _levels[levelIndex];
+
+            for (var i = 0; i < level.Tiles.length; i++) {
+
+                var type = level.Tiles[i].type;
+                var col = level.Tiles[i].col;
+                var row = level.Tiles[i].row;
+
+                switch (type) {
+
+                    case "black":
+                        _tiles.push(new SOKOBANGAME.BlackTile(col * SOKOBANGAME.TILE_SIZE, row * SOKOBANGAME.TILE_SIZE));
+                        break;
+                    case "wall":
+                        _tiles.push(new SOKOBANGAME.WallTile(col * SOKOBANGAME.TILE_SIZE, row * SOKOBANGAME.TILE_SIZE));
+                        break;
+                    case "boxslot":
+                        _tiles.push(new SOKOBANGAME.BoxSlotTile(col * SOKOBANGAME.TILE_SIZE, row * SOKOBANGAME.TILE_SIZE));
+                        break;
+                    case "empty":
+                        _tiles.push(new SOKOBANGAME.EmptyTile(col * SOKOBANGAME.TILE_SIZE, row * SOKOBANGAME.TILE_SIZE));
+                        break;
+
+                }
+
+            }
+
+            for (var i = 0; i < level.Entities.length; i++) {
+                var type = level.Entities[i].type;
+                var col = level.Entities[i].col;
+                var row = level.Entities[i].row;
+
+                switch (type) {
+
+                    case "box":
+                        _boxes.push(new SOKOBANGAME.Box(col * SOKOBANGAME.TILE_SIZE, row * SOKOBANGAME.TILE_SIZE));
+                        break;
+                    case "player":
+                        _player = new SOKOBANGAME.Player(col * SOKOBANGAME.TILE_SIZE, row * SOKOBANGAME.TILE_SIZE);
+                        break;
+                }
+            }
+
+        };
+
+        this.update = function (gameTime) {
+
+        };
+
+        this.movePlayer = function (direction) {
+
+            var adjacentTilePosX = null;
+            var adjacentTilePosY = null;
+
+            switch (direction) {
+
+                case COMMON.Direction.LEFT:
+                    adjacentTilePosX = _player.getX() - SOKOBANGAME.TILE_SIZE;
+                    adjacentTilePosY = _player.getY();
+                    break;
+                case COMMON.Direction.RIGHT:
+                    adjacentTilePosX = _player.getX() + SOKOBANGAME.TILE_SIZE;
+                    adjacentTilePosY = _player.getY();
+                    break;
+                case COMMON.Direction.UP:
+                    adjacentTilePosX = _player.getX();
+                    adjacentTilePosY = _player.getY() - SOKOBANGAME.TILE_SIZE;
+                    break;
+                case COMMON.Direction.DOWN:
+                    adjacentTilePosX = _player.getX();
+                    adjacentTilePosY = _player.getY() + SOKOBANGAME.TILE_SIZE;
+                    break;
+            }
+
+            var adjacentBox = this.getBoxAtPosition(adjacentTilePosX, adjacentTilePosY);
+            if (adjacentBox != null) {
+                this.moveBox(adjacentBox, direction);
+            }
+            else {
+                var tile = this.getTileAtPosition(adjacentTilePosX, adjacentTilePosY);
+                if (tile instanceof SOKOBANGAME.EmptyTile || tile instanceof SOKOBANGAME.BoxSlotTile) {
+                    _player.move(direction);
+                }
+            }
+
+        };
+
+        this.getTileAtPosition = function (x, y) {
+
+            for (var i = 0; i < _tiles.length; i++) {
+                if (_tiles[i].getX() == x && _tiles[i].getY() == y)
+                    return _tiles[i];
+            }
+
+            return null;
+        };
+
+        this.getBoxAtPosition = function (x, y) {
+            for (var i = 0; i < _boxes.length; i++) {
+                if (_boxes[i].getX() == x && _boxes[i].getY() == y)
+                    return _boxes[i];
+            }
+
+            return null;
+
+        };
+
+
+        this.moveBox = function (box, direction) {
+
+            var nextTilePosX = null;
+            var nextTilePosY = null;
+
+            switch (direction) {
+                case COMMON.Direction.LEFT:
+                    nextTilePosX = _player.getX() - SOKOBANGAME.TILE_SIZE * 2;
+                    nextTilePosY = _player.getY();
+                    break;
+                case COMMON.Direction.RIGHT:
+                    nextTilePosX = _player.getX() + SOKOBANGAME.TILE_SIZE * 2;
+                    nextTilePosY = _player.getY();
+                    break;
+                case COMMON.Direction.UP:
+                    nextTilePosX = _player.getX();
+                    nextTilePosY = _player.getY() - SOKOBANGAME.TILE_SIZE * 2;
+                    break;
+                case COMMON.Direction.DOWN:
+                    nextTilePosX = _player.getX();
+                    nextTilePosY = _player.getY() + SOKOBANGAME.TILE_SIZE * 2;
+                    break;
+            }
+
+
+            var nextBox = this.getBoxAtPosition(nextTilePosX, nextTilePosY);
+            if (nextBox == null) {
+                var tile = this.getTileAtPosition(nextTilePosX, nextTilePosY);
+                if (tile instanceof SOKOBANGAME.EmptyTile || tile instanceof SOKOBANGAME.BoxSlotTile) {
+                    _player.move(direction);
+                    box.move(direction);
+                    _movements++;
+
+                    if (tile instanceof SOKOBANGAME.BoxSlotTile) {
+                        if (box.getState() == 0) {
+                            _boxInSlotCount++;
+                            box.setState(1);
+                        }
+                    }
+                    else {
+                        if (box.getState() == 1) {
+                            _boxInSlotCount--;
+                            box.setState(0);
+                        }
+                    }
+
+                    if (_boxInSlotCount == _boxes.length)
+                        this.advanceToNextLevel();
+
+                    console.log("BoxesInSlots: " + _boxInSlotCount);
+                    console.log("Movimientos: " + _movements);
+                }
+            }
+        };
+
+        this.advanceToNextLevel = function () {
+
+            _currentLevel++;
+            this.loadLevel(_currentLevel);
+        };
+
+        this.drawHud = function (gameTime, context) {
+
+            context.font = SOKOBANGAME.SCORE_FONT;
+            context.fillStyle = "black";
+            context.fillText("Movimientos: " + _movements, 0, SOKOBANGAME.TILE_SIZE * (SOKOBANGAME.FIELD_TILE_HEIGHT + 1));
+
+        };
+        this.drawLevel = function (gameTime, context) {
+
+            context.font = SOKOBANGAME.SCORE_FONT;
+            context.fillStyle = "black";
+            context.fillText(_levels[_currentLevel].ID, 0, SOKOBANGAME.TILE_SIZE * (SOKOBANGAME.FIELD_TILE_HEIGHT + 1));
+        };
+
+        this.draw = function (gameTime, context) {
+
+            for (var i = 0; i < _tiles.length; i++) {
+                _tiles[i].draw(gameTime, context);
+            }
+            for (var i = 0; i < _boxes.length; i++) {
+                _boxes[i].draw(gameTime, context);
+            }
+
+            _player.draw(gameTime, context);
+            this.drawLevel(gameTime, context);
+        };
+
+    };
+
+    SOKOBANGAME.BlackTile = function (x, y) {
+
+        var _x = x || 0;
+        var _y = y || 0;
+
+        this.getX = function () {
+            return _x;
+        };
+
+        this.getY = function () {
+            return _y;
+        };
+
+       
+
+        this.draw = function (gameTime, context) {
+
+            context.fillStyle = "Black";
+            context.fillRect(_x, _y, 32, 32);
+        };
+
+    };
+
+    SOKOBANGAME.EmptyTile = function (x, y) {
+
+        var _x = x || 0;
+        var _y = y || 0;
+
+        this.getX = function()
+        {
+            return _x;
+        };
+
+        this.getY = function()
+        {
+            return _y;
+        };
+
+        this.draw = function (gameTime, context) {
+
+            context.fillStyle = "Aqua";
+            context.fillRect(_x, _y, 32, 32);
+
+        };
+    };
+
+    SOKOBANGAME.Box = function (x, y) {
+
+        var _x = x || 0;
+        var _y = y || 0;
+        var _state = 0;
+
+        this.setX = function (x) {
+            _x = x;
+        };
+
+        this.setY = function (y) {
+            _y = y;
+        };
+
+        this.getX = function () {
+            return _x;
+        };
+
+        this.getY = function () {
+            return _y;
+        };
+
+        this.setState = function (state) {
+            _state = state;
+        };
+
+        this.getState = function (state) {
+            return _state;
+        };
+
+        this.move = function (direction) {
+
+            switch (direction) {
+                case COMMON.Direction.LEFT:
+                    _x -= SOKOBANGAME.TILE_SIZE;
+                    break;
+                case COMMON.Direction.RIGHT:
+                    _x += SOKOBANGAME.TILE_SIZE;
+                    break;
+                case COMMON.Direction.UP:
+                    _y -= SOKOBANGAME.TILE_SIZE;
+                    break;
+                case COMMON.Direction.DOWN:
+                    _y += SOKOBANGAME.TILE_SIZE;
+                    break;
+            }
+
+        };
+
+        this.draw = function (gameTime, context) {
+
+            if (_state == 0)
+                context.fillStyle = "brown";
+            else if (_state == 1)
+                context.fillStyle = "red";
+
+            context.fillRect(_x, _y, 32, 32);
+            //            context.lineWidth = 2;
+            //            context.strokeStyle = "white";
+
+            //            context.moveTo(_x + 10, _y);
+            //            context.lineTo(_x + 32, )
+
+        };
+    };
+
+    SOKOBANGAME.WallTile = function (x, y) {
+
+        var _x = x || 0;
+        var _y = y || 0;
+
+        this.getX = function()
+        {
+            return _x;
+        };
+
+        this.getY = function()
+        {
+            return _y;
+        };
+
+        this.draw = function (gameTime, context) {
+
+            context.fillStyle = "gray";
+            context.fillRect(_x, _y, 32, 32);
+            //            context.lineWidth = 2;
+            //            context.strokeStyle = "white";
+
+            //            context.moveTo(_x + 10, _y);
+            //            context.lineTo(_x + 32, )
+
+        };
+    };
+
+    SOKOBANGAME.Player = function (x, y) {
+
+        var _x = x || 0;
+        var _y = y || 0;
+
+        this.setX = function (x) {
+            _x = x;
+        };
+
+        this.setY = function (y) {
+            _y = y;
+        };
+
+        this.getX = function () {
+            return _x;
+        };
+
+        this.getY = function () {
+            return _y;
+        };
+
+
+        this.move = function (direction) {
+
+            switch (direction) {
+                case COMMON.Direction.LEFT:
+                    _x -= SOKOBANGAME.TILE_SIZE;
+                    break;
+                case COMMON.Direction.RIGHT:
+                    _x += SOKOBANGAME.TILE_SIZE;
+                    break;
+                case COMMON.Direction.UP:
+                    _y -= SOKOBANGAME.TILE_SIZE;
+                    break;
+                case COMMON.Direction.DOWN:
+                    _y += SOKOBANGAME.TILE_SIZE;
+                    break;
+            }
+
+        };
+
+        this.draw = function (gameTime, context) {
+
+            context.fillStyle = "red";
+            context.fillRect(_x, _y, 32, 32);
+            //            context.lineWidth = 2;
+            //            context.strokeStyle = "white";
+
+            //            context.moveTo(_x + 10, _y);
+            //            context.lineTo(_x + 32, )
+
+        };
+    };
+
+    SOKOBANGAME.BoxSlotTile = function (x, y) {
+
+        var _x = x || 0;
+        var _y = y || 0;
+
+        this.getX = function()
+        {
+            return _x;
+        };
+
+        this.getY = function()
+        {
+            return _y;
+        };
+
+        this.draw = function (gameTime, context) {
+
+            context.fillStyle = "green";
+            context.fillRect(_x, _y, 32, 32);
+            //            context.lineWidth = 2;
+            //            context.strokeStyle = "white";
+
+            //            context.moveTo(_x + 10, _y);
+            //            context.lineTo(_x + 32, )
+
+        };
+    };
+
+    ///////////////////// COMMON
+
+    COMMON.Direction =
+    {
+        UP: 0,
+        LEFT: 1,
+        RIGHT: 2,
+        DOWN: 3
+    };
+
+    ///Rectangle.js
+    COMMON.Rectangle = function (x, y, width, height) {
+
+        this.position = new COMMON.Vector2(x, y);
+        this.width = width;
+        this.height = height;
+
+    };
+
+    ///Vector2.js
+    COMMON.Vector2 = function (x, y) {
+        this.x = x;
+        this.y = y;
+    };
+
+
+    ///MenuEntry.js
+
+    GAMESTATEMANAGEMENT.MenuEntry = function (text) {
+
+        this.text = text;
+        this.position = new COMMON.Vector2(0, 0);
+        this.isSelected = false;
+        var domElement = null;
+
+        //        this.addEventListener = function (func) {
+        //            domElement.addEventListener("click", func, false);
+        //        };
+
+
+        this.loadContent = function () {
+
+            //            domElement = document.createElement("button");
+            //            domElement.innerHTML = this.text;
+            //            domElement.style.position = "absolute";
+            //            domElement.style.top = this.position.y + "px";
+            //            domElement.style.left = this.position.x + "px";
+            //            domElement.menuScreen = menuSrcneen;
+            //            domElement.addEventListener("click", func, false);
+
+            //            document.body.appendChild(domElement);
+
+        };
+
+        this.unloadContent = function () {
+            //document.body.removeChild(domElement);
+        };
+
+        //this.isSelected = false;
+
+        this.draw = function (menuScreen) {
+
+            menuScreen.screenManager.context.font = "23pt Calibri";
+            menuScreen.screenManager.context.fillStyle = this.isSelected ? "rgba(255,255,0," + menuScreen.getTransitionAlpha() + ")" : "rgba(255,255,255," + menuScreen.getTransitionAlpha() + ")";
+            menuScreen.screenManager.context.textAlign = "center";
+            menuScreen.screenManager.context.fillText(this.text, this.position.x, this.position.y);
+        };
+
+        this.getWidth = function () {
+
+        };
+
+
+    };
+
+
+    GAMESTATEMANAGEMENT.NumericLeftRightMenuEntry = function (text, min, max) {
+
+        this.text = text;
+        this.max = max || 0;
+        this.min = min || 0;
+
+        this.position = new COMMON.Vector2(0, 0);
+        this.isSelected = false;
+
+        var value = min;
+
+        this.draw = function (menuScreen) {
+
+            menuScreen.screenManager.context.font = "23pt Calibri";
+            menuScreen.screenManager.context.fillStyle = this.isSelected ? "rgba(255,255,0," + menuScreen.getTransitionAlpha() + ")" : "rgba(255,255,255," + menuScreen.getTransitionAlpha() + ")";
+            menuScreen.screenManager.context.textAlign = "center";
+            menuScreen.screenManager.context.fillText(this.text + ":  < " + value + " >", this.position.x, this.position.y);
+        };
+
+        this.increase = function () {
+            value = Math.min(max, value + 1);
+        };
+
+        this.decrease = function () {
+            value = Math.max(min, value - 1);
+        };
+
+        this.getValue = function () {
+            return value;
+        };
+
+        this.setValue = function (newValue) {
+            if (newValue != null) {
+
+                if (newValue < min)
+                    value = min;
+                else if (newValue > max)
+                    value = max;
+                else
+                    value = newValue;
+
+            }
+
+
+        };
+
+        this.getWidth = function () {
+
+        };
+
+
+    };
+
+    GAMESTATEMANAGEMENT.NumericLeftRightMenuEntry.prototype = new GAMESTATEMANAGEMENT.MenuEntry();
+    GAMESTATEMANAGEMENT.NumericLeftRightMenuEntry.constructor = GAMESTATEMANAGEMENT.NumericLeftRightMenuEntry;   
+
+
+    COMMON.Event = function () {
+        //function to call on event fire
+        var eventAction = null;
+        var eventActionParent = null
+
+        //subscribe a function to the event
+        this.subscribe = function (object, func) {
+            eventAction = func;
+            eventActionParent = object;
+        };
+
+        //fire the event
+        this.fire = function (sender, eventArgs) {
+            if (eventAction != null) {
+                eventAction(sender, eventArgs, eventActionParent);
+            }
+        };
+    };
+
+    //////////////////////////////////////////////////////////////////
+
+//    var jsontext = '{ "id": "level1", "Entities": [ {"type": "Cloud1", "x": 1.0, "y": 1.00, "a": 0.0}, {"type": "Cloud3", "x": 14.0, "y": 2.00, "a": 0.0} ] }';
+//    var contact = JSON.parse(jsontext);
+//    var fullname = contact.id.Entities[0].type;
+//    alert(fullname);
+
+    var gameStateManagement = new GAMESTATEMANAGEMENT.ScreenManager();
+    //gameStateManagement.addScreen(new GAMESTATEMANAGEMENT.CompanySplashScreen());
+    gameStateManagement.addScreen(new GAMESTATEMANAGEMENT.GameplayScreen());
+
+    var startTime = window.mozAnimationStartTime || Date.now();
+    algo();
+
+    function algo(timestamp) {
+
+        var drawStart = (timestamp || Date.now()),
+            diff = drawStart - startTime;
+
+        //console.log(diff);
+        startTime = drawStart;
+        gameStateManagement.render(diff);
+        requestAnimationFrame(algo);
+        
+        //requestAnimationFrame(algo);
+        //setTimeout(algo, 1000 / 60);
+        //gameStateManagement.render();
+    };
+
+    
+    
+
+
+</script>
+</html>

@@ -1,0 +1,41 @@
+<html>
+<head>
+    <title>Custom events</title>
+</head>
+<body>
+</body>
+<script type="text/javascript">
+
+    var CustomEvent = function () {
+        //name of the event
+        this.eventName = arguments[0];
+        var mEventName = this.eventName;
+
+        //function to call on event fire
+        var eventAction = null;
+
+        //subscribe a function to the event
+        this.subscribe = function (fn) {
+            eventAction = fn;
+        };
+
+        //fire the event
+        this.fire = function (sender, eventArgs) {
+            if (eventAction != null) {
+                eventAction(sender, eventArgs);
+            }
+            else {
+                alert('There was no function subscribed to the ' + mEventName + ' event!');
+            }
+        };
+    }
+
+
+var test = new CustomEvent("MiEvento");
+test.subscribe(function () { alert("Esta es una prueba") });
+test.fire();
+
+
+
+</script>
+</html>

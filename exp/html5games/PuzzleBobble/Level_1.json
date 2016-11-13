@@ -1,0 +1,9 @@
+{ 
+
+  "ID" : "Level 0", 
+  "Entities" : [ { "type": "wall", "row": 7, "col": 9 }, 
+		 {"type": "wall", "row": 8, "col": 9 }, 
+		 {"type": "wall", "row": 9, "col": 9 }, 
+		 {"type": "wall", "row": 10, "col": 9 }  
+	       ] 
+}
