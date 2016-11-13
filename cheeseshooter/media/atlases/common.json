@@ -1,0 +1,124 @@
+{"frames": {
+
+"crosshair6.png":
+{
+	"frame": {"x":2,"y":84,"w":100,"h":100},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
+	"sourceSize": {"w":100,"h":100}
+},
+"movecursor3.png":
+{
+	"frame": {"x":322,"y":84,"w":140,"h":140},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":140,"h":140},
+	"sourceSize": {"w":140,"h":140}
+},
+"pause_dialogbox.png":
+{
+	"frame": {"x":488,"y":84,"w":500,"h":290},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":290},
+	"sourceSize": {"w":500,"h":290}
+},
+"smallretrybutton.png":
+{
+	"frame": {"x":941,"y":2,"w":80,"h":80},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":80,"h":80},
+	"sourceSize": {"w":80,"h":80}
+},
+"tutorial_badfly.png":
+{
+	"frame": {"x":376,"y":2,"w":56,"h":62},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":56,"h":62},
+	"sourceSize": {"w":56,"h":62}
+},
+"tutorial_cheese.png":
+{
+	"frame": {"x":2,"y":2,"w":240,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":240,"h":48},
+	"sourceSize": {"w":240,"h":48}
+},
+"tutorial_dialog.png":
+{
+	"frame": {"x":2,"y":376,"w":834,"h":616},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":834,"h":616},
+	"sourceSize": {"w":834,"h":616}
+},
+"tutorial_mouse.png":
+{
+	"frame": {"x":220,"y":84,"w":100,"h":130},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":130},
+	"sourceSize": {"w":100,"h":130}
+},
+"tutorial_portal.png":
+{
+	"frame": {"x":434,"y":2,"w":152,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":152,"h":64},
+	"sourceSize": {"w":152,"h":64}
+},
+"tutorial_rail.png":
+{
+	"frame": {"x":464,"y":84,"w":22,"h":256},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":22,"h":256},
+	"sourceSize": {"w":22,"h":256}
+},
+"tutorial_redcircle.png":
+{
+	"frame": {"x":654,"y":2,"w":285,"h":79},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":285,"h":79},
+	"sourceSize": {"w":285,"h":79}
+},
+"tutorial_redx3.png":
+{
+	"frame": {"x":588,"y":2,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+"tutorial_shooter.png":
+{
+	"frame": {"x":244,"y":2,"w":130,"h":58},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":130,"h":58},
+	"sourceSize": {"w":130,"h":58}
+},
+"unpausebutton.png":
+{
+	"frame": {"x":104,"y":84,"w":114,"h":114},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":114,"h":114},
+	"sourceSize": {"w":114,"h":114}
+}},
+"meta": {
+	"app": "http://www.texturepacker.com",
+	"version": "1.0",
+	"image": "common.png",
+	"format": "RGBA8888",
+	"size": {"w":1024,"h":1024},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:1561aaf6a1b1e286617b460a4c86e17e$"
+}
+}

@@ -1,0 +1,92 @@
+{"frames": {
+
+"chapter0banner.png":
+{
+	"frame": {"x":2,"y":2,"w":355,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":355,"h":48},
+	"sourceSize": {"w":355,"h":48}
+},
+"chapter0button.png":
+{
+	"frame": {"x":2,"y":628,"w":2002,"h":286},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":2002,"h":286},
+	"sourceSize": {"w":2002,"h":286}
+},
+"chapter1banner.png":
+{
+	"frame": {"x":716,"y":2,"w":355,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":355,"h":48},
+	"sourceSize": {"w":355,"h":48}
+},
+"chapter1button.png":
+{
+	"frame": {"x":2,"y":916,"w":2002,"h":286},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":2002,"h":286},
+	"sourceSize": {"w":2002,"h":286}
+},
+"chapter2banner.png":
+{
+	"frame": {"x":1073,"y":2,"w":355,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":355,"h":48},
+	"sourceSize": {"w":355,"h":48}
+},
+"chapter2button.png":
+{
+	"frame": {"x":2,"y":52,"w":2002,"h":286},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":2002,"h":286},
+	"sourceSize": {"w":2002,"h":286}
+},
+"chapter3banner.png":
+{
+	"frame": {"x":359,"y":2,"w":355,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":355,"h":48},
+	"sourceSize": {"w":355,"h":48}
+},
+"chapter3button.png":
+{
+	"frame": {"x":2,"y":340,"w":2002,"h":286},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":2002,"h":286},
+	"sourceSize": {"w":2002,"h":286}
+},
+"gamecomplete.jpg":
+{
+	"frame": {"x":504,"y":1204,"w":1024,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1024,"h":768},
+	"sourceSize": {"w":1024,"h":768}
+},
+"levelcompletedialog.png":
+{
+	"frame": {"x":2,"y":1204,"w":500,"h":626},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":626},
+	"sourceSize": {"w":500,"h":626}
+}},
+"meta": {
+	"app": "http://www.texturepacker.com",
+	"version": "1.0",
+	"image": "2.png",
+	"format": "RGBA8888",
+	"size": {"w":2048,"h":2048},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3e88d33042da1d3c7d45860179ce825c$"
+}
+}

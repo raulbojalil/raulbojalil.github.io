@@ -1,0 +1,44 @@
+{"frames": {
+
+"tileset_city.png":
+{
+	"frame": {"x":2,"y":2,"w":704,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":704,"h":480},
+	"sourceSize": {"w":704,"h":480}
+},
+"tileset_desert.png":
+{
+	"frame": {"x":2,"y":484,"w":704,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":704,"h":480},
+	"sourceSize": {"w":704,"h":480}
+},
+"tileset_grasslands.png":
+{
+	"frame": {"x":2,"y":966,"w":704,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":704,"h":480},
+	"sourceSize": {"w":704,"h":480}
+},
+"tileset_space.png":
+{
+	"frame": {"x":2,"y":1448,"w":704,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":704,"h":480},
+	"sourceSize": {"w":704,"h":480}
+}},
+"meta": {
+	"app": "http://www.texturepacker.com",
+	"version": "1.0",
+	"image": "6.png",
+	"format": "RGBA8888",
+	"size": {"w":1024,"h":2048},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:dbf8cbd88777f4f606abbfb4159fba84$"
+}
+}
