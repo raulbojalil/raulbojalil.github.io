@@ -230,6 +230,15 @@ a:focus {
 	border-width: 20px 20px 0 0;
 	border-color: transparent #bbb;
 }
+.triangle-right.bottom:after {
+	top: auto;
+	right: 50px;
+	bottom: -20px;
+	left: auto;
+	border-width: 0px 20px 20px 0;
+	border-color: transparent #bbb;
+}
+
 .triangle-right:after {
 	content: "";
 	position: absolute;
