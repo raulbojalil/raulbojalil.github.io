@@ -61,7 +61,7 @@ body::before {
     color: var(--muted);
     margin: 0 0 .4em;
 }
-.mega { font-size: 84px; line-height: 1.05; margin: .1em 0 .3em; }
+.mega { font-size: 74px; line-height: 1.05; margin: .1em 0 .3em; }
 .big  { font-size: 56px; line-height: 1.15; margin: .1em 0 .3em; }
 .sub  { font-size: 28px; color: var(--muted); font-family: 'Inter', sans-serif; }
 .tiny { font-size: 16px; font-family: 'Inter', sans-serif; }
