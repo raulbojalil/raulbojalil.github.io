@@ -8,8 +8,8 @@
     // Mobile: bring the camera closer — impress fits the "window" defined by
     // data-width/height, so a smaller window means a larger, closer view.
     if (window.innerWidth < 720) {
-        root.setAttribute("data-width", String(Math.round(window.innerWidth * 0.95)));
-        root.setAttribute("data-height", String(Math.round(window.innerHeight * 0.85)));
+        root.setAttribute("data-width", String(Math.round(window.innerWidth * 1.2)));
+        root.setAttribute("data-height", String(Math.round(window.innerHeight * 1.05)));
         root.setAttribute("data-min-scale", "0");
     }
 
