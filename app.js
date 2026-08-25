@@ -62,17 +62,10 @@
         })();
     }
 
-    /* ---- touch swipe navigation ---- */
-    var touchX = null;
-    document.addEventListener("touchstart", function (e) {
-        touchX = e.touches[0].clientX;
-    }, { passive: true });
-    document.addEventListener("touchend", function (e) {
-        if (touchX === null) return;
-        var dx = e.changedTouches[0].clientX - touchX;
-        if (Math.abs(dx) > 50) (dx < 0 ? api.next : api.prev)();
-        touchX = null;
-    }, { passive: true });
+    /* ---- touch swipe navigation ----
+       impress.js 2.0 already includes swipe/tap navigation natively,
+       so no custom handler is needed here (adding one would advance
+       two slides per swipe). */
 
     /* ---- gravity finale: everything falls (Matter.js, the modern Box2D) ---- */
     var collapsed = false;
