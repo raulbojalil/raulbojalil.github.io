@@ -1,20 +1,16 @@
-﻿
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=1024" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>Raúl Bojalil's personal website</title>
-    <meta name="description" content="Welcome to Raúl Bojalil's personal website." />
-    <meta name="author" content="Raúl A. Bojalil Becerra" />
-    <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
-    <link href="impress-styles.css" rel="stylesheet" />
-    <link rel="shortcut icon" href="favicon.png" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-	
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Raúl Bojalil — personal website</title>
+    <meta name="description" content="Welcome to Raúl Bojalil's personal website.">
+    <meta name="author" content="Raúl A. Bojalil Becerra">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
 
 <div class="fallback-message">
@@ -22,474 +18,126 @@
     <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
 </div>
 
-
 <div id="impress">
 
-    <div id="start" style="text-align: center" class="step" data-x="-500" data-y="-1500">
-        <q><b>Hi there!</b> Welcome to my website!</q>
-		<br/>
-		<p>For the best experience I recommend using <b>Google Chrome</b> and a powerful PC
-		
+    <div id="start" class="step slide center" data-x="-500" data-y="-1500">
+        <p class="kicker">👋 Welcome!</p>
+        <h1 class="mega">Hi! I'm Raúl Bojalil, a software dev with <span class="grad">20+ years of experience</span>, now <span class="grad">supercharged with AI!</span></h1>
+        <p class="sub">Use the arrow keys, swipe, or the dots below to navigate</p>
+
     </div>
 
-    <div class="step" style="text-align: center" data-x="500" data-y="-1500">
-	    <p>Ok, so...</p>
-        <q><b>I really like computers! </b><br/> Well in fact...</q>
-    </div>
-	
-    <div style="text-align:center" class="step" data-x="0" data-y="0" data-scale="4">
-         <div id="computer-img" style="position: relative">
-			<img src="Images/crt.png"/>
-			<div style="text-align:left; font-family: Courier New; position:absolute;top: 67px;left: 181px;width: 452px;height: 349px;background: black; color: White">
-				<div style="display: inline">C:\></div>
-				<div style="display: inline" id="type-text">
-				</div>
-			</div>
-		</div>
+    <div id="computers" class="step slide center" data-x="500" data-y="-1500">
+        <p class="kicker">Ok, so…</p>
+        <h1 class="mega">I really like <span class="grad">computers!</span></h1>
+        <p class="sub">Well, in fact…</p>
     </div>
 
-    <div class="step" data-x="850" data-y="3000" data-rotate="90" data-scale="5">
-        <p>I enjoy computer programming and learning <strong>new programming languages</strong> in my free time.<br/>
-		I am specially experienced in... 
-        </p>
-    </div>
-	
-	<div class="step" style="text-align: center" data-x="850" data-y="5000" data-z="-2000" data-rotate="90" data-scale="6">
-        <p>C/C++,</p>
-    </div>
-	
-	<div class="step" style="text-align: center" data-x="850" data-y="7000" data-z="-4000" data-rotate="90" data-scale="3">
-        <p><b>.NET</b> <br/>(C#, F#, Windows Forms and ASP.NET MVC),</p>
-    </div>
-	
-	<div class="step" style="text-align: center" data-x="850" data-y="9000" data-z="-6000" data-rotate="90" data-scale="3">
-        <p>HTML5 / JavaScript,</p>
-    </div>
-	
-	<div class="step" style="text-align: center" data-x="850" data-y="11000" data-z="-4000" data-rotate="90" data-scale="4">
-        <p>...and some experience in Java, Python and Go. 
-		<br/>
-		But really, I can easily <b>adapt to any</b> framework, language or tool needed for the <b>job at hand.</b>
-		</p>
-		
-    </div>
-	
-	<div id="videogames" class="step" data-x="850" data-y="13000" data-z="-2000" data-rotate="0" data-scale="5">
-        <p>I also like <b>videogames!</b></br>
-		Hey, why don't you check out this quick game I made: </br>
-		<iframe id="iframe" style="margin:50px 0px 0px 200px" width="430" height="220" src=""></iframe>
-		</p>
-    </div>
-	
-	
-    <div class="step" data-x="3500" data-y="2100" data-rotate="180" data-scale="3">
-        <p>I am <b>self-taught,</b> and enjoy learning new stuff like...</p>
+    <div id="terminal" class="step" data-x="0" data-y="0" data-scale="3">
+        <div class="crt">
+            <div class="crt-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="crt-title">C:\DOS — MS-DOS Prompt</span></div>
+            <div class="crt-screen">
+                <span class="prompt">C:\&gt;</span><span id="type-text"></span><span class="cursor">▌</span>
+            </div>
+        </div>
     </div>
 
-    <div id="art" class="step" data-x="2825" data-y="2325" data-z="7000" data-rotate="180" data-scale="3">
-        <p><div style="font-size:60px" class="animated tada infinite">ART!</div> <br/> <a href="javascript: window.open('artacademy/gallery.html')">Please check out my gallery!</a></p>
+    <div id="dev" class="step slide center" data-x="850" data-y="3000" data-rotate="90" data-scale="5">
+        <p class="kicker">💻</p>
+        <h1 class="big">I'm a specialist in <span class="grad">full-stack development</span> and <span class="grad">cybersecurity</span>.</h1>
+        <p class="sub">I'm also experienced in…</p>
     </div>
 
-    <div id="hobbies" style="width: 500px" class="step" data-x="3500" data-y="-850" data-rotate="270" data-scale="6">
-        <p>I also like to <b id="workout">work out</b>, <b id="running">running</b> and play the <br/>
-		<div id="Pkey" style="margin-left: 125px" class="piano-key">P</div>
-		<div id="Ikey" class="piano-key">I</div>
-		<div id="Akey" class="piano-key">A</div>
-		<div id="Nkey" class="piano-key">N</div>
-		<div id="Okey" class="piano-key">O</div> 
+    <div id="lang-cpp" class="step slide center" data-x="850" data-y="5000" data-z="-2000" data-rotate="90" data-scale="6">
+        <h1 class="mega lang"><span class="chip">C / C++</span></h1>
     </div>
 
-    <div style="width: 600px;" class="step" data-x="6700" data-y="-300" data-scale="6">
-        <p> And ..., I guess that's all for now!</p>
+    <div id="lang-dotnet" class="step slide center" data-x="850" data-y="7000" data-z="-4000" data-rotate="90" data-scale="3">
+        <h1 class="big lang"><span class="chip">.NET, Node.js...</span></h1>
+        <p class="sub">C#, F#, MVC, Next.js, NEST</p>
     </div>
 
-    <div class="step" data-x="6300" data-y="2000" data-rotate="20" data-scale="4">
-        <p>I hope you <b>enjoyed</b> knowing more about <b>me!</b></p>
+    <div id="lang-web" class="step slide center" data-x="850" data-y="9000" data-z="-6000" data-rotate="90" data-scale="3">
+        <h1 class="big lang"><span class="chip">Python, SQL, NoSQL, you name it.</span></h1>
     </div>
 
-    <div class="step" data-x="6000" data-y="4000" data-scale="2">
-        <p>Hey, wanna see something cool?</p>
+    <div id="lang-more" class="step slide center" data-x="850" data-y="11000" data-z="-4000" data-rotate="90" data-scale="4">
+        <p class="kicker">…plus lots of experience</p>
+        <h1 class="big">leading Tech teams</h1>
+        <p class="sub">But really, I can easily <b>adapt to any</b> technology, framework, language or tool needed for the <b>job at hand.</b></p>
     </div>
 
-    <div id="overview" style="display: none" class="step" data-x="3000" data-y="1500" data-scale="10">
+    <div id="videogames" class="step slide center" data-x="850" data-y="13000" data-z="-2000" data-scale="5">
+        <p class="kicker">🎮</p>
+        <h1 class="mega">I also develop <span class="grad">videogames!</span></h1>
+        <p class="sub">Hey, why don't you check out this quick game I made:</p>
+        <a class="btn" href="exp/jezzball.html" target="_blank" rel="noopener">▶ Play JezzBall</a>
     </div>
+
+    <div id="selftaught" class="step slide center" data-x="3500" data-y="2100" data-rotate="180" data-scale="3">
+        <h1 class="big">I am <span class="grad">self-taught</span>,<br>and enjoy learning new stuff like…</h1>
+    </div>
+
+    <div id="art" class="step slide center" data-x="2825" data-y="2325" data-z="7000" data-rotate="180" data-scale="3">
+        <h1 class="mega grad pop">ART! </h1><br>
+        <a class="btn" href="artacademy/gallery.html" target="_blank" rel="noopener">🎨 Check out my gallery</a>
+    </div>
+
+    <div id="hobbies" class="step slide center" data-x="3500" data-y="-850" data-rotate="270" data-scale="6">
+        <h1 class="big">I'm also a polyglot, and in my free time I enjoy <span class="hl" id="workout">playing the </span>
+        <div class="piano">
+            <div class="piano-key" data-i="0">P</div>
+            <div class="piano-key" data-i="1">I</div>
+            <div class="piano-key" data-i="2">A</div>
+            <div class="piano-key" data-i="3">N</div>
+            <div class="piano-key" data-i="4">O</div>
+        </div>
+    </div>
+
+    <div id="thatsall" class="step slide center" data-x="6700" data-y="-300" data-scale="6">
+        <h1 class="mega">And… that's all <span class="grad">for now!</span></h1>
+    </div>
+
+    <div id="thanks" class="step slide center" data-x="6300" data-y="2000" data-rotate="20" data-scale="4">
+        <h1 class="big">I hope you <span class="grad">enjoyed</span><br>knowing more about <b>me!</b></h1>
+    </div>
+
+    <div id="cool" class="step slide center" data-x="6000" data-y="4000" data-scale="2">
+        <p class="kicker">Hey…</p>
+        <h1 class="big">wanna see something <span class="grad">cool?</span></h1>
+    </div>
+
+    <div id="overview" class="step" data-x="3000" data-y="1500" data-scale="10"></div>
 
 </div>
-<div class="hint">
-    <p>Use a spacebar or arrow keys to navigate</p>
-</div>
 
-<div class="socialnetworks" style="pointer-events: all; position: absolute; z-index: 99999; top: 0px; left: 0px">
+<header class="topbar">
+    <span class="brand">Raúl <span class="grad">Bojalil</span></span>
+    <nav id="mainnav">
+        <a href="https://multi-threader.com/" class="menu-option">Blog</a>
+        <a href="games" class="menu-option">Games</a>
+        <a href="experiments" class="menu-option">Books</a>
+        <a href="art" class="menu-option">Art Gallery</a>
+        <a href="about" class="menu-option">Contact</a>
+    </nav>
+    <button id="navtoggle" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+    </button>
+    <div class="social">
+        <a href="https://github.com/raulbojalil" title="GitHub" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="18" height="18"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
+        <a href="https://bitbucket.org/raulbojalil" title="Bitbucket" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M2.65 3C2.3 3 2 3.3 2.02 3.65l2.93 17.71c.08.45.47.78.94.78h12.36c.35 0 .64-.25.71-.6L21.98 3.65C22 3.3 21.7 3 21.35 3H2.65zM14.1 14.94H9.94l-1.27-6.63h6.61l-1.18 6.63z"/></svg></a>
+        <a href="https://twitter.com/raulbojalil" title="Twitter / X" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41z"/></svg></a>
+        <a href="https://www.youtube.com/channel/UCjPncSKQhd6Rrob9zavohiA" title="YouTube" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.8zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg></a>
+    </div>
+</header>
 
-	<div class="g-ytsubscribe" data-channelid="UCjPncSKQhd6Rrob9zavohiA" data-layout="default" data-count="default"></div>
+<div class="progress"><div class="dots" id="dots"></div><div class="counter" id="counter"></div></div>
 
-<iframe id="twitter-widget-0" scrolling="no" frameborder="0" allowtransparency="true" class="twitter-follow-button twitter-follow-button-rendered" title="Twitter Follow Button" src="http://platform.twitter.com/widgets/follow_button.2dbd32894063b53338de1c1d4a747ea9.en.html#dnt=true&amp;id=twitter-widget-0&amp;lang=en&amp;screen_name=raulbojalil&amp;show_count=false&amp;show_screen_name=false&amp;size=l&amp;time=1478817647877" style="position: static; visibility: visible; width: 78px; height: 28px;" data-screen-name="raulbojalil"></iframe>
-<div onclick="javascript: window.open('https://bitbucket.org/raulbojalil');" style="display: inline-block; background: url(Images/bitbucket_icon.png);width: 30px;height: 30px;background-repeat: no-repeat;border-radius: 7px;cursor: pointer;"></div>
-<iframe src="https://ghbtns.com/github-btn.html?user=raulbojalil&type=follow&size=large" frameborder="0" scrolling="0" width="220px" height="30px"></iframe>
-<script>    </script>
+<div class="hint"><p>Use ← → / spacebar to navigate</p></div>
 
-<a href="https://multi-threader.com/" class="menu-option">Blog</a>
-<a href="#" onclick="javascript: window.open('portfolio');" class="menu-option">Portfolio</a>
-<a href="#" onclick="javascript: window.open('games');" class="menu-option">Games</a>
-<a href="#" onclick="javascript: window.open('experiments');" class="menu-option">Experiments</a>
-<a href="#" onclick="javascript: window.open('art');" class="menu-option">Art</a>
-<a href="#" onclick="javascript: window.open('about');" class="menu-option">About</a>
-   
-</div>
+<script src="js/matter.min.js"></script>
+<script src="js/impress.js"></script>
+<script src="app.js"></script>
 
-<script>
-if ("ontouchstart" in document.documentElement) { 
-    document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate (or use the arrow keys)</p>";
-}
-</script>
-
-<script type="text/javascript" src="Scripts/jquery.min.js"></script>
-<script type="text/javascript" src="Scripts/jquery.teletype.min.js"></script>
-<script src="Scripts/platform.js"></script>
-
-<script src="Scripts/impress.js"></script>
-<script src="Scripts/box2d.js"></script>
-<script>
-
-impress().init();
-
-     $('#type-text').teletype( {
-            text: [ 'I have been using them since the DOS era' ],
-            typeDelay: 0,
-            backDelay: 20,
-            cursor: "_"
-        } );
-		
-
-function isVisible(obj) {
-		return true;
-		return obj.offsetWidth > 0 && obj.offsetHeight > 0;
-	} 
-	  
-      Object.defineProperty(Element.prototype, 'outerHeight', {
-    'get': function(){
-        var height = this.clientHeight;
-	
-        var computedStyle = window.getComputedStyle(this); 
-        height += parseInt(computedStyle.marginTop, 10);
-        height += parseInt(computedStyle.marginBottom, 10);
-        height += parseInt(computedStyle.borderTopWidth, 10);
-        height += parseInt(computedStyle.borderBottomWidth, 10);
-        return height;
-    }
-});
-
-Object.defineProperty(Element.prototype, 'marginTop', {
-    'get': function(){
-        var height = 0;
-        var computedStyle = window.getComputedStyle(this); 
-        height += parseInt(computedStyle.marginTop, 10);
-        height += parseInt(computedStyle.borderTopWidth, 10);
-        return height;
-    }
-});
-
-Object.defineProperty(Element.prototype, 'marginLeft', {
-    'get': function(){
-        var width = 0;
- 
-        var computedStyle = window.getComputedStyle(this); 
-        //console.log(computedStyle.left);
-	//console.log(computedStyle.borderLeftWidth);
-        width += parseInt(computedStyle.marginLeft, 10);
-        width += parseInt(computedStyle.borderLeftWidth, 10);
-        return width;
-    }
-});
-
-
-      var world;
-      var bodies = [];
-      var elements = [];
-	  var rects = [];
-      
-	  String.prototype.isEmpty = function() {
-		return (this.length === 0 || !this.trim());
-	};
-
-	   function getElementsByClassAndTagNames(classNames, tagNames)
-          {
-		       var elements = [];
-			   if(classNames)
-			   {
-			      for(var i=0; i < classNames.length; i++)
-				  {  
-				      var elems = document.getElementsByClassName(classNames[i]);
-				      for(var j=0; j < elems.length; j++)
-					  {
-						  var elem = elems[j];
-						  if(isVisible(elem)) elements.push(elem);
-					  }
-				   }
-			   }
-			   
-			   if(tagNames)
-			   {
-			      for(var i=0; i < tagNames.length; i++)
-				  {  
-				      var elems = document.getElementsByTagName(tagNames[i]);
-				      for(var j=0; j < elems.length; j++)
-					  {
-						  var elem = elems[j];
-						  if(isVisible(elem)) elements.push(elem);
-					  }
-				   }
-			   }
-			   
-			   return elements;
-		  
-          }
-	
-	  function getElements(elem)
-	  {
-		if(elem.tagName != "SCRIPT" && elem.tagName != "CANVAS" && elem.className!="socialnetworks" && isVisible(elem))
-		{
-			if(elem.nodeType == 3 && !elem.textContent.isEmpty())
-			{
-				var text = elem.textContent.trim();
-				//var rect = elem.getBoundingClientRect();
-                var span = document.createElement("div");
-				span.innerHTML = text;
-				span.style.position = "absolute";
-				//span.style.left = rect.left;
-				//span.style.right = rect.right;
-				elem.parentNode.insertBefore(span, elem);
-				elem.parentNode.removeChild(elem);
-				elements.push(span);
-			}
-			else if(elem.childNodes.length == 1 && elem.childNodes[0].nodeType == 3)
-				elements.push(elem);
-			else {
-				for(var i=0; i < elem.childNodes.length; i++)
-				{
-					getElements(elem.childNodes[i]);
-				}
-			}
-		}
-	  }
-	  
-      function init() {
- 
-        
-         //var elems = document.getElementsByTagName("body")[0].getElementsByTagName('*');
-         getElements(document.getElementsByTagName("body")[0]);
-		 //elements = getElementsByClassAndTagNames(["step"]);
-         
-         for(var i=0; i < elements.length; i++)
-    	 {
-    	  	var element = elements[i];
-    	  	rects.push(element.getBoundingClientRect());
-    	 }
-
-         var   b2Vec2 = Box2D.Common.Math.b2Vec2
-         	,	b2BodyDef = Box2D.Dynamics.b2BodyDef
-         	,	b2Body = Box2D.Dynamics.b2Body
-         	,	b2FixtureDef = Box2D.Dynamics.b2FixtureDef
-         	,	b2Fixture = Box2D.Dynamics.b2Fixture
-         	,	b2World = Box2D.Dynamics.b2World
-         	,	b2MassData = Box2D.Collision.Shapes.b2MassData
-         	,	b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
-         	,	b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
-         	,	b2DebugDraw = Box2D.Dynamics.b2DebugDraw
-            ;
-         
-         world = new b2World(
-               new b2Vec2(0, 10)    //gravity
-            ,  true                 //allow sleep
-         );
-         
-         var fixDef = new b2FixtureDef;
-         fixDef.density = 1.0;
-         fixDef.friction = 0.5;
-         fixDef.restitution = 0.2;
-         
-         var bodyDef = new b2BodyDef;
-         
-         //create ground
-         bodyDef.type = b2Body.b2_staticBody;
-         bodyDef.position.x = 9;
-         bodyDef.position.y = 30;
-         fixDef.shape = new b2PolygonShape;
-         fixDef.shape.SetAsBox(50, 0.5);
-         world.CreateBody(bodyDef).CreateFixture(fixDef);
-         
-         //create some objects
-         bodyDef.type = b2Body.b2_dynamicBody;
-         
-
-         for(var i = 0; i < elements.length; ++i) {
-
-             var element = elements[i];
-    	     var rect = rects[i];
-             var top =  rect.top;
-             var left = rect.left;
-
-             element.style.position = "absolute";
-             element.style.top = (top-element.marginTop) + "px";
-             element.style.left = (left-element.marginLeft) + "px"; 
-			 
-			 document.body.appendChild(element);
-             rect = element.getBoundingClientRect();
-			 element.style.width = rect.width + "px";
-			 element.style.height = rect.height + "px";
-             rects[i] = rect;
-			 //console.log(rect);
-
-            //if(Math.random() > 0.5) {
-            //if(true) {
-            if(rect.width/32 > 1) {
-               fixDef.shape = new b2PolygonShape;
-			   
-			   //60 pixeles = 1
-               fixDef.shape.SetAsBox(
-                     //Math.random() + 0.1, //half width
-                     //Math.random() + 0.1 //half height
-                     //rect.width/32, rect.height/70
-                    rect.width/60,rect.height/60
-               );
-               element.b2dtype = "polygon";
-            } else {
-               fixDef.shape = new b2CircleShape(
-                  //Math.random() + 0.1 //radius
-                  //Math.random() * 0.5
-                  //0.2 + (Math.random() * 0.3)
-                  rect.height/60
-                  
-               );
-               element.b2dtype = "circle";
-            }
-
-          
-            //bodyDef.position.x = rect.left/30;
-            //bodyDef.position.y = rect.top/30;
-            bodyDef.position.x = (rect.left + (rect.width/2))/30;
-            bodyDef.position.y = (rect.top + (rect.height/2))/30;
-			if(element.style.webkitTransform.indexOf("rotateZ") != -1)
-			{
-				bodyDef.angle = parseInt(element.style.webkitTransform.match(/rotateZ\(([^()]+)\)/g)[0].replace("rotateZ(", "").replace("deg)",""));
-				//alert(bodyDef.angle);
-			}
-			
-
-            //console.log(rect.left + ":");
-
-            var newBody = world.CreateBody(bodyDef);
-            bodies.push(newBody);
-            newBody.CreateFixture(fixDef);
-         }
-         //console.log(bodies);
-         //setup debug draw
-         /*var debugDraw = new b2DebugDraw();
-			debugDraw.SetSprite(document.getElementById("canvas").getContext("2d"));
-			debugDraw.SetDrawScale(30.0);
-			debugDraw.SetFillAlpha(0.3);
-			debugDraw.SetLineThickness(1.0);
-			debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
-			world.SetDebugDraw(debugDraw);*/
-         
-         window.setInterval(update, 1000 / 60);
-		 
-		 document.getElementById('computer-img').className = "animated hinge";
-		 
-      };
-      
-      var counter = 500;
-      function update() {
-         world.Step(
-               1 / 60   //frame-rate
-            ,  10       //velocity iterations
-            ,  10       //position iterations
-         );
-         //world.DrawDebugData();
-         world.ClearForces();
-         counter--;
-
-         for(var i = 0; i < elements.length; i++)
-         {
-			//console.log(123);
-             var element = elements[i];
-             var transf = bodies[i].GetTransform();
-             var pos = transf.position;
-			 var rect = rects[i];
-			 //console.log(pos.height/2)
-             element.style.top = ((pos.y*30)-(rect.height/2)-element.marginTop) + "px";
-             element.style.left = ((pos.x*30)-(rect.width/2)-element.marginLeft) + "px";
-             var angle = (transf.GetAngle()*(180/3.141592));
-             if(element.style.webkitTransform.indexOf("rotateZ(") != -1)
-				element.style.webkitTransform = element.style.webkitTransform.replace(/rotateZ\(([^()]+)\)/g,"rotateZ(" + angle + "deg)")
-			 else
-				element.style.webkitTransform = "rotate(" + angle + "deg)";
-         }
-         //if(counter > 0)
-         //console.log(bodies[0].GetTransform().position);
-         //console.log(bodies[0].GetTransform().GetAngle());
-      };
-	  
-	  document.getElementById('videogames').addEventListener('impress:stepenter', function(event) {
-			document.getElementById('iframe').src = "exp/jezzball.html";
-	  }, false);
-	  
-	  document.getElementById('videogames').addEventListener('impress:stepleave',function(event) {
-			document.getElementById('iframe').src = "";
-	  }, false);
-
-	  document.getElementById('hobbies').addEventListener('impress:stepenter', function(event){
-		 document.getElementById('running').className = "animated lightSpeedIn";
-		 document.getElementById('workout').className = "animated bounce";
-		 document.getElementById('Pkey').className = "piano-key animated flipInX infinite";
-		 setTimeout(function() { document.getElementById('Ikey').className = "piano-key animated flipInY infinite";  }, 200);
-		 setTimeout(function() { document.getElementById('Akey').className = "piano-key animated flipInX infinite";  }, 400);
-		 setTimeout(function() { document.getElementById('Nkey').className = "piano-key animated flipInY infinite";  }, 600);
-		 setTimeout(function() { document.getElementById('Okey').className = "piano-key animated flipInX infinite";  }, 800);
-		 
-	  }, false);
-	  
-	  document.getElementById('hobbies').addEventListener('impress:stepleave', function(event){
-		 document.getElementById('Pkey').className = "piano-key";
-		 document.getElementById('Ikey').className = "piano-key";
-		 document.getElementById('Akey').className = "piano-key";
-		 document.getElementById('Nkey').className = "piano-key";
-		 document.getElementById('Okey').className = "piano-key";
-		 
-	  }, false);
-	  
-	  document.getElementById('hobbies').addEventListener('impress:stepleave', function(event){
-		 document.getElementById('running').className = "animated lightSpeedOut";
-		 document.getElementById('workout').className = "animated bounceOut";
-		 
-		 
-	  }, false);
-	  
-	  document.getElementById('overview').addEventListener('impress:stepenter', function(event){
-		 var step = event.target;
-		 
-		 document.getElementById('Pkey').className = "piano-key";
-		 document.getElementById('Ikey').className = "piano-key";
-		 document.getElementById('Akey').className = "piano-key";
-		 document.getElementById('Nkey').className = "piano-key";
-		 document.getElementById('Okey').className = "piano-key";
-		 
-		 setTimeout(init, 500);
-		 
-		 setTimeout(function()
-		 {
-			$("body").append('<img src="Images/me.png" style="right: 0px; bottom: 0px; position: absolute; " class="animated bounceInRight"/> ' + 
-			  '<p style="color: #383838; position: absolute; font-size: 30px; right: 34px; bottom: 150px;" class="animated fadeInUp triangle-right bottom">Toasty!</p>'
-			  );
-			  
-		 }, 5000);
-		 
-	  }, false);
-	  
-
- !function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0], p = /^http:/.test(d.location) ? 'http' : 'https'; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = p + '://platform.twitter.com/widgets.js'; fjs.parentNode.insertBefore(js, fjs); } } (document, 'script', 'twitter-wjs');
- 
-
-</script>
 </body>
 </html>
