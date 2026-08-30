@@ -321,8 +321,10 @@
       imgProgress.style.display = "block";
       imgProgress.removeAttribute("value"); // barra indeterminada
 
+      // jsDelivr +esm no logró resolver bien las dependencias internas de este
+      // paquete; probamos con esm.sh, que arma un bundle más confiable.
       const { DiffusionPipeline } = await import(
-        "https://cdn.jsdelivr.net/npm/@aislamov/diffusers.js@latest/dist/index.esm.js"
+        "https://esm.sh/@aislamov/diffusers.js"
       );
 
       sdPipe = await DiffusionPipeline.fromPretrained("aislamov/stable-diffusion-2-1-base-onnx");
