@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Carrusel Chino-Francés</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .card {
+      text-align: center;
+      padding: 20px;
+      border-radius: 20px;
+      background-color: #1e1e1e;
+      width: 85vw;
+      height: 85vw;
+      max-width: 600px;
+      max-height: 600px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      border: 1px solid #333;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .hanzi {
+      font-size: 4.5rem;
+      font-weight: bold;
+      color: #ffd700;
+      line-height: 1;
+    }
+    .pinyin {
+      font-size: 2rem;
+      color: #00e676;
+      font-weight: 500;
+    }
+    .francais {
+      font-size: 1.6rem;
+      color: #29b6f6;
+      font-style: italic;
+    }
+    .status {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.85rem;
+      color: #777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div id="hanzi" class="hanzi"></div>
+    <div id="pinyin" class="pinyin"></div>
+    <div id="francais" class="francais"></div>
+  </div>
+
+  <div id="status" class="status">Toca la pantalla para Fullscreen | Usa L1/R1 para navegar</div>
+
+  <script>
+    const words = [
+      { hanzi: "你好", pinyin: "nǐ hǎo", francais: "Bonjour" },
+      { hanzi: "谢谢", pinyin: "xiè xie", francais: "Merci" },
+      { hanzi: "再见", pinyin: "zài jiàn", francais: "Au revoir" },
+      { hanzi: "中国", pinyin: "zhōng guó", francais: "Chine" },
+      { hanzi: "朋友", pinyin: "péng you", francais: "Ami" }
+    ];
+
+    let currentIndex = 0;
+    const hanziEl = document.getElementById("hanzi");
+    const pinyinEl = document.getElementById("pinyin");
+    const francaisEl = document.getElementById("francais");
+    const statusEl = document.getElementById("status");
+
+    function updateCard() {
+      hanziEl.textContent = words[currentIndex].hanzi;
+      pinyinEl.textContent = words[currentIndex].pinyin;
+      francaisEl.textContent = words[currentIndex].francais;
+    }
+
+    function nextWord() {
+      currentIndex = (currentIndex + 1) % words.length;
+      updateCard();
+    }
+
+    function prevWord() {
+      currentIndex = (currentIndex - 1 + words.length) % words.length;
+      updateCard();
+    }
+
+    // --- MODO PANTALLA COMPLETA ---
+    document.documentElement.addEventListener("click", () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) { /* Safari / WebKit antiguo */
+          docEl.webkitRequestFullscreen();
+        }
+      }
+    });
+
+    // --- GAMEPAD API ---
+    let prevL1State = false;
+    let prevR1State = false;
+
+    function pollGamepad() {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
+
+      if (gp) {
+        // Botón 4 = L1, Botón 5 = R1
+        const l1Pressed = gp.buttons[4] && gp.buttons[4].pressed;
+        const r1Pressed = gp.buttons[5] && gp.buttons[5].pressed;
+
+        if (r1Pressed && !prevR1State) {
+          nextWord();
+        }
+
+        if (l1Pressed && !prevL1State) {
+          prevWord();
+        }
+
+        prevL1State = l1Pressed;
+        prevR1State = r1Pressed;
+      }
+
+      requestAnimationFrame(pollGamepad);
+    }
+
+    // Inicializar
+    updateCard();
+    requestAnimationFrame(pollGamepad);
+  </script>
+</body>
+</html>
