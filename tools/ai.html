@@ -198,7 +198,7 @@
   const output = document.getElementById("output");
   const promptEl = document.getElementById("prompt");
 
-  const MODEL = "onnx-community/Qwen2.5-0.5B-Instruct"; // modelo chico, cuantizado, ideal para PoC
+  const MODEL = "onnx-community/Qwen3-4B-ONNX"; // modelo 4B, mejor razonamiento — descarga ~3GB
 
   let generator = null;
 
@@ -215,7 +215,7 @@
     try {
       generator = await pipeline("text-generation", MODEL, {
         device,
-        dtype: "q4", // cuantizado para que pese poco y cargue rápido
+        dtype: "q4f16", // cuantizado; q4f16 suele tener mejor compatibilidad con WebGPU que q4 puro
         progress_callback: (p) => {
           if (p.status === "progress" && p.total) {
             const pct = Math.round((p.loaded / p.total) * 100);
@@ -245,7 +245,7 @@
 
     try {
       const result = await generator(messages, {
-        max_new_tokens: 200,
+        max_new_tokens: 512,
         temperature: 0.7,
         do_sample: true,
       });
