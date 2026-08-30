@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Docx Editor - Single HTML</title>
   
+  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
   <style>
@@ -21,49 +22,58 @@
     }
   </style>
 
+  <!-- Import Map con React bundle unificado -->
   <script type="importmap">
     {
       "imports": {
-        "react": "https://esm.sh/react@18",
-        "react-dom/client": "https://esm.sh/react-dom@18/client",
-        "@docx-editor.dev/react": "https://esm.sh/@docx-editor.dev/react"
+        "react": "https://esm.sh/react@18.2.0?dev",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?dev",
+        "@docx-editor.dev/react": "https://esm.sh/@docx-editor.dev/react?deps=react@18.2.0"
       }
     }
   </script>
+
+  <!-- Compilador Babel para el navegador -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
 
   <div id="editor-root"></div>
 
-  <script type="module">
+  <!-- Note: type="text/babel" y data-type="module" para que Babel transpile import maps -->
+  <script type="text/babel" data-type="module">
     import React, { useState } from 'react';
     import { createRoot } from 'react-dom/client';
-    import { DocxEditor } from '@docx-editor.dev/react';
+    import * as DocxEditorModule from '@docx-editor.dev/react';
+
+    // Aseguramos obtener el componente sin importar cómo se exporte (default o named)
+    const DocxEditor = DocxEditorModule.DocxEditor || DocxEditorModule.default || DocxEditorModule;
 
     function App() {
-      // Estado opcional para manejar el archivo cargado
       const [file, setFile] = useState(null);
 
-      return React.createElement('div', { className: 'w-full h-full flex flex-col' },
-        // Barra superior simple
-        React.createElement('header', { className: 'p-4 bg-slate-800 text-white flex justify-between items-center' },
-          React.createElement('h1', { className: 'font-bold text-lg' }, 'Editor DOCX en Frontend'),
-          React.createElement('span', { className: 'text-xs bg-green-500 text-black px-2 py-1 rounded font-semibold' }, '100% Client-Side')
-        ),
-        // Componente Editor
-        React.createElement('div', { className: 'flex-1 relative' },
-          React.createElement(DocxEditor, {
-            value: file,
-            onChange: (updatedFile) => setFile(updatedFile)
-          })
-        )
+      return (
+        <div className="w-full h-full flex flex-col">
+          <header className="p-4 bg-slate-800 text-white flex justify-between items-center z-10">
+            <h1 className="font-bold text-lg">Editor DOCX en Frontend</h1>
+            <span className="text-xs bg-green-500 text-black px-2 py-1 rounded font-semibold">
+              100% Client-Side
+            </span>
+          </header>
+          
+          <div className="flex-1 relative">
+            <DocxEditor
+              value={file}
+              onChange={(updatedFile) => setFile(updatedFile)}
+            />
+          </div>
+        </div>
       );
     }
 
-    // Inicializar React en el DOM
     const container = document.getElementById('editor-root');
     const root = createRoot(container);
-    root.render(React.createElement(App));
+    root.render(<App />);
   </script>
 </body>
 </html>
