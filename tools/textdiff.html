@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparador de Código (Diff Tool)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { padding: 20px; background-color: #0d1117; color: #c9d1d9; }
+    h1 { font-size: 1.4rem; margin-bottom: 15px; color: #58a6ff; text-align: center; }
+    
+    .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+    .editors { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.85rem; color: #8b949e; font-weight: 600; }
+    
+    textarea { 
+      width: 100%; 
+      height: 250px; 
+      padding: 12px; 
+      background-color: #161b22; 
+      color: #e6edf3; 
+      border: 1px solid #30363d; 
+      border-radius: 6px; 
+      resize: vertical; 
+      font-family: 'Courier New', Courier, monospace; 
+      font-size: 0.9rem;
+      tab-size: 2;
+    }
+    textarea:focus { outline: 1px solid #58a6ff; }
+
+    button { 
+      padding: 10px 24px; 
+      background-color: #238636; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 0.95rem; 
+      font-weight: bold; 
+      align-self: center; 
+      transition: background 0.2s;
+    }
+    button:hover { background-color: #2ea043; }
+    
+    .diff-output { 
+      background-color: #161b22; 
+      border: 1px solid #30363d; 
+      border-radius: 6px; 
+      overflow-x: auto; 
+      font-family: 'Courier New', Courier, monospace; 
+      font-size: 0.85rem;
+    }
+
+    .diff-line { display: flex; width: 100%; line-height: 1.5; white-space: pre; }
+    .line-num { width: 45px; padding: 0 8px; text-align: right; color: #484f58; user-select: none; background-color: #0d1117; border-right: 1px solid #30363d; }
+    .line-content { padding: 0 10px; flex-grow: 1; }
+
+    /* Estilos estilo Git */
+    .line-added { background-color: rgba(46, 160, 67, 0.15); color: #7ee787; }
+    .line-added .line-num { color: #3fb950; background-color: rgba(46, 160, 67, 0.25); }
+    
+    .line-removed { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; }
+    .line-removed .line-num { color: #f85149; background-color: rgba(248, 81, 73, 0.25); }
+
+    .line-unchanged { color: #c9d1d9; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Comparador de Código</h1>
+    
+    <div class="editors">
+      <div class="field">
+        <label for="code1">Código Original (Versión A)</label>
+        <textarea id="code1" spellcheck="false" placeholder="Pega el código original aquí..."></textarea>
+      </div>
+      <div class="field">
+        <label for="code2">Código Nuevo / Modificado (Versión B)</label>
+        <textarea id="code2" spellcheck="false" placeholder="Pega el código modificado aquí..."></textarea>
+      </div>
+    </div>
+
+    <button onclick="compareCode()">Comparar Diferencias</button>
+
+    <div class="field">
+      <label>Resultado (Diff):</label>
+      <div id="diffResult" class="diff-output"></div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[match]));
+    }
+
+    function compareCode() {
+      const code1 = document.getElementById('code1').value.split('\n');
+      const code2 = document.getElementById('code2').value.split('\n');
+      const outputDiv = document.getElementById('diffResult');
+      
+      outputDiv.innerHTML = '';
+
+      let i = 0, j = 0;
+      let lineNum = 1;
+
+      while (i < code1.length || j < code2.length) {
+        const line1 = code1[i];
+        const line2 = code2[j];
+
+        if (i < code1.length && j < code2.length && line1 === line2) {
+          appendLine(outputDiv, lineNum++, ' ', line1, 'line-unchanged');
+          i++;
+          j++;
+        } else if (j < code2.length && (!code1.includes(line2, i) || code1.indexOf(line2, i) > code2.indexOf(line1, j))) {
+          appendLine(outputDiv, '+', '+', line2, 'line-added');
+          j++;
+        } else if (i < code1.length) {
+          appendLine(outputDiv, '-', '-', line1, 'line-removed');
+          i++;
+        }
+      }
+    }
+
+    function appendLine(parent, num, prefix, text, className) {
+      const row = document.createElement('div');
+      row.className = `diff-line ${className}`;
+      
+      const numSpan = document.createElement('span');
+      numSpan.className = 'line-num';
+      numSpan.textContent = num;
+      
+      const contentSpan = document.createElement('span');
+      contentSpan.className = 'line-content';
+      contentSpan.innerHTML = `${prefix} ${escapeHTML(text || '')}`;
+
+      row.appendChild(numSpan);
+      row.appendChild(contentSpan);
+      parent.appendChild(row);
+    }
+  </script>
+
+</body>
+</html>
