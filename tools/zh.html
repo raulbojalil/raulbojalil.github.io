@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Carrusel Chino-Francés</title>
+  <title>Tarjetas HSK 1 & 2 - RG Cube</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,6 +15,7 @@
       color: #ffffff;
       font-family: system-ui, -apple-system, sans-serif;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -22,103 +23,465 @@
       user-select: none;
       -webkit-user-select: none;
     }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      z-index: 10;
+    }
+    .btn-level {
+      background-color: #2a2a2a;
+      color: #aaa;
+      border: 1px solid #444;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-level.active {
+      background-color: #ffd700;
+      color: #121212;
+      border-color: #ffd700;
+    }
     .card {
       text-align: center;
       padding: 20px;
       border-radius: 20px;
       background-color: #1e1e1e;
-      width: 85vw;
-      height: 85vw;
-      max-width: 600px;
-      max-height: 600px;
+      width: 82vw;
+      height: 82vw;
+      max-width: 580px;
+      max-height: 580px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       box-shadow: 0 10px 30px rgba(0,0,0,0.6);
       border: 1px solid #333;
-      gap: 12px;
-      cursor: pointer;
+      gap: 10px;
+      position: relative;
+    }
+    .badge {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 0.75rem;
+      background-color: #333;
+      color: #ff9800;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: bold;
     }
     .hanzi {
-      font-size: 4.5rem;
+      font-size: 4.2rem;
       font-weight: bold;
       color: #ffd700;
-      line-height: 1;
+      line-height: 1.1;
     }
     .pinyin {
-      font-size: 2rem;
+      font-size: 1.9rem;
       color: #00e676;
       font-weight: 500;
     }
     .francais {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       color: #29b6f6;
       font-style: italic;
     }
-    .status {
+    .counter {
       position: absolute;
       bottom: 15px;
-      font-size: 0.85rem;
-      color: #777;
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .status {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: #666;
       text-align: center;
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
+  <div class="controls">
+    <button id="btn-all" class="btn-level active" onclick="filterLevel('ALL')">Todos</button>
+    <button id="btn-hsk1" class="btn-level" onclick="filterLevel('HSK1')">HSK 1</button>
+    <button id="btn-hsk2" class="btn-level" onclick="filterLevel('HSK2')">HSK 2</button>
+  </div>
+
+  <div class="card" id="card">
+    <div id="badge" class="badge">HSK 1</div>
     <div id="hanzi" class="hanzi"></div>
     <div id="pinyin" class="pinyin"></div>
     <div id="francais" class="francais"></div>
+    <div id="counter" class="counter"></div>
   </div>
 
-  <div id="status" class="status">Toca la pantalla para Fullscreen | Usa L1/R1 para navegar</div>
+  <div id="status" class="status">Toca para Fullscreen | L1 / R1 para navegar</div>
 
   <script>
-    const words = [
-      { hanzi: "你好", pinyin: "nǐ hǎo", francais: "Bonjour" },
-      { hanzi: "谢谢", pinyin: "xiè xie", francais: "Merci" },
-      { hanzi: "再见", pinyin: "zài jiàn", francais: "Au revoir" },
-      { hanzi: "中国", pinyin: "zhōng guó", francais: "Chine" },
-      { hanzi: "朋友", pinyin: "péng you", francais: "Ami" }
+    const vocabulary = [
+      // --- HSK 1 (150 palabras) ---
+      { level: "HSK1", hanzi: "爱", pinyin: "ài", francais: "Aimer" },
+      { level: "HSK1", hanzi: "八", pinyin: "bā", francais: "Huit" },
+      { level: "HSK1", hanzi: "爸爸", pinyin: "bàba", francais: "Papa" },
+      { level: "HSK1", hanzi: "杯子", pinyin: "bēizi", francais: "Verre / Tasse" },
+      { level: "HSK1", hanzi: "北京", pinyin: "Běijīng", francais: "Pékin" },
+      { level: "HSK1", hanzi: "本", pinyin: "běn", francais: "Cahier / [Spécificatif]" },
+      { level: "HSK1", hanzi: "不客气", pinyin: "bú kèqi", francais: "De rien" },
+      { level: "HSK1", hanzi: "不", pinyin: "bù", francais: "Non / Ne pas" },
+      { level: "HSK1", hanzi: "菜", pinyin: "cài", francais: "Plat / Légume" },
+      { level: "HSK1", hanzi: "茶", pinyin: "chá", francais: "Thé" },
+      { level: "HSK1", hanzi: "吃", pinyin: "chī", francais: "Manger" },
+      { level: "HSK1", hanzi: "出租车", pinyin: "chūzūchē", francais: "Taxi" },
+      { level: "HSK1", hanzi: "打电话", pinyin: "dǎ diànhuà", francais: "Téléphoner" },
+      { level: "HSK1", hanzi: "大", pinyin: "dà", francais: "Grand" },
+      { level: "HSK1", hanzi: "的", pinyin: "de", francais: "[Particule de possession]" },
+      { level: "HSK1", hanzi: "点", pinyin: "diǎn", francais: "Heure / Point" },
+      { level: "HSK1", hanzi: "电脑", pinyin: "diànnǎo", francais: "Ordinateur" },
+      { level: "HSK1", hanzi: "电视", pinyin: "diànshì", francais: "Télévision" },
+      { level: "HSK1", hanzi: "电影", pinyin: "diànyǐng", francais: "Film" },
+      { level: "HSK1", hanzi: "东西", pinyin: "dōngxi", francais: "Chose / Objet" },
+      { level: "HSK1", hanzi: "都", pinyin: "dōu", francais: "Tout / Tous" },
+      { level: "HSK1", hanzi: "读", pinyin: "dú", francais: "Lire" },
+      { level: "HSK1", hanzi: "对不起", pinyin: "duìbuqǐ", francais: "Désolé" },
+      { level: "HSK1", hanzi: "多", pinyin: "duō", francais: "Beaucoup" },
+      { level: "HSK1", hanzi: "多少", pinyin: "duōshao", francais: "Combien" },
+      { level: "HSK1", hanzi: "儿子", pinyin: "érzi", francais: "Fils" },
+      { level: "HSK1", hanzi: "二", pinyin: "èr", francais: "Deux" },
+      { level: "HSK1", hanzi: "饭店", pinyin: "fàndiàn", francais: "Restaurant / Hôtel" },
+      { level: "HSK1", hanzi: "飞机", pinyin: "fēijī", francais: "Avion" },
+      { level: "HSK1", hanzi: "分钟", pinyin: "fēnzhōng", francais: "Minute" },
+      { level: "HSK1", hanzi: "高兴", pinyin: "gāoxìng", francais: "Content" },
+      { level: "HSK1", hanzi: "个", pinyin: "gè", francais: "[Spécificatif général]" },
+      { level: "HSK1", hanzi: "工作", pinyin: "gōngzuò", francais: "Travailler / Travail" },
+      { level: "HSK1", hanzi: "汉语", pinyin: "Hànyǔ", francais: "Chinois (langue)" },
+      { level: "HSK1", hanzi: "好", pinyin: "hǎo", francais: "Bon / Bien" },
+      { level: "HSK1", hanzi: "号", pinyin: "hào", francais: "Numéro / Jour du mois" },
+      { level: "HSK1", hanzi: "喝", pinyin: "hē", francais: "Boire" },
+      { level: "HSK1", hanzi: "和", pinyin: "hé", francais: "Et" },
+      { level: "HSK1", hanzi: "很", pinyin: "hěn", francais: "Très" },
+      { level: "HSK1", hanzi: "后面", pinyin: "hòumian", francais: "Derrière" },
+      { level: "HSK1", hanzi: "回", pinyin: "huí", francais: "Revenir / Rentrer" },
+      { level: "HSK1", hanzi: "会", pinyin: "huì", francais: "Savoir (faire)" },
+      { level: "HSK1", hanzi: "几", pinyin: "jǐ", francais: "Combien (1-10)" },
+      { level: "HSK1", hanzi: "家", pinyin: "jiā", francais: "Maison / Famille" },
+      { level: "HSK1", hanzi: "叫", pinyin: "jiào", francais: "S'appeler" },
+      { level: "HSK1", hanzi: "今天", pinyin: "jīntiān", francais: "Aujourd'hui" },
+      { level: "HSK1", hanzi: "九", pinyin: "jiǔ", francais: "Neuf" },
+      { level: "HSK1", hanzi: "开", pinyin: "kāi", francais: "Ouvrir / Conduire" },
+      { level: "HSK1", hanzi: "看", pinyin: "kàn", francais: "Regarder / Lire" },
+      { level: "HSK1", hanzi: "看见", pinyin: "kànjiàn", francais: "Voir" },
+      { level: "HSK1", hanzi: "块", pinyin: "kuài", francais: "Yuan / Morceau" },
+      { level: "HSK1", hanzi: "来", pinyin: "lái", francais: "Venir" },
+      { level: "HSK1", hanzi: "老师", pinyin: "lǎoshī", francais: "Enseignant / Professeur" },
+      { level: "HSK1", hanzi: "了", pinyin: "le", francais: "[Particule changement d'état]" },
+      { level: "HSK1", hanzi: "冷", pinyin: "lěng", francais: "Froid" },
+      { level: "HSK1", hanzi: "里", pinyin: "lǐ", francais: "À l'intérieur" },
+      { level: "HSK1", hanzi: "零", pinyin: "líng", francais: "Zéro" },
+      { level: "HSK1", hanzi: "六", pinyin: "liù", francais: "Six" },
+      { level: "HSK1", hanzi: "妈妈", pinyin: "māma", francais: "Maman" },
+      { level: "HSK1", hanzi: "吗", pinyin: "ma", francais: "[Particule interrogative]" },
+      { level: "HSK1", hanzi: "买", pinyin: "mǎi", francais: "Acheter" },
+      { level: "HSK1", hanzi: "猫", pinyin: "māo", francais: "Chat" },
+      { level: "HSK1", hanzi: "没关系", pinyin: "méi guānxi", francais: "Ce n'est pas grave" },
+      { level: "HSK1", hanzi: "没有", pinyin: "méiyǒu", francais: "Ne pas avoir" },
+      { level: "HSK1", hanzi: "米饭", pinyin: "mǐfàn", francais: "Riz cuit" },
+      { level: "HSK1", hanzi: "明天", pinyin: "míngtiān", francais: "Demain" },
+      { level: "HSK1", hanzi: "名字", pinyin: "míngzi", francais: "Prénom / Nom" },
+      { level: "HSK1", hanzi: "哪", pinyin: "nǎ", francais: "Lequel" },
+      { level: "HSK1", hanzi: "哪儿", pinyin: "nǎr", francais: "Où" },
+      { level: "HSK1", hanzi: "那", pinyin: "nà", francais: "Cela / Ce" },
+      { level: "HSK1", hanzi: "呢", pinyin: "ne", francais: "[Particule interrogative]" },
+      { level: "HSK1", hanzi: "能", pinyin: "néng", francais: "Pouvoir" },
+      { level: "HSK1", hanzi: "你", pinyin: "nǐ", francais: "Tu / Toi" },
+      { level: "HSK1", hanzi: "年", pinyin: "nián", francais: "Année" },
+      { level: "HSK1", hanzi: "女儿", pinyin: "nǚ'ér", francais: "Fille" },
+      { level: "HSK1", hanzi: "朋友", pinyin: "péngyou", francais: "Ami" },
+      { level: "HSK1", hanzi: "漂亮", pinyin: "piàoliang", francais: "Joli / Beau" },
+      { level: "HSK1", hanzi: "苹果", pinyin: "píngguǒ", francais: "Pomme" },
+      { level: "HSK1", hanzi: "七", pinyin: "qī", francais: "Sept" },
+      { level: "HSK1", hanzi: "钱", pinyin: "qián", francais: "Argent" },
+      { level: "HSK1", hanzi: "前面", pinyin: "qiánmiàn", francais: "Devant" },
+      { level: "HSK1", hanzi: "请", pinyin: "qǐng", francais: "S'il vous plaît / Inviter" },
+      { level: "HSK1", hanzi: "去", pinyin: "qù", francais: "Aller" },
+      { level: "HSK1", hanzi: "热", pinyin: "rè", francais: "Chaud" },
+      { level: "HSK1", hanzi: "人", pinyin: "rén", francais: "Personne / Homme" },
+      { level: "HSK1", hanzi: "认识", pinyin: "rènshi", francais: "Connaître" },
+      { level: "HSK1", hanzi: "三", pinyin: "sān", francais: "Trois" },
+      { level: "HSK1", hanzi: "商店", pinyin: "shāngdiàn", francais: "Magasin" },
+      { level: "HSK1", hanzi: "上", pinyin: "shàng", francais: "Sur / Monter" },
+      { level: "HSK1", hanzi: "上午", pinyin: "shàngwǔ", francais: "Matin" },
+      { level: "HSK1", hanzi: "少", pinyin: "shǎo", francais: "Peu" },
+      { level: "HSK1", hanzi: "谁", pinyin: "shéi", francais: "Qui" },
+      { level: "HSK1", hanzi: "什么", pinyin: "shénme", francais: "Quoi" },
+      { level: "HSK1", hanzi: "十", pinyin: "shí", francais: "Dix" },
+      { level: "HSK1", hanzi: "时候", pinyin: "shíhou", francais: "Moment" },
+      { level: "HSK1", hanzi: "是", pinyin: "shì", francais: "Être" },
+      { level: "HSK1", hanzi: "书", pinyin: "shū", francais: "Livre" },
+      { level: "HSK1", hanzi: "水", pinyin: "shuǐ", francais: "Eau" },
+      { level: "HSK1", hanzi: "水果", pinyin: "shuǐguǒ", francais: "Fruit" },
+      { level: "HSK1", hanzi: "睡觉", pinyin: "shuìjiào", francais: "Dormir" },
+      { level: "HSK1", hanzi: "说话", pinyin: "shuōhuà", francais: "Parler" },
+      { level: "HSK1", hanzi: "四", pinyin: "sì", francais: "Quatre" },
+      { level: "HSK1", hanzi: "岁", pinyin: "suì", francais: "Âge / Ans" },
+      { level: "HSK1", hanzi: "他", pinyin: "tā", francais: "Il / Lui" },
+      { level: "HSK1", hanzi: "她", pinyin: "tā", francais: "Elle" },
+      { level: "HSK1", hanzi: "太", pinyin: "tài", francais: "Trop" },
+      { level: "HSK1", hanzi: "天气", pinyin: "tiānqì", francais: "Météo" },
+      { level: "HSK1", hanzi: "听", pinyin: "tīng", francais: "Écouter" },
+      { level: "HSK1", hanzi: "同学", pinyin: "tóngxué", francais: "Camarade de classe" },
+      { level: "HSK1", hanzi: "喂", pinyin: "wèi", francais: "Allô" },
+      { level: "HSK1", hanzi: "我", pinyin: "wǒ", francais: "Je / Moi" },
+      { level: "HSK1", hanzi: "我们", pinyin: "wǒmen", francais: "Nous" },
+      { level: "HSK1", hanzi: "五", pinyin: "wǔ", francais: "Cinq" },
+      { level: "HSK1", hanzi: "喜欢", pinyin: "xǐhuan", francais: "Aimer / Apprécier" },
+      { level: "HSK1", hanzi: "下", pinyin: "xià", francais: "Sous / Descendre" },
+      { level: "HSK1", hanzi: "下午", pinyin: "xiàwǔ", francais: "Après-midi" },
+      { level: "HSK1", hanzi: "下雨", pinyin: "xià yǔ", francais: "Pleuvoir" },
+      { level: "HSK1", hanzi: "先生", pinyin: "xiānsheng", francais: "Monsieur" },
+      { level: "HSK1", hanzi: "现在", pinyin: "xiànzài", francais: "Maintenant" },
+      { level: "HSK1", hanzi: "想", pinyin: "xiǎng", francais: "Vouloir / Penser" },
+      { level: "HSK1", hanzi: "小", pinyin: "xiǎo", francais: "Petit" },
+      { level: "HSK1", hanzi: "小姐", pinyin: "xiǎojiě", francais: "Mademoiselle" },
+      { level: "HSK1", hanzi: "些", pinyin: "xiē", francais: "Quelques" },
+      { level: "HSK1", hanzi: "写", pinyin: "xiě", francais: "Écrire" },
+      { level: "HSK1", hanzi: "谢谢", pinyin: "xièxie", francais: "Merci" },
+      { level: "HSK1", hanzi: "星期", pinyin: "xīngqī", francais: "Semaine" },
+      { level: "HSK1", hanzi: "学生", pinyin: "xuésheng", francais: "Étudiant / Élève" },
+      { level: "HSK1", hanzi: "学习", pinyin: "xuéxí", francais: "Étudier" },
+      { level: "HSK1", hanzi: "学校", pinyin: "xuéxiào", francais: "École" },
+      { level: "HSK1", hanzi: "一", pinyin: "yī", francais: "Un" },
+      { level: "HSK1", hanzi: "一点儿", pinyin: "yìdiǎnr", francais: "Un peu" },
+      { level: "HSK1", hanzi: "衣服", pinyin: "yīfu", francais: "Vêtement" },
+      { level: "HSK1", hanzi: "医生", pinyin: "yīshēng", francais: "Médecin" },
+      { level: "HSK1", hanzi: "医院", pinyin: "yīyuàn", francais: "Hôpital" },
+      { level: "HSK1", hanzi: "椅子", pinyin: "yǐzi", francais: "Chaise" },
+      { level: "HSK1", hanzi: "有", pinyin: "yǒu", francais: "Avoir" },
+      { level: "HSK1", hanzi: "月", pinyin: "yuè", francais: "Mois / Lune" },
+      { level: "HSK1", hanzi: "再见", pinyin: "zàijiàn", francais: "Au revoir" },
+      { level: "HSK1", hanzi: "在", pinyin: "zài", francais: "Être quelque part" },
+      { level: "HSK1", hanzi: "怎么", pinyin: "zěnme", francais: "Comment" },
+      { level: "HSK1", hanzi: "怎么样", pinyin: "zěnmeyàng", francais: "Comment c'est ?" },
+      { level: "HSK1", hanzi: "这", pinyin: "zhè", francais: "Ceci / Ce" },
+      { level: "HSK1", hanzi: "中国", pinyin: "Zhōngguó", francais: "Chine" },
+      { level: "HSK1", hanzi: "中午", pinyin: "zhōngwǔ", francais: "Midi" },
+      { level: "HSK1", hanzi: "住", pinyin: "zhù", francais: "Habiter" },
+      { level: "HSK1", hanzi: "桌子", pinyin: "zhuōzi", francais: "Table" },
+      { level: "HSK1", hanzi: "字", pinyin: "zì", francais: "Caractère" },
+      { level: "HSK1", hanzi: "昨天", pinyin: "zuótiān", francais: "Hier" },
+      { level: "HSK1", hanzi: "坐", pinyin: "zuò", francais: "S'asseoir" },
+      { level: "HSK1", hanzi: "做", pinyin: "zuò", francais: "Faire" },
+
+      // --- HSK 2 (150 palabras) ---
+      { level: "HSK2", hanzi: "吧", pinyin: "ba", francais: "[Particule de suggestion]" },
+      { level: "HSK2", hanzi: "白", pinyin: "bái", francais: "Blanc" },
+      { level: "HSK2", hanzi: "百", pinyin: "bǎi", francais: "Cent" },
+      { level: "HSK2", hanzi: "帮助", pinyin: "bāngzhù", francais: "Aider / Aide" },
+      { level: "HSK2", hanzi: "报纸", pinyin: "bàozhǐ", francais: "Journal" },
+      { level: "HSK2", hanzi: "比", pinyin: "bǐ", francais: "Comparer à" },
+      { level: "HSK2", hanzi: "别", pinyin: "bié", francais: "Ne... pas (impératif)" },
+      { level: "HSK2", hanzi: "长", pinyin: "cháng", francais: "Long" },
+      { level: "HSK2", hanzi: "唱歌", pinyin: "chànggē", francais: "Chanter" },
+      { level: "HSK2", hanzi: "出", pinyin: "chū", francais: "Sortir" },
+      { level: "HSK2", hanzi: "穿", pinyin: "chuān", francais: "Porter (vêtements)" },
+      { level: "HSK2", hanzi: "次", pinyin: "cì", francais: "Fois" },
+      { level: "HSK2", hanzi: "从", pinyin: "cóng", francais: "Depuis / De" },
+      { level: "HSK2", hanzi: "错", pinyin: "cuò", francais: "Faux / Erreur" },
+      { level: "HSK2", hanzi: "打篮球", pinyin: "dǎ lánqiú", francais: "Jouer au basket" },
+      { level: "HSK2", hanzi: "大家", pinyin: "dàjiā", francais: "Tout le monde" },
+      { level: "HSK2", hanzi: "到", pinyin: "dào", francais: "Arriver" },
+      { level: "HSK2", hanzi: "得", pinyin: "de", francais: "[Particule d'appréciation]" },
+      { level: "HSK2", hanzi: "等", pinyin: "děng", francais: "Attendre" },
+      { level: "HSK2", hanzi: "弟弟", pinyin: "dìdi", francais: "Petit frère" },
+      { level: "HSK2", hanzi: "第一", pinyin: "dì-yī", francais: "Premier" },
+      { level: "HSK2", hanzi: "懂", pinyin: "dǒng", francais: "Comprendre" },
+      { level: "HSK2", hanzi: "对", pinyin: "duì", francais: "Correct / Vrai" },
+      { level: "HSK2", hanzi: "房间", pinyin: "fángjiān", francais: "Chambre / Pièce" },
+      { level: "HSK2", hanzi: "非常", pinyin: "fēicháng", francais: "Extrêmement" },
+      { level: "HSK2", hanzi: "服务员", pinyin: "fúwùyuán", francais: "Serveur" },
+      { level: "HSK2", hanzi: "高", pinyin: "gāo", francais: "Haut / Grand" },
+      { level: "HSK2", hanzi: "告别", pinyin: "gàobié", francais: "Dire au revoir" },
+      { level: "HSK2", hanzi: "哥哥", pinyin: "gēge", francais: "Grand frère" },
+      { level: "HSK2", hanzi: "给", pinyin: "gěi", francais: "Donner / À" },
+      { level: "HSK2", hanzi: "公交车", pinyin: "gōngjiāochē", francais: "Bus" },
+      { level: "HSK2", hanzi: "公斤", pinyin: "gōngjīn", francais: "Kilogramme" },
+      { level: "HSK2", hanzi: "公司", pinyin: "gōngsī", francais: "Entreprise" },
+      { level: "HSK2", hanzi: "狗", pinyin: "gǒu", francais: "Chien" },
+      { level: "HSK2", hanzi: "贵", pinyin: "guì", francais: "Cher (prix)" },
+      { level: "HSK2", hanzi: "过", pinyin: "guò", francais: "Passer / [Expérience]" },
+      { level: "HSK2", hanzi: "还", pinyin: "hái", francais: "Encore / Aussi" },
+      { level: "HSK2", hanzi: "孩子", pinyin: "háizi", francais: "Enfant" },
+      { level: "HSK2", hanzi: "黑", pinyin: "hēi", francais: "Noir" },
+      { level: "HSK2", hanzi: "红", pinyin: "hóng", francais: "Rouge" },
+      { level: "HSK2", hanzi: "欢迎", pinyin: "huānyíng", francais: "Bienvenue" },
+      { level: "HSK2", hanzi: "回答", pinyin: "huídá", francais: "Répondre" },
+      { level: "HSK2", hanzi: "火车站", pinyin: "huǒchēzhàn", francais: "Gare ferroviaire" },
+      { level: "HSK2", hanzi: "机场", pinyin: "jīchǎng", francais: "Aéroport" },
+      { level: "HSK2", hanzi: "鸡蛋", pinyin: "jīdàn", francais: "Œuf" },
+      { level: "HSK2", hanzi: "件", pinyin: "jiàn", francais: "[Spécificatif vêtement]" },
+      { level: "HSK2", hanzi: "教室", pinyin: "jiàoshì", francais: "Salle de classe" },
+      { level: "HSK2", hanzi: "姐姐", pinyin: "jiějie", francais: "Grande sœur" },
+      { level: "HSK2", hanzi: "介绍", pinyin: "jièshào", francais: "Présenter" },
+      { level: "HSK2", hanzi: "进", pinyin: "jìn", francais: "Entrer" },
+      { level: "HSK2", hanzi: "近", pinyin: "jìn", francais: "Proche" },
+      { level: "HSK2", hanzi: "就", pinyin: "jiù", francais: "Alors / Aussitôt" },
+      { level: "HSK2", hanzi: "觉得", pinyin: "juéde", francais: "Penser / Trouver" },
+      { level: "HSK2", hanzi: "咖啡", pinyin: "kāfēi", francais: "Café" },
+      { level: "HSK2", hanzi: "开始", pinyin: "kāishǐ", francais: "Commencer" },
+      { level: "HSK2", hanzi: "考试", pinyin: "kǎoshì", francais: "Examen" },
+      { level: "HSK2", hanzi: "可能", pinyin: "kěnéng", francais: "Possible / Peut-être" },
+      { level: "HSK2", hanzi: "可以", pinyin: "kěyǐ", francais: "Pouvoir / Autorisé" },
+      { level: "HSK2", hanzi: "课", pinyin: "kè", francais: "Cours / Leçon" },
+      { level: "HSK2", hanzi: "快", pinyin: "kuài", francais: "Rapide" },
+      { level: "HSK2", hanzi: "快乐", pinyin: "kuàilè", francais: "Joyeux / Heureux" },
+      { level: "HSK2", hanzi: "累", pinyin: "lèi", francais: "Fatigué" },
+      { level: "HSK2", hanzi: "离", pinyin: "lí", francais: "Distant de" },
+      { level: "HSK2", hanzi: "两", pinyin: "liǎng", francais: "Deux (quantité)" },
+      { level: "HSK2", hanzi: "路", pinyin: "lù", francais: "Route / Chemin" },
+      { level: "HSK2", hanzi: "旅游", pinyin: "lǚyóu", francais: "Voyager" },
+      { level: "HSK2", hanzi: "卖", pinyin: "mài", francais: "Vendre" },
+      { level: "HSK2", hanzi: "慢", pinyin: "màn", francais: "Lent" },
+      { level: "HSK2", hanzi: "忙", pinyin: "máng", francais: "Occupé" },
+      { level: "HSK2", hanzi: "每", pinyin: "měi", francais: "Chaque" },
+      { level: "HSK2", hanzi: "妹妹", pinyin: "mèimei", francais: "Petite sœur" },
+      { level: "HSK2", hanzi: "门", pinyin: "mén", francais: "Porte" },
+      { level: "HSK2", hanzi: "男", pinyin: "nán", francais: "Homme / Masculin" },
+      { level: "HSK2", hanzi: "您", pinyin: "nín", francais: "Vous (politesse)" },
+      { level: "HSK2", hanzi: "牛奶", pinyin: "niúnǎi", francais: "Lait" },
+      { level: "HSK2", hanzi: "女", pinyin: "nǚ", francais: "Femme / Féminin" },
+      { level: "HSK2", hanzi: "旁", pinyin: "páng", francais: "Côté" },
+      { level: "HSK2", hanzi: "跑步", pinyin: "pǎobù", francais: "Courir" },
+      { level: "HSK2", hanzi: "便宜", pinyin: "piányi", francais: "Bon marché" },
+      { level: "HSK2", hanzi: "票", pinyin: "piào", francais: "Billet / Ticket" },
+      { level: "HSK2", hanzi: "妻子", pinyin: "qīzi", francais: "Épouse / Femme" },
+      { level: "HSK2", hanzi: "起床", pinyin: "qǐchuáng", francais: "Se lever" },
+      { level: "HSK2", hanzi: "千", pinyin: "qiān", francais: "Mille" },
+      { level: "HSK2", hanzi: "晴", pinyin: "qíng", francais: "Ensoleillé" },
+      { level: "HSK2", hanzi: "让", pinyin: "ràng", francais: "Laisser / Demander" },
+      { level: "HSK2", hanzi: "日", pinyin: "rì", francais: "Jour / Soleil" },
+      { level: "HSK2", hanzi: "上班", pinyin: "shàngbān", francais: "Aller au travail" },
+      { level: "HSK2", hanzi: "身体", pinyin: "shēntǐ", francais: "Corps / Santé" },
+      { level: "HSK2", hanzi: "生病", pinyin: "shēngbìng", francais: "Tombé malade" },
+      { level: "HSK2", hanzi: "生日", pinyin: "shēngrì", francais: "Anniversaire" },
+      { level: "HSK2", hanzi: "时间", pinyin: "shíjiān", francais: "Temps / Durée" },
+      { level: "HSK2", hanzi: "事情", pinyin: "shìqing", francais: "Affaire / Chose" },
+      { level: "HSK2", hanzi: "手表", pinyin: "shǒubiǎo", francais: "Montre" },
+      { level: "HSK2", hanzi: "手机", pinyin: "shǒujī", francais: "Téléphone portable" },
+      { level: "HSK2", hanzi: "送", pinyin: "sòng", francais: "Offrir / Accompagner" },
+      { level: "HSK2", hanzi: "所以", pinyin: "suǒyǐ", francais: "C'est pourquoi" },
+      { level: "HSK2", hanzi: "它", pinyin: "tā", francais: "Il / Elle (objet/animal)" },
+      { level: "HSK2", hanzi: "剔", pinyin: "tī", francais: "Chasser / Éliminer" },
+      { level: "HSK2", hanzi: "踢足球", pinyin: "tī zúqiú", francais: "Jouer au football" },
+      { level: "HSK2", hanzi: "题", pinyin: "tí", francais: "Question / Sujet" },
+      { level: "HSK2", hanzi: "跳舞", pinyin: "tiàowǔ", francais: "Danser" },
+      { level: "HSK2", hanzi: "外", pinyin: "wài", francais: "Extérieur" },
+      { level: "HSK2", hanzi: "完", pinyin: "wán", francais: "Terminer / Fini" },
+      { level: "HSK2", hanzi: "玩", pinyin: "wán", francais: "Jouer" },
+      { level: "HSK2", hanzi: "晚上", pinyin: "wǎnshang", francais: "Soir" },
+      { level: "HSK2", hanzi: "为什么", pinyin: "wèi shénme", francais: "Pourquoi" },
+      { level: "HSK2", hanzi: "问", pinyin: "wèn", francais: "Demander" },
+      { level: "HSK2", hanzi: "问题", pinyin: "wèntí", francais: "Problème / Question" },
+      { level: "HSK2", hanzi: "西瓜", pinyin: "xīguā", francais: "Pastèque" },
+      { level: "HSK2", hanzi: "希望", pinyin: "xīwàng", francais: "Espérer / Espoir" },
+      { level: "HSK2", hanzi: "洗", pinyin: "xǐ", francais: "Laver" },
+      { level: "HSK2", hanzi: "小时", pinyin: "xiǎoshí", francais: "Heure (durée)" },
+      { level: "HSK2", hanzi: "笑", pinyin: "xiào", francais: "Rire / Sourire" },
+      { level: "HSK2", hanzi: "新", pinyin: "xīn", francais: "Nouveau" },
+      { level: "HSK2", hanzi: "姓", pinyin: "xìng", francais: "Nom de famille" },
+      { level: "HSK2", hanzi: "休息", pinyin: "xiūxi", francais: "Se reposer" },
+      { level: "HSK2", hanzi: "雪", pinyin: "xuě", francais: "Neige" },
+      { level: "HSK2", hanzi: "颜色", pinyin: "yánsè", francais: "Couleur" },
+      { level: "HSK2", hanzi: "眼睛", pinyin: "yǎnjing", francais: "Yeux" },
+      { level: "HSK2", hanzi: "羊肉", pinyin: "yángròu", francais: "Agneau / Mouton" },
+      { level: "HSK2", hanzi: "药", pinyin: "yào", francais: "Médicament" },
+      { level: "HSK2", hanzi: "要", pinyin: "yào", francais: "Vouloir / Devoir" },
+      { level: "HSK2", hanzi: "也", pinyin: "yě", francais: "Aussi" },
+      { level: "HSK2", hanzi: "一起", pinyin: "yìqǐ", francais: "Ensemble" },
+      { level: "HSK2", hanzi: "一下", pinyin: "yíxià", francais: "Un instant" },
+      { level: "HSK2", hanzi: "意思", pinyin: "yìsi", francais: "Sens / Signification" },
+      { level: "HSK2", hanzi: "阴", pinyin: "yīn", francais: "Nuageux" },
+      { level: "HSK2", hanzi: "因为", pinyin: "yīnwèi", francais: "Parce que" },
+      { level: "HSK2", hanzi: "游泳", pinyin: "yóuyǒng", francais: "Nager" },
+      { level: "HSK2", hanzi: "右边", pinyin: "yòubian", francais: "À droite" },
+      { level: "HSK2", hanzi: "鱼", pinyin: "yú", francais: "Poisson" },
+      { level: "HSK2", hanzi: "远", pinyin: "yuǎn", francais: "Loin" },
+      { level: "HSK2", hanzi: "运动", pinyin: "yùndòng", francais: "Sport / S'entraîner" },
+      { level: "HSK2", hanzi: "再", pinyin: "zài", francais: "Encore / De nouveau" },
+      { level: "HSK2", hanzi: "早上", pinyin: "zǎoshang", francais: "Matin (tôt)" },
+      { level: "HSK2", hanzi: "丈夫", pinyin: "zhàngfu", francais: "Mari / Époux" },
+      { level: "HSK2", hanzi: "找", pinyin: "zhǎo", francais: "Chercher" },
+      { level: "HSK2", hanzi: "着", pinyin: "zhe", francais: "[Particule d'action continue]" },
+      { level: "HSK2", hanzi: "真", pinyin: "zhēn", francais: "Vraiment" },
+      { level: "HSK2", hanzi: "正在", pinyin: "zhèngzài", francais: "En train de" },
+      { level: "HSK2", hanzi: "知", pinyin: "zhī", francais: "Savoir" },
+      { level: "HSK2", hanzi: "准备", pinyin: "zhǔnbèi", francais: "Préparer" },
+      { level: "HSK2", hanzi: "自行车", pinyin: "zìxíngchē", francais: "Vélo" },
+      { level: "HSK2", hanzi: "走", pinyin: "zǒu", francais: "Marcher" },
+      { level: "HSK2", hanzi: "最", pinyin: "zuì", francais: "Le plus" },
+      { level: "HSK2", hanzi: "左边", pinyin: "zuǒbian", francais: "À gauche" }
     ];
 
+    let currentList = vocabulary;
     let currentIndex = 0;
+
     const hanziEl = document.getElementById("hanzi");
     const pinyinEl = document.getElementById("pinyin");
     const francaisEl = document.getElementById("francais");
-    const statusEl = document.getElementById("status");
+    const badgeEl = document.getElementById("badge");
+    const counterEl = document.getElementById("counter");
 
     function updateCard() {
-      hanziEl.textContent = words[currentIndex].hanzi;
-      pinyinEl.textContent = words[currentIndex].pinyin;
-      francaisEl.textContent = words[currentIndex].francais;
+      const item = currentList[currentIndex];
+      hanziEl.textContent = item.hanzi;
+      pinyinEl.textContent = item.pinyin;
+      francaisEl.textContent = item.francais;
+      badgeEl.textContent = item.level;
+      counterEl.textContent = `${currentIndex + 1} / ${currentList.length}`;
     }
 
     function nextWord() {
-      currentIndex = (currentIndex + 1) % words.length;
+      if (currentList.length === 0) return;
+      currentIndex = (currentIndex + 1) % currentList.length;
       updateCard();
     }
 
     function prevWord() {
-      currentIndex = (currentIndex - 1 + words.length) % words.length;
+      if (currentList.length === 0) return;
+      currentIndex = (currentIndex - 1 + currentList.length) % currentList.length;
+      updateCard();
+    }
+
+    function filterLevel(level) {
+      document.querySelectorAll(".btn-level").forEach(b => b.classList.remove("active"));
+      
+      if (level === "ALL") {
+        currentList = vocabulary;
+        document.getElementById("btn-all").classList.add("active");
+      } else if (level === "HSK1") {
+        currentList = vocabulary.filter(w => w.level === "HSK1");
+        document.getElementById("btn-hsk1").classList.add("active");
+      } else if (level === "HSK2") {
+        currentList = vocabulary.filter(w => w.level === "HSK2");
+        document.getElementById("btn-hsk2").classList.add("active");
+      }
+      
+      currentIndex = 0;
       updateCard();
     }
 
     // --- MODO PANTALLA COMPLETA ---
-    document.documentElement.addEventListener("click", () => {
+    document.getElementById("card").addEventListener("click", () => {
       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         const docEl = document.documentElement;
-        if (docEl.requestFullscreen) {
-          docEl.requestFullscreen();
-        } else if (docEl.webkitRequestFullscreen) { /* Safari / WebKit antiguo */
-          docEl.webkitRequestFullscreen();
-        }
+        if (docEl.requestFullscreen) docEl.requestFullscreen();
+        else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
       }
     });
 
-    // --- GAMEPAD API ---
+    // --- GAMEPAD API (Gatillos L1 / R1) ---
     let prevL1State = false;
     let prevR1State = false;
 
@@ -127,17 +490,11 @@
       const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
 
       if (gp) {
-        // Botón 4 = L1, Botón 5 = R1
         const l1Pressed = gp.buttons[4] && gp.buttons[4].pressed;
         const r1Pressed = gp.buttons[5] && gp.buttons[5].pressed;
 
-        if (r1Pressed && !prevR1State) {
-          nextWord();
-        }
-
-        if (l1Pressed && !prevL1State) {
-          prevWord();
-        }
+        if (r1Pressed && !prevR1State) nextWord();
+        if (l1Pressed && !prevL1State) prevWord();
 
         prevL1State = l1Pressed;
         prevR1State = r1Pressed;
@@ -145,6 +502,15 @@
 
       requestAnimationFrame(pollGamepad);
     }
+
+    // --- NAVEGACIÓN POR SWIPE (TÁCTIL) ---
+    let touchStartX = 0;
+    document.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].screenX; });
+    document.addEventListener("touchend", e => {
+      const touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 40) nextWord();
+      if (touchEndX > touchStartX + 40) prevWord();
+    });
 
     // Inicializar
     updateCard();
