@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IA 100% en el navegador — PoC</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2e38;
+    --text: #e8e9ec;
+    --muted: #9aa0ab;
+    --accent: #7c9eff;
+    --accent-dim: #3d4a7a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .wrap { width: 100%; max-width: 680px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  #status {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .dot.loading { background: #e8b04b; animation: pulse 1s infinite; }
+  .dot.ready { background: #4caf50; }
+  .dot.error { background: #e05a5a; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+  progress { width: 100%; height: 6px; margin-top: 8px; accent-color: var(--accent); }
+  textarea {
+    width: 100%;
+    min-height: 80px;
+    background: #0f1115;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+  }
+  button {
+    margin-top: 10px;
+    background: var(--accent);
+    color: #0f1115;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: var(--accent-dim);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+  #output {
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 24px;
+  }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  code { background: #0f1115; padding: 1px 5px; border-radius: 4px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .tab.active { background: var(--accent); color: #0f1115; border-color: var(--accent); }
+  .view { display: none; }
+  .view.active { display: block; }
+  .warn {
+    background: #2a2013;
+    border: 1px solid #4a3a1a;
+    color: #e8c98a;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  #canvasWrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    background: #0f1115;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #imgCanvas { max-width: 100%; display: block; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧠 IA corriendo 100% en tu navegador</h1>
+  <div class="sub">Sin servidor. El modelo se descarga una vez y la inferencia corre en tu GPU (WebGPU) o CPU (WASM) local.</div>
+
+  <div class="tabs">
+    <div class="tab active" id="tabText">💬 Texto</div>
+    <div class="tab" id="tabImage">🎨 Imagen</div>
+  </div>
+
+  <!-- ===== VISTA: TEXTO ===== -->
+  <div class="view active" id="viewText">
+    <div class="card">
+      <div id="status"><span class="dot loading" id="dot"></span><span id="statusText">Cargando modelo…</span></div>
+      <progress id="progress" value="0" max="100"></progress>
+      <div class="meta" id="engineInfo"></div>
+    </div>
+
+    <div class="card">
+      <textarea id="prompt" placeholder="Escribe algo, ej: Explica qué es WebGPU en una frase.">Explica qué es WebGPU en una frase.</textarea>
+      <br />
+      <button id="runBtn" disabled>Generar</button>
+    </div>
+
+    <div class="card">
+      <div id="output">La respuesta aparecerá aquí…</div>
+    </div>
+  </div>
+
+  <!-- ===== VISTA: IMAGEN ===== -->
+  <div class="view" id="viewImage">
+    <div class="warn">
+      ⚠️ <strong>Experimental.</strong> Usa <code>diffusers.js</code> (Stable Diffusion 2.1 vía WebGPU), un proyecto mucho menos maduro que el de texto. La primera carga puede pesar varios GB y tardar minutos. Necesitas Chrome o Edge recientes con WebGPU habilitado — en CPU probablemente no funcione bien. Si falla, no es un error tuyo: es una limitación real del estado actual de esta tecnología.
+    </div>
+
+    <div class="card">
+      <div id="imgStatus"><span class="dot" id="imgDot"></span><span id="imgStatusText">Sin iniciar — pulsa "Cargar modelo" cuando quieras probarlo.</span></div>
+      <progress id="imgProgress" value="0" max="100" style="display:none;"></progress>
+      <div class="meta" id="imgEngineInfo"></div>
+      <button id="loadImgBtn" style="margin-top:10px;">Cargar modelo de imagen (~2GB+)</button>
+    </div>
+
+    <div class="card">
+      <textarea id="imgPrompt" placeholder="Ej: an astronaut riding a horse, digital art">an astronaut riding a horse, digital art</textarea>
+      <div class="row"><span>Pasos de inferencia</span><span id="stepsVal">20</span></div>
+      <input type="range" id="stepsRange" min="1" max="30" value="20" />
+      <br /><br />
+      <button id="runImgBtn" disabled>Generar imagen</button>
+    </div>
+
+    <div class="card">
+      <div id="canvasWrap"><canvas id="imgCanvas" width="512" height="512"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4/dist/transformers.min.js";
+
+  // Evita que intente usar caché de servidor local; usa CDN de HF para los pesos.
+  env.allowLocalModels = false;
+
+  const dot = document.getElementById("dot");
+  const statusText = document.getElementById("statusText");
+  const progressEl = document.getElementById("progress");
+  const engineInfo = document.getElementById("engineInfo");
+  const runBtn = document.getElementById("runBtn");
+  const output = document.getElementById("output");
+  const promptEl = document.getElementById("prompt");
+
+  const MODEL = "onnx-community/Qwen2.5-0.5B-Instruct"; // modelo chico, cuantizado, ideal para PoC
+
+  let generator = null;
+
+  function setStatus(text, state) {
+    statusText.textContent = text;
+    dot.className = "dot " + state;
+  }
+
+  async function init() {
+    const hasWebGPU = "gpu" in navigator;
+    const device = hasWebGPU ? "webgpu" : "wasm";
+    engineInfo.textContent = `Backend: ${device.toUpperCase()} · Modelo: ${MODEL}`;
+
+    try {
+      generator = await pipeline("text-generation", MODEL, {
+        device,
+        dtype: "q4", // cuantizado para que pese poco y cargue rápido
+        progress_callback: (p) => {
+          if (p.status === "progress" && p.total) {
+            const pct = Math.round((p.loaded / p.total) * 100);
+            progressEl.value = pct;
+            setStatus(`Descargando modelo… ${pct}%`, "loading");
+          } else if (p.status === "ready" || p.status === "done") {
+            setStatus("Modelo listo ✅", "ready");
+          }
+        },
+      });
+      setStatus("Modelo listo ✅", "ready");
+      progressEl.value = 100;
+      runBtn.disabled = false;
+    } catch (err) {
+      console.error(err);
+      setStatus("Error cargando el modelo (revisa la consola)", "error");
+      output.textContent = "Fallo al cargar: " + err.message;
+    }
+  }
+
+  async function run() {
+    if (!generator) return;
+    runBtn.disabled = true;
+    output.textContent = "Generando…";
+
+    const messages = [{ role: "user", content: promptEl.value }];
+
+    try {
+      const result = await generator(messages, {
+        max_new_tokens: 200,
+        temperature: 0.7,
+        do_sample: true,
+      });
+      const text = result[0].generated_text.at(-1).content;
+      output.textContent = text;
+    } catch (err) {
+      console.error(err);
+      output.textContent = "Error generando: " + err.message;
+    } finally {
+      runBtn.disabled = false;
+    }
+  }
+
+  runBtn.addEventListener("click", run);
+  init();
+
+  // ===================== TABS =====================
+  const tabText = document.getElementById("tabText");
+  const tabImage = document.getElementById("tabImage");
+  const viewText = document.getElementById("viewText");
+  const viewImage = document.getElementById("viewImage");
+
+  tabText.addEventListener("click", () => {
+    tabText.classList.add("active");
+    tabImage.classList.remove("active");
+    viewText.classList.add("active");
+    viewImage.classList.remove("active");
+  });
+  tabImage.addEventListener("click", () => {
+    tabImage.classList.add("active");
+    tabText.classList.remove("active");
+    viewImage.classList.add("active");
+    viewText.classList.remove("active");
+  });
+
+  // ===================== IMAGEN (experimental) =====================
+  const imgDot = document.getElementById("imgDot");
+  const imgStatusText = document.getElementById("imgStatusText");
+  const imgProgress = document.getElementById("imgProgress");
+  const imgEngineInfo = document.getElementById("imgEngineInfo");
+  const loadImgBtn = document.getElementById("loadImgBtn");
+  const runImgBtn = document.getElementById("runImgBtn");
+  const imgPrompt = document.getElementById("imgPrompt");
+  const stepsRange = document.getElementById("stepsRange");
+  const stepsVal = document.getElementById("stepsVal");
+  const imgCanvas = document.getElementById("imgCanvas");
+
+  stepsRange.addEventListener("input", () => (stepsVal.textContent = stepsRange.value));
+
+  function setImgStatus(text, state) {
+    imgStatusText.textContent = text;
+    imgDot.className = "dot " + state;
+  }
+
+  let sdPipe = null;
+
+  async function loadImageModel() {
+    loadImgBtn.disabled = true;
+    setImgStatus("Verificando soporte de WebGPU…", "loading");
+
+    if (!("gpu" in navigator)) {
+      setImgStatus(
+        "❌ Tu navegador no expone WebGPU. Prueba con Chrome o Edge actualizados (y revisa chrome://flags si sigue sin funcionar).",
+        "error"
+      );
+      loadImgBtn.disabled = false;
+      return;
+    }
+
+    try {
+      imgEngineInfo.textContent = "Backend: WebGPU · Modelo: aislamov/stable-diffusion-2-1-base-onnx";
+      setImgStatus("Descargando y compilando el modelo (puede tardar varios minutos)…", "loading");
+      imgProgress.style.display = "block";
+      imgProgress.removeAttribute("value"); // barra indeterminada
+
+      const { DiffusionPipeline } = await import(
+        "https://cdn.jsdelivr.net/npm/@aislamov/diffusers.js@latest/dist/index.esm.js"
+      );
+
+      sdPipe = await DiffusionPipeline.fromPretrained("aislamov/stable-diffusion-2-1-base-onnx");
+
+      setImgStatus("Modelo listo ✅", "ready");
+      imgProgress.style.display = "none";
+      runImgBtn.disabled = false;
+    } catch (err) {
+      console.error(err);
+      setImgStatus(
+        "❌ No se pudo cargar el modelo. Esto es esperable con esta librería experimental — revisa la consola (F12) para el detalle del error.",
+        "error"
+      );
+      imgProgress.style.display = "none";
+      loadImgBtn.disabled = false;
+    }
+  }
+
+  async function runImageGen() {
+    if (!sdPipe) return;
+    runImgBtn.disabled = true;
+    setImgStatus("Generando imagen…", "loading");
+
+    try {
+      const images = await sdPipe.run({
+        prompt: imgPrompt.value,
+        numInferenceSteps: parseInt(stepsRange.value, 10),
+      });
+
+      const data = await images[0].toImageData({ tensorLayout: "NCWH", format: "RGB" });
+      imgCanvas.width = data.width;
+      imgCanvas.height = data.height;
+      imgCanvas.getContext("2d").putImageData(data, 0, 0);
+
+      setImgStatus("Imagen generada ✅", "ready");
+    } catch (err) {
+      console.error(err);
+      setImgStatus("❌ Falló la generación. Revisa la consola (F12) para más detalle.", "error");
+    } finally {
+      runImgBtn.disabled = false;
+    }
+  }
+
+  loadImgBtn.addEventListener("click", loadImageModel);
+  runImgBtn.addEventListener("click", runImageGen);
+</script>
+</body>
+</html>
