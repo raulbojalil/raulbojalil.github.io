@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloc-Notes</title>
+<style>
+  :root{
+    --bg: #faf7f2;
+    --panel: #ffffff;
+    --ink: #2b2b2b;
+    --muted: #8a8378;
+    --accent: #c9622a;
+    --accent-soft: #f0dcc9;
+    --line: #e8e2d8;
+    --danger: #b3452f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    background: var(--bg);
+    color: var(--ink);
+    height:100vh;
+    overflow:hidden;
+  }
+  .app{
+    display:flex;
+    height:100vh;
+  }
+  /* Sidebar */
+  .sidebar{
+    width:280px;
+    min-width:280px;
+    background: var(--panel);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+  }
+  .sidebar-header{
+    padding:18px 16px 12px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .sidebar-header h1{
+    font-size:19px;
+    margin:0 0 12px 0;
+    letter-spacing:0.5px;
+    font-weight:600;
+  }
+  .new-btn{
+    width:100%;
+    padding:10px;
+    background: var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    font-family:inherit;
+    font-size:14px;
+    cursor:pointer;
+    transition: background 0.15s;
+  }
+  .new-btn:hover{ background:#a94f21; }
+  .search-box{
+    padding:10px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .search-box input{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:inherit;
+    font-size:13px;
+    background:#fdfcfa;
+    color:var(--ink);
+  }
+  .search-box input:focus{
+    outline:none;
+    border-color: var(--accent);
+  }
+  .note-list{
+    flex:1;
+    overflow-y:auto;
+    padding:6px 8px;
+  }
+  .note-item{
+    padding:10px 10px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-bottom:3px;
+    transition: background 0.12s;
+    border:1px solid transparent;
+  }
+  .note-item:hover{
+    background: var(--accent-soft);
+  }
+  .note-item.active{
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .note-item .title{
+    font-size:14px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-bottom:3px;
+  }
+  .note-item .preview{
+    font-size:12px;
+    color: var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .note-item .date{
+    font-size:11px;
+    color: var(--muted);
+    margin-top:4px;
+  }
+  .empty-list{
+    padding:30px 16px;
+    text-align:center;
+    color: var(--muted);
+    font-size:13px;
+  }
+  /* Main editor */
+  .main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    background: var(--panel);
+  }
+  .toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 24px;
+    border-bottom:1px solid var(--line);
+  }
+  .toolbar input.title-input{
+    font-family:inherit;
+    font-size:20px;
+    font-weight:600;
+    border:none;
+    outline:none;
+    background:transparent;
+    color:var(--ink);
+    flex:1;
+  }
+  .toolbar input.title-input::placeholder{
+    color:#c9c1b5;
+  }
+  .toolbar-actions{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .icon-btn{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:7px 12px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:13px;
+    color:var(--muted);
+    transition: all 0.15s;
+  }
+  .icon-btn:hover{
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .icon-btn.delete:hover{
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .editor-area{
+    flex:1;
+    padding:20px 24px;
+    display:flex;
+  }
+  textarea{
+    flex:1;
+    border:none;
+    outline:none;
+    resize:none;
+    font-family: 'Georgia', serif;
+    font-size:16px;
+    line-height:1.7;
+    color: var(--ink);
+    background:transparent;
+  }
+  textarea::placeholder{
+    color:#c9c1b5;
+  }
+  .status-bar{
+    padding:8px 24px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color: var(--muted);
+    display:flex;
+    justify-content:space-between;
+  }
+  .empty-state{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    color: var(--muted);
+    gap:14px;
+  }
+  .empty-state svg{
+    opacity:0.35;
+  }
+  .empty-state p{
+    font-size:14px;
+  }
+  .save-indicator{
+    opacity:0;
+    transition: opacity 0.3s;
+    color: var(--accent);
+  }
+  .save-indicator.show{
+    opacity:1;
+  }
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>📝 Mes Notes</h1>
+      <button class="new-btn" id="newNoteBtn">+ Nouvelle note</button>
+    </div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Rechercher des notes...">
+    </div>
+    <div class="note-list" id="noteList"></div>
+  </div>
+
+  <!-- Main editor -->
+  <div class="main" id="mainArea">
+    <!-- se llena dinámicamente -->
+  </div>
+</div>
+
+<script>
+(function(){
+  let notes = [];
+  let currentId = null;
+  let searchTerm = '';
+  let ready = false;
+
+  const noteList = document.getElementById('noteList');
+  const mainArea = document.getElementById('mainArea');
+  const newNoteBtn = document.getElementById('newNoteBtn');
+  const searchInput = document.getElementById('searchInput');
+
+  const INDEX_KEY = 'notes:index';
+  function noteKey(id){ return 'notes:item:' + id; }
+
+  function uid(){
+    return 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  }
+
+  function formatDate(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'}) +
+           ' · ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function saveIndex(){
+    try{
+      const ids = notes.map(n => n.id);
+      localStorage.setItem(INDEX_KEY, JSON.stringify(ids));
+    }catch(e){
+      console.error('Error guardando el índice de notas:', e);
+    }
+  }
+
+  function saveNote(note){
+    try{
+      localStorage.setItem(noteKey(note.id), JSON.stringify(note));
+    }catch(e){
+      console.error('Error guardando la nota:', e);
+    }
+  }
+
+  function deleteNoteStorage(id){
+    try{
+      localStorage.removeItem(noteKey(id));
+    }catch(e){
+      console.error('Error eliminando la nota:', e);
+    }
+  }
+
+  function loadNotes(){
+    try{
+      let ids = [];
+      const idxRaw = localStorage.getItem(INDEX_KEY);
+      if(idxRaw){
+        ids = JSON.parse(idxRaw);
+      }
+
+      const loaded = [];
+      for(const id of ids){
+        const raw = localStorage.getItem(noteKey(id));
+        if(raw){
+          try{
+            loaded.push(JSON.parse(raw));
+          }catch(e){
+            // nota corrupta, se ignora
+          }
+        }
+      }
+      loaded.sort((a,b) => b.updatedAt - a.updatedAt);
+      notes = loaded;
+      if(notes.length){
+        currentId = notes[0].id;
+      }
+    }catch(e){
+      console.error('Error cargando notas:', e);
+    }
+    ready = true;
+    renderList();
+    renderEditor();
+  }
+
+  function createNote(){
+    const note = {
+      id: uid(),
+      title: '',
+      content: '',
+      updatedAt: Date.now()
+    };
+    notes.unshift(note);
+    currentId = note.id;
+    renderList();
+    renderEditor();
+    saveNote(note);
+    saveIndex();
+    setTimeout(()=>{
+      const titleInput = document.getElementById('titleInput');
+      if(titleInput) titleInput.focus();
+    }, 0);
+  }
+
+  function deleteNote(id){
+    notes = notes.filter(n => n.id !== id);
+    if(currentId === id){
+      currentId = notes.length ? notes[0].id : null;
+    }
+    renderList();
+    renderEditor();
+    deleteNoteStorage(id);
+    saveIndex();
+  }
+
+  function getFiltered(){
+    if(!searchTerm) return notes;
+    const t = searchTerm.toLowerCase();
+    return notes.filter(n =>
+      (n.title || '').toLowerCase().includes(t) ||
+      (n.content || '').toLowerCase().includes(t)
+    );
+  }
+
+  function renderList(){
+    const filtered = getFiltered();
+    noteList.innerHTML = '';
+    if(filtered.length === 0){
+      noteList.innerHTML = `<div class="empty-list">${notes.length === 0 ? 'Vous n\'avez pas encore de notes.<br>Créez la première 📝' : 'Aucune note trouvée.'}</div>`;
+      return;
+    }
+    filtered.forEach(note => {
+      const div = document.createElement('div');
+      div.className = 'note-item' + (note.id === currentId ? ' active' : '');
+      const title = note.title || 'Sans titre';
+      const preview = (note.content || '').slice(0, 60) || 'Note vide...';
+      div.innerHTML = `
+        <div class="title">${escapeHtml(title)}</div>
+        <div class="preview">${escapeHtml(preview)}</div>
+        <div class="date">${formatDate(note.updatedAt)}</div>
+      `;
+      div.addEventListener('click', () => {
+        currentId = note.id;
+        renderList();
+        renderEditor();
+      });
+      noteList.appendChild(div);
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderEditor(){
+    const note = notes.find(n => n.id === currentId);
+    if(!note){
+      mainArea.innerHTML = `
+        <div class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"></path>
+            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <p>Sélectionnez une note ou créez-en une nouvelle pour commencer à écrire</p>
+        </div>
+      `;
+      return;
+    }
+
+    mainArea.innerHTML = `
+      <div class="toolbar">
+        <input type="text" class="title-input" id="titleInput" placeholder="Titre de la note..." value="${escapeHtml(note.title)}">
+        <div class="toolbar-actions">
+          <span class="save-indicator" id="saveIndicator">Enregistré ✓</span>
+          <button class="icon-btn" id="downloadBtn">⬇ Télécharger .txt</button>
+          <button class="icon-btn delete" id="deleteBtn">🗑 Supprimer</button>
+        </div>
+      </div>
+      <div class="editor-area">
+        <textarea id="contentArea" placeholder="Commencez à écrire ici...">${note.content}</textarea>
+      </div>
+      <div class="status-bar">
+        <span id="charCount">0 caractères</span>
+        <span>Dernière modification : ${formatDate(note.updatedAt)}</span>
+      </div>
+    `;
+
+    const titleInput = document.getElementById('titleInput');
+    const contentArea = document.getElementById('contentArea');
+    const charCount = document.getElementById('charCount');
+    const saveIndicator = document.getElementById('saveIndicator');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    function updateCharCount(){
+      const len = contentArea.value.length;
+      charCount.textContent = len + (len === 1 ? ' caractère' : ' caractères');
+    }
+    updateCharCount();
+
+    let saveTimeout;
+    function flashSaved(){
+      saveIndicator.classList.add('show');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => saveIndicator.classList.remove('show'), 1200);
+    }
+
+    titleInput.addEventListener('input', () => {
+      note.title = titleInput.value;
+      note.updatedAt = Date.now();
+      renderList();
+      flashSaved();
+      saveNote(note);
+    });
+
+    contentArea.addEventListener('input', () => {
+      note.content = contentArea.value;
+      note.updatedAt = Date.now();
+      updateCharCount();
+      renderList();
+      flashSaved();
+      saveNote(note);
+    });
+
+    deleteBtn.addEventListener('click', () => {
+      if(confirm('Supprimer cette note ? Cette action est irréversible.')){
+        deleteNote(note.id);
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const blob = new Blob([note.content], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (note.title || 'note') + '.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  newNoteBtn.addEventListener('click', createNote);
+
+  searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value;
+    renderList();
+  });
+
+  // Estado inicial: cargar notas guardadas
+  loadNotes();
+})();
+</script>
+
+</body>
+</html>
