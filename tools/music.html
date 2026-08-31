@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tarjetas de Teoría Musical</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Pestañas principales */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      z-index: 10;
+    }
+    .btn-tab {
+      background-color: #2a2a2a;
+      color: #ccc;
+      border: 1px solid #444;
+      padding: 8px 20px;
+      border-radius: 18px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-tab.active {
+      background-color: #ffd700;
+      color: #121212;
+      border-color: #ffd700;
+    }
+
+    /* Sub-filtros (solo pestaña Acordes) */
+    .subfilters {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
+      min-height: 26px;
+    }
+    .btn-sub {
+      background-color: #1e1e1e;
+      color: #888;
+      border: 1px solid #3a3a3a;
+      padding: 4px 11px;
+      border-radius: 14px;
+      font-size: 0.72rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-sub.active {
+      background-color: #00e676;
+      color: #121212;
+      border-color: #00e676;
+    }
+
+    .card {
+      text-align: center;
+      padding: 18px;
+      border-radius: 20px;
+      background-color: #1e1e1e;
+      width: 82vw;
+      height: 82vw;
+      max-width: 560px;
+      max-height: 560px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      border: 1px solid #333;
+      gap: 6px;
+      position: relative;
+    }
+    .badge {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 0.75rem;
+      background-color: #333;
+      color: #ff9800;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+    .title {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #ffd700;
+      line-height: 1.1;
+    }
+    .subtitle {
+      font-size: 1.5rem;
+      color: #00e676;
+      font-weight: 500;
+    }
+    .notes {
+      font-size: 1.15rem;
+      color: #29b6f6;
+      font-style: italic;
+      letter-spacing: 0.5px;
+    }
+    .piano {
+      margin-top: 6px;
+    }
+    .counter {
+      position: absolute;
+      bottom: 12px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="tabs">
+    <button id="tab-keysig" class="btn-tab active" onclick="switchTab('keysig')">Key Signatures</button>
+    <button id="tab-chords" class="btn-tab" onclick="switchTab('chords')">Acordes</button>
+  </div>
+
+  <div class="subfilters" id="subfilters"></div>
+
+  <div class="card" id="card">
+    <div id="badge" class="badge"></div>
+    <div id="title" class="title"></div>
+    <div id="subtitle" class="subtitle"></div>
+    <div id="notes" class="notes"></div>
+    <div id="piano" class="piano"></div>
+    <div id="counter" class="counter"></div>
+  </div>
+
+  <div id="status" class="status">L1 / R1: Secuencial | L2 / R2: Aleatorio</div>
+
+  <script>
+    // ==================================================================
+    // UTILIDADES DE TEORÍA (nombres de notas con letras A-G, sin solfeo)
+    // ==================================================================
+    const LETTERS = ['C','D','E','F','G','A','B'];
+    const NATURAL_PC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
+
+    const PITCH_CLASS = {
+      "C": 0, "B♯": 0,
+      "C♯": 1, "D♭": 1,
+      "D": 2,
+      "D♯": 3, "E♭": 3,
+      "E": 4, "F♭": 4,
+      "F": 5, "E♯": 5,
+      "F♯": 6, "G♭": 6,
+      "G": 7,
+      "G♯": 8, "A♭": 8,
+      "A": 9,
+      "A♯": 10, "B♭": 10,
+      "B": 11, "C♭": 11
+    };
+
+    function accidentalSymbol(n) {
+      if (n === 1) return "♯";
+      if (n === 2) return "𝄪";
+      if (n === -1) return "♭";
+      if (n === -2) return "𝄫";
+      return "";
+    }
+
+    // Calcula el nombre de una nota a partir de una raíz (letra + alteración),
+    // desplazándose 'letterSteps' letras y 'semitoneInterval' semitonos.
+    function noteName(rootLetter, rootAccidental, letterSteps, semitoneInterval) {
+      const rootIndex = LETTERS.indexOf(rootLetter);
+      const targetLetter = LETTERS[(rootIndex + letterSteps) % 7];
+      const rootPC = (NATURAL_PC[rootLetter] + rootAccidental + 12) % 12;
+      const wantedPC = (rootPC + semitoneInterval) % 12;
+      const naturalTargetPC = NATURAL_PC[targetLetter];
+      let diff = wantedPC - naturalTargetPC;
+      if (diff > 6) diff -= 12;
+      if (diff < -6) diff += 12;
+      return targetLetter + accidentalSymbol(diff);
+    }
+
+    // ==================================================================
+    // DATOS: ARMADURAS DE CLAVE (Key Signatures - tonalidades mayores)
+    // ==================================================================
+    const keySignatures = [
+      { level: "NATURAL",   title: "C Mayor",  subtitle: "Sin alteraciones", notes: ["C","D","E","F","G","A","B"] },
+      { level: "SOSTENIDO", title: "G Mayor",  subtitle: "1 sostenido (F♯)", notes: ["G","A","B","C","D","E","F♯"] },
+      { level: "SOSTENIDO", title: "D Mayor",  subtitle: "2 sostenidos (F♯ C♯)", notes: ["D","E","F♯","G","A","B","C♯"] },
+      { level: "SOSTENIDO", title: "A Mayor",  subtitle: "3 sostenidos (F♯ C♯ G♯)", notes: ["A","B","C♯","D","E","F♯","G♯"] },
+      { level: "SOSTENIDO", title: "E Mayor",  subtitle: "4 sostenidos (F♯ C♯ G♯ D♯)", notes: ["E","F♯","G♯","A","B","C♯","D♯"] },
+      { level: "SOSTENIDO", title: "B Mayor",  subtitle: "5 sostenidos (F♯ C♯ G♯ D♯ A♯)", notes: ["B","C♯","D♯","E","F♯","G♯","A♯"] },
+      { level: "SOSTENIDO", title: "F♯ Mayor", subtitle: "6 sostenidos (F♯ C♯ G♯ D♯ A♯ E♯)", notes: ["F♯","G♯","A♯","B","C♯","D♯","E♯"] },
+      { level: "SOSTENIDO", title: "C♯ Mayor", subtitle: "7 sostenidos (todas)", notes: ["C♯","D♯","E♯","F♯","G♯","A♯","B♯"] },
+      { level: "BEMOL",     title: "F Mayor",  subtitle: "1 bemol (B♭)", notes: ["F","G","A","B♭","C","D","E"] },
+      { level: "BEMOL",     title: "B♭ Mayor", subtitle: "2 bemoles (B♭ E♭)", notes: ["B♭","C","D","E♭","F","G","A"] },
+      { level: "BEMOL",     title: "E♭ Mayor", subtitle: "3 bemoles (B♭ E♭ A♭)", notes: ["E♭","F","G","A♭","B♭","C","D"] },
+      { level: "BEMOL",     title: "A♭ Mayor", subtitle: "4 bemoles (B♭ E♭ A♭ D♭)", notes: ["A♭","B♭","C","D♭","E♭","F","G"] },
+      { level: "BEMOL",     title: "D♭ Mayor", subtitle: "5 bemoles (B♭ E♭ A♭ D♭ G♭)", notes: ["D♭","E♭","F","G♭","A♭","B♭","C"] },
+      { level: "BEMOL",     title: "G♭ Mayor", subtitle: "6 bemoles (B♭ E♭ A♭ D♭ G♭ C♭)", notes: ["G♭","A♭","B♭","C♭","D♭","E♭","F"] },
+      { level: "BEMOL",     title: "C♭ Mayor", subtitle: "7 bemoles (todas)", notes: ["C♭","D♭","E♭","F♭","G♭","A♭","B♭"] },
+    ];
+    keySignatures.forEach(k => {
+      k.badge = k.level === "NATURAL" ? "NATURAL" : (k.level === "SOSTENIDO" ? "♯" : "♭");
+    });
+
+    // ==================================================================
+    // DATOS: ACORDES (tríadas generadas por fórmula, 12 fundamentales x 4 calidades)
+    // ==================================================================
+    const CHORD_ROOTS = [
+      { letter: "C", acc: 0 },  { letter: "D", acc: -1 }, { letter: "D", acc: 0 },
+      { letter: "E", acc: -1 }, { letter: "E", acc: 0 },  { letter: "F", acc: 0 },
+      { letter: "G", acc: -1 }, { letter: "G", acc: 0 },  { letter: "A", acc: -1 },
+      { letter: "A", acc: 0 },  { letter: "B", acc: -1 }, { letter: "B", acc: 0 }
+    ];
+
+    const CHORD_QUALITIES = [
+      { key: "MAYOR",      label: "Mayor",      badge: "M",   third: 4, fifth: 7, formula: "Fundamental + 3ª mayor + 5ª justa" },
+      { key: "MENOR",      label: "Menor",      badge: "m",   third: 3, fifth: 7, formula: "Fundamental + 3ª menor + 5ª justa" },
+      { key: "DISMINUIDO", label: "Disminuido", badge: "°",   third: 3, fifth: 6, formula: "Fundamental + 3ª menor + 5ª disminuida" },
+      { key: "AUMENTADO",  label: "Aumentado",  badge: "+",   third: 4, fifth: 8, formula: "Fundamental + 3ª mayor + 5ª aumentada" },
+    ];
+
+    const chords = [];
+    CHORD_ROOTS.forEach(root => {
+      const rootName = root.letter + accidentalSymbol(root.acc);
+      CHORD_QUALITIES.forEach(q => {
+        const third = noteName(root.letter, root.acc, 2, q.third);
+        const fifth = noteName(root.letter, root.acc, 4, q.fifth);
+        chords.push({
+          level: q.key,
+          title: `${rootName} ${q.label}`,
+          subtitle: q.formula,
+          notes: [rootName, third, fifth],
+          badge: rootName + q.badge
+        });
+      });
+    });
+
+    // ==================================================================
+    // TECLADO DE PIANO (SVG, una octava)
+    // ==================================================================
+    const WHITE_KEYS = [
+      { note: "C", pc: 0 }, { note: "D", pc: 2 }, { note: "E", pc: 4 },
+      { note: "F", pc: 5 }, { note: "G", pc: 7 }, { note: "A", pc: 9 }, { note: "B", pc: 11 }
+    ];
+    const BLACK_KEYS = [
+      { note: "C♯", pc: 1, afterWhite: 0 },
+      { note: "D♯", pc: 3, afterWhite: 1 },
+      { note: "F♯", pc: 6, afterWhite: 3 },
+      { note: "G♯", pc: 8, afterWhite: 4 },
+      { note: "A♯", pc: 10, afterWhite: 5 }
+    ];
+
+    const pianoEl = document.getElementById("piano");
+
+    function buildPiano(activePitchClasses) {
+      const whiteW = 34, whiteH = 120, blackW = 20, blackH = 74;
+      const totalW = whiteW * WHITE_KEYS.length;
+      let svg = `<svg width="100%" height="${whiteH}" viewBox="0 0 ${totalW} ${whiteH}" style="max-width:420px;">`;
+
+      WHITE_KEYS.forEach((k, i) => {
+        const x = i * whiteW;
+        const active = activePitchClasses.has(k.pc);
+        const fill = active ? "#ffd700" : "#f5f5f5";
+        svg += `<rect x="${x}" y="0" width="${whiteW}" height="${whiteH}" fill="${fill}" stroke="#222" stroke-width="1.5" rx="3"/>`;
+        svg += `<text x="${x + whiteW/2}" y="${whiteH - 10}" font-size="11" text-anchor="middle" fill="${active ? '#121212' : '#888'}" font-weight="bold">${k.note}</text>`;
+      });
+
+      BLACK_KEYS.forEach(k => {
+        const x = (k.afterWhite + 1) * whiteW - blackW / 2;
+        const active = activePitchClasses.has(k.pc);
+        const fill = active ? "#ffd700" : "#1a1a1a";
+        svg += `<rect x="${x}" y="0" width="${blackW}" height="${blackH}" fill="${fill}" stroke="#000" stroke-width="1" rx="2"/>`;
+      });
+
+      svg += `</svg>`;
+      pianoEl.innerHTML = svg;
+    }
+
+    // ==================================================================
+    // ESTADO Y NAVEGACIÓN
+    // ==================================================================
+    let activeTab = "keysig";
+    let activeChordFilter = "ALL";
+    let currentList = keySignatures;
+    let currentIndex = 0;
+
+    const titleEl = document.getElementById("title");
+    const subtitleEl = document.getElementById("subtitle");
+    const notesEl = document.getElementById("notes");
+    const badgeEl = document.getElementById("badge");
+    const counterEl = document.getElementById("counter");
+    const subfiltersEl = document.getElementById("subfilters");
+
+    function updateCard() {
+      if (currentList.length === 0) return;
+      const item = currentList[currentIndex];
+      titleEl.textContent = item.title;
+      subtitleEl.textContent = item.subtitle;
+      notesEl.textContent = item.notes.join(" - ");
+      badgeEl.textContent = item.badge;
+      counterEl.textContent = `${currentIndex + 1} / ${currentList.length}`;
+
+      const activePitchClasses = new Set(item.notes.map(n => PITCH_CLASS[n]));
+      buildPiano(activePitchClasses);
+    }
+
+    function nextWord() {
+      if (currentList.length === 0) return;
+      currentIndex = (currentIndex + 1) % currentList.length;
+      updateCard();
+    }
+
+    function prevWord() {
+      if (currentList.length === 0) return;
+      currentIndex = (currentIndex - 1 + currentList.length) % currentList.length;
+      updateCard();
+    }
+
+    function randomWord() {
+      if (currentList.length <= 1) return;
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * currentList.length);
+      } while (newIndex === currentIndex);
+      currentIndex = newIndex;
+      updateCard();
+    }
+
+    // --- Pestañas principales ---
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById("tab-keysig").classList.toggle("active", tab === "keysig");
+      document.getElementById("tab-chords").classList.toggle("active", tab === "chords");
+
+      if (tab === "keysig") {
+        subfiltersEl.innerHTML = "";
+        currentList = keySignatures;
+      } else {
+        activeChordFilter = "ALL";
+        renderChordSubfilters();
+        currentList = chords;
+      }
+      currentIndex = 0;
+      updateCard();
+    }
+
+    // --- Sub-filtros de calidad de acorde ---
+    function renderChordSubfilters() {
+      const options = [{ key: "ALL", label: "Todos" }, ...CHORD_QUALITIES.map(q => ({ key: q.key, label: q.label }))];
+      subfiltersEl.innerHTML = options.map(o =>
+        `<button class="btn-sub ${o.key === activeChordFilter ? 'active' : ''}" onclick="filterChords('${o.key}')">${o.label}</button>`
+      ).join("");
+    }
+
+    function filterChords(qualityKey) {
+      activeChordFilter = qualityKey;
+      currentList = qualityKey === "ALL" ? chords : chords.filter(c => c.level === qualityKey);
+      currentIndex = 0;
+      renderChordSubfilters();
+      updateCard();
+    }
+
+    // --- MODO PANTALLA COMPLETA ---
+    document.getElementById("card").addEventListener("click", () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) docEl.requestFullscreen();
+        else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+      }
+    });
+
+    // --- GAMEPAD API (Gatillos L1/R1 y L2/R2) ---
+    let prevL1State = false;
+    let prevR1State = false;
+    let prevL2State = false;
+    let prevR2State = false;
+
+    function pollGamepad() {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
+
+      if (gp) {
+        const l1Pressed = gp.buttons[4] && gp.buttons[4].pressed;
+        const r1Pressed = gp.buttons[5] && gp.buttons[5].pressed;
+        const l2Pressed = gp.buttons[6] && (gp.buttons[6].pressed || gp.buttons[6].value > 0.5);
+        const r2Pressed = gp.buttons[7] && (gp.buttons[7].pressed || gp.buttons[7].value > 0.5);
+
+        if (r1Pressed && !prevR1State) nextWord();
+        if (l1Pressed && !prevL1State) prevWord();
+        if ((l2Pressed && !prevL2State) || (r2Pressed && !prevR2State)) randomWord();
+
+        prevL1State = l1Pressed;
+        prevR1State = r1Pressed;
+        prevL2State = l2Pressed;
+        prevR2State = r2Pressed;
+      }
+
+      requestAnimationFrame(pollGamepad);
+    }
+
+    // --- NAVEGACIÓN POR SWIPE (TÁCTIL) ---
+    let touchStartX = 0;
+    document.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].screenX; });
+    document.addEventListener("touchend", e => {
+      const touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 40) nextWord();
+      if (touchEndX > touchStartX + 40) prevWord();
+    });
+
+    // Inicializar
+    updateCard();
+    requestAnimationFrame(pollGamepad);
+  </script>
+</body>
+</html>
