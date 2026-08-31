@@ -198,7 +198,7 @@
   const output = document.getElementById("output");
   const promptEl = document.getElementById("prompt");
 
-  const MODEL = "onnx-community/Qwen3-4B-ONNX"; // modelo 4B, mejor razonamiento — descarga ~3GB
+  const MODEL = "onnx-community/Qwen2.5-1.5B-Instruct"; // buen balance calidad/velocidad, compatible sin f16
 
   let generator = null;
 
@@ -208,14 +208,29 @@
   }
 
   async function init() {
-    const hasWebGPU = "gpu" in navigator;
-    const device = hasWebGPU ? "webgpu" : "wasm";
+    let device = "wasm";
+    if ("gpu" in navigator) {
+      try {
+        const adapter = await navigator.gpu.requestAdapter();
+        // Algunas GPUs/drivers no soportan shaders en f16, que varios modelos
+        // cuantizados usan internamente (p. ej. para la tabla de embeddings).
+        // Si falta esa feature, usamos WASM directamente para evitar un fallo
+        // a medio camino de la generación.
+        if (adapter && adapter.features.has("shader-f16")) {
+          device = "webgpu";
+        } else {
+          console.warn("GPU sin soporte de shader-f16 — usando WASM como respaldo.");
+        }
+      } catch (e) {
+        console.warn("No se pudo consultar el adaptador WebGPU, usando WASM.", e);
+      }
+    }
     engineInfo.textContent = `Backend: ${device.toUpperCase()} · Modelo: ${MODEL}`;
 
     try {
       generator = await pipeline("text-generation", MODEL, {
         device,
-        dtype: "q4f16", // cuantizado; q4f16 suele tener mejor compatibilidad con WebGPU que q4 puro
+        dtype: "q4", // q4f16 requiere soporte de shaders f16 en la GPU; q4 es más compatible
         progress_callback: (p) => {
           if (p.status === "progress" && p.total) {
             const pct = Math.round((p.loaded / p.total) * 100);
