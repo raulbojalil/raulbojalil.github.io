@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "welcome",
+    "title": "Welcome to my blog",
+    "date": "2025-09-01",
+    "file": "welcome.md",
+    "description": "How this little static blog works"
+  },
+  {
+    "slug": "markdown-demo",
+    "title": "Markdown features demo",
+    "date": "2025-09-02",
+    "file": "markdown-demo.md",
+    "description": "Headings, lists, code, quotes and more"
+  }
+]
