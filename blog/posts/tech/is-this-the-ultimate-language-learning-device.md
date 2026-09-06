@@ -9,7 +9,7 @@ excerpt: "Transforming a retro handheld console into a distraction-free, tactile
 featured: true
 ---
 
-When you think of retro handheld consoles like the Anbernic RG Cube, the first things that come to mind are Game Boy Advance titles, Nintendo DS classics, or PlayStation 1 ROMs. With its crisp 1:1 square display and ergonomic shoulder triggers, it is an absolute dream for classic gaming. 
+When you think of retro handheld consoles like the Anbernic RG Cube, the first thing that comes to mind is retro gaming. With its crisp 1:1 square display and ergonomic shoulder triggers, it is an absolute dream for classic gaming. 
 
 But what if you used that exact same hardware to master Chinese vocabulary?
 
