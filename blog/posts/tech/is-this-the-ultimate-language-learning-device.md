@@ -9,7 +9,7 @@ excerpt: "Transforming a retro handheld console into a distraction-free, tactile
 featured: true
 ---
 
-When you think of retro handheld consoles like the Anbernic RG Cube, the first thing that comes to mind is retro gaming. With its crisp 1:1 square display and ergonomic shoulder triggers, it is an absolute dream for classic gaming. 
+When you think of retro handheld consoles like the Anbernic RG Rotate, the first thing that comes to mind is retro gaming. With its crisp 1:1 square display and ergonomic shoulder triggers, it is an absolute dream for classic gaming. 
 
 But what if you used that exact same hardware to master Chinese vocabulary?
 
@@ -23,9 +23,9 @@ Smartphone apps like Anki or Pleco are fantastic, but they come with a major dow
 
 Moreover, touch interfaces lack tactile satisfaction. Swiping through hundreds of cards on a glass screen quickly feels repetitive and draining.
 
-### Enter the RG Cube: Tactile, Offline, and Focused
+### Enter the RG Rotate: Tactile, Offline, and Focused
 
-By leveraging the RG Cube's built-in browser capabilities and Gamepad API support, I built a lightweight, single-file web application designed specifically for its unique form factor.
+By leveraging the RG Rotate's built-in browser capabilities and Gamepad API support, I built a lightweight, single-file web application designed specifically for its unique form factor.
 
 Here is why this setup works remarkably well:
 
@@ -33,7 +33,7 @@ Here is why this setup works remarkably well:
 * **Randomized Jumps on Demand:** Pressing **L2 or R2** immediately pulls a random word from your current level, keeping your brain engaged and preventing pattern memorization.
 * **1:1 Square Aspect Ratio:** The 720x720 display naturally frames Chinese characters (*Hanzi*), *Pinyin*, and translations without wasted space.
 * **Zero Distractions:** No notifications, no social media feeds, and no constant pinging. Just you, the hardware, and the language.
-* **Easy on the hand:** The RG Cube is very pocketable and holding it feels very natural.
+* **Easy on the hand:** The RG Rotate is very pocketable and holding it feels very natural.
 
 ---
 
