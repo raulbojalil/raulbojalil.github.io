@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generative AI and the Future of Digital Design — Raúl Bojalil</title>
+    <title>Is Twitter dead? — Raúl Bojalil</title>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -87,19 +87,43 @@ main.container,
     <main class="container">
         <section id="feed-view">
         <a class="back-btn" href="/blog">← Back to all posts</a>
-        <div><span class="tag">AI</span></div>
-        <h1 style="line-height: 1; font-size:2.2rem; margin-top:0.4rem;">Generative AI and the Future of Digital Design</h1>
-        <div class="post-meta">By Laura Gómez • 2026-09-03</div>
-        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80" class="cover" alt="Generative AI and the Future of Digital Design">
+        <div><span class="tag">Technology</span></div>
+        <h1 style="line-height: 1; font-size:2.2rem; margin-top:0.4rem;">Is Twitter dead?</h1>
+        <div class="post-meta">By Raúl Bojalil • 2023-07-27</div>
+        <img src="https://raulbojalil.com/blog/posts/tech/is-twitter-dead/header.png" class="cover" alt="Is Twitter dead?">
         <div class="markdown-body">
-            <h1>Generative AI and the Future of Digital Design</h1>
-<p>Artificial intelligence is not replacing human creativity; it is elevating it to unprecedented levels.</p>
-<h2>Modern Workflows</h2>
-<p>Generative visual tools now allow creators to turn concept sketches into fully realized layouts in minutes.</p>
-<ul>
-<li><strong>Rapid Prototyping:</strong> Real-time visual feedback and iterations.</li>
-<li><strong>New Interfaces:</strong> Prompt design as a core technical skill.</li>
-</ul>
+            <p>Unless you have been living under a rock for the past few days, you may already know that Twitter replaced its iconic bird logo with a letter <strong>X</strong>. The popular social network was bought by Elon Musk last year, and now he is radically rebranding a well-established platform used by millions. </p>
+<p>But this is not just a name change—Elon Musk&#39;s vision is to expand X into a single platform offering everything from video and audio to payments. Under this vision, the name &quot;Twitter&quot; simply became obsolete.</p>
+<p>However, not everyone is thrilled about this radical shift. For disgruntled users looking for alternatives to what many call nonsense, what options do we have?</p>
+<hr>
+<h2>Enter Mastodon</h2>
+<p><strong>Mastodon</strong> is a decentralized, open-source social media platform designed as an alternative to centralized networks like Twitter. It is especially popular among privacy-conscious users because it can be self-hosted on your own servers.</p>
+<p>I&#39;m a huge fan of <strong>DigitalOcean</strong>, a cloud service provider whose platform is incredibly easy to use with competitive pricing compared to juggernauts like AWS and Azure. I use it for all my web application needs, and you can easily install Mastodon with just one click!</p>
+<hr>
+<h2>Installing Mastodon on DigitalOcean (For Technical Users)</h2>
+<blockquote>
+<p><strong>Note:</strong> This section is intended for technical users. If you need help setting this up, let me know in the comments below!</p>
+<ol>
+<li>For a complete guide, follow the <a href="https://www.digitalocean.com/community/tutorials/how-to-install-mastodon-with-digitalocean-marketplace-1-click">official DigitalOcean tutorial</a>.</li>
+<li>You will need a custom domain name ready before starting the setup.</li>
+</ol>
+</blockquote>
+<h3>Step-by-Step Setup</h3>
+<ol>
+<li><strong>Create a Droplet:</strong> Go to the <a href="https://marketplace.digitalocean.com/apps/mastodon">DigitalOcean Mastodon Marketplace page</a> and click <strong>Create Mastodon Droplet</strong>. Configure the settings according to your needs.</li>
+<li><strong>Connect via SSH:</strong> Once the Droplet is up and running, copy its IP address and connect via terminal:<pre><code class="language-bash">ssh root@SERVER_IP
+</code></pre>
+</li>
+<li><strong>Run the Setup Wizard:</strong> Follow the on-screen prompts. When prompted for your domain name, enter it without <code>http://</code> or <code>https://</code>:<pre><code class="language-text">Booting Mastodon&#39;s first-time setup wizard...
+Welcome to the Mastodon first-time setup!
+Domain name: example.com
+</code></pre>
+</li>
+<li><strong>Finalize Configuration:</strong> Navigate to <code>https://example.com</code> in your browser to complete the setup.</li>
+</ol>
+<p>Congratulations! You are now running your very own Mastodon server. For advanced features and administration, check out the official Mastodon documentation.</p>
+<hr>
+<p>What do you think about Mastodon? Have you used it before, or are you sticking with X? Let me know in the comments below!</p>
 
         </div>
         <script src="https://giscus.app/client.js"

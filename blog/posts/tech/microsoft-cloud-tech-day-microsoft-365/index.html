@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft Cloud Tech Day: Microsoft 365 — Raúl Bojalil</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --border-color: #e2e8f0;
+            --max-width: 1150px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-color); color: var(--text-main); line-height: 1.7; }
+
+        header { background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 1rem 1.5rem; }
+        .header-content { max-width: var(--max-width); margin: 0 auto; }
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
+
+        .container { max-width: var(--max-width); margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 2.7fr 1.3fr; gap: 2rem; }
+        .back-btn { display: inline-block; margin-bottom: 1.5rem; color: var(--accent); text-decoration: none; font-weight: 600; }
+        .tag { display: inline-block; background: var(--accent); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+        .post-meta { font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0 1rem 0; }
+        img.cover { width: 100%; max-height: 400px; object-fit: cover; border-radius: 6px; margin: 1rem 0; }
+        
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .markdown-body p { margin-bottom: 1rem; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        
+/* Sidebar */
+        .sidebar-widget { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem; margin-bottom: 1.5rem; }
+        .sidebar-widget h4 { font-size: 0.95rem; border-bottom: 2px solid var(--bg-color); padding-bottom: 0.5rem; margin-bottom: 0.8rem; }
+
+        @media (max-width: 800px) {
+            .container { grid-template-columns: 1fr; }
+            .featured-card { grid-template-columns: 1fr; }
+        }
+
+code {
+    background-color: #272822;
+    color: #f8f8f2;
+    border-radius: 0.3em;
+    padding: 4px 5px 6px;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+pre code {
+    white-space: pre;
+}
+
+.giscus,
+.giscus-frame {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+main.container,
+.markdown-body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+            <a class="logo" href="/blog">Multi-Threader's Blog</a>
+            <p>Threading thoughts on software development, AI, cybersecurity and more!</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="feed-view">
+        <a class="back-btn" href="/blog">← Back to all posts</a>
+        <div><span class="tag">Technology</span></div>
+        <h1 style="line-height: 1; font-size:2.2rem; margin-top:0.4rem;">Microsoft Cloud Tech Day: Microsoft 365</h1>
+        <div class="post-meta">By Raúl Bojalil • 2023-12-18</div>
+        <img src="https://raulbojalil.com/blog/posts/tech/microsoft-cloud-tech-day-microsoft-365/header.png" class="cover" alt="Microsoft Cloud Tech Day: Microsoft 365">
+        <div class="markdown-body">
+            <p>I was recently invited to a Microsoft Cloud Tech Day event at the Microsoft office in Mexico City. Here are my thoughts on it.</p>
+<p>Surprisingly, this is my first time going to a Microsoft Tech Days event, so I didn&#39;t know what to expect. I&#39;ve attended several Amazon Web Services events in the past, like the AWS Summit, so I had a vague idea of what to expect. But in the end I really enjoyed it, so keep reading to hear my thoughts.</p>
+<p>The event was 4 hours long and it focused on the Microsoft 365 line of products. Most people (myself included, though not anymore!) think that Microsoft 365 is just the fancy new name for Microsoft Office. But Microsoft 365 is much more than that—it&#39;s a comprehensive suite of tools intended for increasing the security and productivity of organizations.</p>
+<h2>Microsoft Cloud</h2>
+<p>The first section of the presentation focused on the benefits of migrating to the cloud (like productivity gains and cost savings), the Fortune 500 companies that use Microsoft Azure (like Coca-Cola and BMW), and the powerful infrastructure located in more than 65 regions around the world that makes all of this possible. Most people think that Microsoft and Linux are &quot;enemies,&quot; but that&#39;s far from the truth: roughly 50% of Azure VMs run Linux, and they also have co-located support with Red Hat.</p>
+<p>You may already know that I&#39;m a huge fan of GitHub, so another exciting detail I learned is that you can use GitHub to implement DevOps across an organization using the Microsoft Cloud Adoption and Microsoft Azure Well-Architected frameworks. These frameworks are designed to facilitate the implementation of Azure tools and best practices.</p>
+<h2>Microsoft 365</h2>
+<p>This was, of course, the main topic of the presentation. They focused on the two main strong points of Microsoft 365: productivity increases (by simplifying communication between employees and business partners) and organizational security. Before this, I had a lot of misconceptions about what you could and couldn&#39;t do with Microsoft 365.</p>
+<p>Microsoft offers the following plans, each containing different applications and services:</p>
+<ul>
+<li><strong>Business Apps:</strong> Includes desktop apps like Outlook, Word, Excel, PowerPoint, Publisher, and Access.</li>
+<li><strong>Business Basic:</strong> Includes Teams, Exchange, OneDrive, and SharePoint.</li>
+<li><strong>Business Standard:</strong> Business Apps + Business Basic.</li>
+<li><strong>Business Premium:</strong> Business Standard + additional productivity tools (Bookings, Delve, Engage, Forms, Power Apps, Power Automate) and advanced security tools (Intune, Defender).</li>
+</ul>
+<p>Aside from all these services, Microsoft includes baseline security features across all plans, such as data encryption, regulatory standards compliance, multi-factor authentication, and privacy controls.</p>
+<h3>Microsoft 365 Business Premium</h3>
+<p>Beyond the myriad of applications already included, the Business Premium subscription features security tools and capabilities intended to defend against threats and protect business data.</p>
+<p>Some of the key security platforms showcased during the event included:</p>
+<ul>
+<li><strong>Microsoft Defender:</strong> An all-around cybersecurity platform providing protection against viruses, malware, and other threats. It features real-time threat detection, automatic cleanup, malicious software execution prevention, a network-monitoring firewall, and anti-phishing protection.</li>
+<li><strong>Microsoft Intune:</strong> Helps organizations manage and secure mobile devices, computers, and applications from a central location. It provides tools for device configuration, software deployment, and security policy enforcement, ensuring users only access required resources.</li>
+<li><strong>Microsoft Entra:</strong> A security and identity management platform enabling secure identity management across an entire digital estate. It automates identity governance and access management, reducing risk and complexity while improving productivity.</li>
+<li><strong>Microsoft Purview:</strong> A comprehensive data governance platform for managing data across all locations. It offers data discovery, classification, analytics, and policy enforcement tools. Notably, support for Mexican personal data protection laws is starting to be integrated.</li>
+</ul>
+<p>Aside from these security services, <strong>Microsoft Loop</strong> was also showcased—a really cool way to collaborate on documents in real-time. They showed a demo of Loop combined with Teams, which significantly boosts remote team productivity. They promised a dedicated master class on Microsoft Loop, which I&#39;m eagerly awaiting.</p>
+<h2>Microsoft Power Platform</h2>
+<p>Another platform highlighted was the Microsoft Power Platform, touted as the world&#39;s most complete set of integrated, low-code development tools.</p>
+<p>Notable highlights include:</p>
+<ul>
+<li><strong>Power Apps:</strong> For developing low-code business apps (reminded me of working with Microsoft LightSwitch back in the day).</li>
+<li><strong>Power Virtual Agents (Copilot Studio):</strong> For quickly building AI chatbots.</li>
+<li><strong>Power Pages:</strong> A low-code way to build data-driven websites.</li>
+<li><strong>Power BI:</strong> A business intelligence platform for analytics and reporting.</li>
+</ul>
+<p>The core goal of the Power Platform is to empower organizations to build applications as quickly as possible. Some developers fear tools like these might make them obsolete, but don&#39;t worry—developers are still very much needed!</p>
+<h2>Microsoft HoloLens &amp; Hardware</h2>
+<p>At the end of the presentation, we had the opportunity to try out some of Microsoft&#39;s latest tech, such as the <strong>Microsoft HoloLens</strong> augmented reality glasses (if you know me, you already know I&#39;m a big fan of AR and use it in my day-to-day work).</p>
+<p>We also got to hands-on test the new Microsoft Surface lineup, which I loved as a fan of handheld and compact computers. All in all, Microsoft products cover a lot of ground in both enterprise and consumer spaces.</p>
+<hr>
+<p>Overall, I really enjoyed the event, but I definitely need to attend the next Tech Day since they barely scratched the surface of what&#39;s possible with Microsoft 365. Here&#39;s hoping the next one is even better!</p>
+<p>What do you think about these kinds of tech events? Are they genuinely useful or just time-wasters? Let me know in the comments below!</p>
+
+        </div>
+        <script src="https://giscus.app/client.js"
+        data-repo="raulbojalil/raulbojalil.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnk3MzUyNDM1Mw=="
+        data-category="General"
+        data-category-id="DIC_kwDOBGHkgc4DE_bd"
+        data-mapping="url"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>
+        </section>
+        <aside class="sidebar">
+            <div class="sidebar-widget">
+                <h4>About the Author</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted);">With more than 15 years of software development experience, working for renowned companies like Axa and Pinterest, <a href="https://raulbojalil.com">Raúl Bojalil</a>  is a passionate of all things IT. He's always learning and looking for ways to make life easier using technology. He speaks 5 languages (Spanish, English, French, Portuguese and Mandarin Chinese) and plays the piano in his free time.</p>
+		<div style="height: 1px;
+    margin: 20px 0 20px 0;
+    background-color: rgba(246, 246, 246, 1);
+"></div>
+<img alt="Raúl Bojalil Tryhackme streak" src="https://assets.tryhackme.com/room-badges/2e122db3e3a3337c2f1dcb0fdbd21676.png" style="
+    width: 100%;
+">
+                <img src="https://duolingo-stats-card.vercel.app/api?username=raulbojalil" alt="Raúl Bojalil Duolingo Stats" class="Home_statsImage__kAXxj" style="display: block; width: 100%">
+            </div>
+  <div class="sidebar-widget">
+<h4>Enjoy this blog?</h4>
+<a href="https://www.buymeacoffee.com/raulbojalil" target="_blank" rel="noopener" class="track p-0.5 bg-[#E38546] inline-block shadow-md track duration-300 hover:scale-110 rounded-md transition-transform"><img height="38" width="200" src="https://raulbojalil.com/blog/coffee.png" alt="Buy Me A Coffee" loading="lazy"></a>
+</div>
+        </aside>
+    </main>
+
+</body>
+</html>

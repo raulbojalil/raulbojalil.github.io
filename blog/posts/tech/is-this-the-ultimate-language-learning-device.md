@@ -4,7 +4,7 @@ category: "Tech"
 lang: "en"
 date: "2026-09-05"
 author: "Raúl Bojalil"
-image: "https://raulbojalil.com/blog/posts/tech/is-this-the-ultimate-language-learning-device/ultimate-learning-device.png"
+image: "https://raulbojalil.com/blog/posts/tech/is-this-the-ultimate-language-learning-device/header.png"
 excerpt: "Transforming a retro handheld console into a distraction-free, tactile Chinese flashcard machine using HTML5 and the Gamepad API."
 featured: true
 ---
