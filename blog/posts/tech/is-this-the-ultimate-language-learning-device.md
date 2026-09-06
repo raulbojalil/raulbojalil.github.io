@@ -2,7 +2,7 @@
 title: "Is this the ultimate language learning device?"
 category: "Tech"
 lang: "en"
-date: "2026-05-09"
+date: "2026-09-05"
 author: "Raúl Bojalil"
 image: "https://raulbojalil.com/blog/posts/tech/ultimate-learning-device.png"
 excerpt: "Transforming a retro handheld console into a distraction-free, tactile Chinese flashcard machine using HTML5 and the Gamepad API."
