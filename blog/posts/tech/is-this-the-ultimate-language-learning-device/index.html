@@ -58,6 +58,7 @@ pre code {
 }
 
 .giscus,
+.giscus-container,
 .giscus-frame {
   width: 100% !important;
   max-width: 100% !important;
@@ -129,6 +130,7 @@ const r2Pressed = gp.buttons[7] &amp;&amp; (gp.buttons[7].pressed || gp.buttons[
 <p>You can try it by navigating to <a href="https://raulbojalil.com/tools/zh.html">https://raulbojalil.com/tools/zh.html</a></p>
 
         </div>
+        <div id="giscus-container">
         <script src="https://giscus.app/client.js"
         data-repo="raulbojalil/raulbojalil.github.io"
         data-repo-id="MDEwOlJlcG9zaXRvcnk3MzUyNDM1Mw=="
@@ -144,7 +146,8 @@ const r2Pressed = gp.buttons[7] &amp;&amp; (gp.buttons[7].pressed || gp.buttons[
         data-loading="lazy"
         crossorigin="anonymous"
         async>
-</script>
+        </script>
+        </div>
         </section>
         <aside class="sidebar">
             <div class="sidebar-widget">

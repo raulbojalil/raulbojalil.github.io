@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunday Thoughts: What Happens When Processors Reach Their Physical Limit? — Raúl Bojalil</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --border-color: #e2e8f0;
+            --max-width: 1150px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-color); color: var(--text-main); line-height: 1.7; }
+
+        header { background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 1rem 1.5rem; }
+        .header-content { max-width: var(--max-width); margin: 0 auto; }
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
+
+        .container { max-width: var(--max-width); margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 2.7fr 1.3fr; gap: 2rem; }
+        .back-btn { display: inline-block; margin-bottom: 1.5rem; color: var(--accent); text-decoration: none; font-weight: 600; }
+        .tag { display: inline-block; background: var(--accent); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+        .post-meta { font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0 1rem 0; }
+        img.cover { width: 100%; max-height: 400px; object-fit: cover; border-radius: 6px; margin: 1rem 0; }
+        
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .markdown-body p { margin-bottom: 1rem; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        
+/* Sidebar */
+        .sidebar-widget { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem; margin-bottom: 1.5rem; }
+        .sidebar-widget h4 { font-size: 0.95rem; border-bottom: 2px solid var(--bg-color); padding-bottom: 0.5rem; margin-bottom: 0.8rem; }
+
+        @media (max-width: 800px) {
+            .container { grid-template-columns: 1fr; }
+            .featured-card { grid-template-columns: 1fr; }
+        }
+
+code {
+    background-color: #272822;
+    color: #f8f8f2;
+    border-radius: 0.3em;
+    padding: 4px 5px 6px;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+pre code {
+    white-space: pre;
+}
+
+.giscus,
+.giscus-container,
+.giscus-frame {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+main.container,
+.markdown-body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+            <a class="logo" href="/blog">Multi-Threader's Blog</a>
+            <p>Threading thoughts on software development, AI, cybersecurity and more!</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="feed-view">
+        <a class="back-btn" href="/blog">← Back to all posts</a>
+        <div><span class="tag">Technology</span></div>
+        <h1 style="line-height: 1; font-size:2.2rem; margin-top:0.4rem;">Sunday Thoughts: What Happens When Processors Reach Their Physical Limit?</h1>
+        <div class="post-meta">By Raúl Bojalil • 2026-09-06</div>
+        <img src="https://raulbojalil.com/blog/posts/tech/sunday-thoughts-processors-physical-limit/header.png" class="cover" alt="Sunday Thoughts: What Happens When Processors Reach Their Physical Limit?">
+        <div class="markdown-body">
+            <p>This Sunday, I found myself in a philosophical mood, pondering the fundamental physical limits of modern technology. For decades, the entire computing industry has comfortably relied on Moore&#39;s Law—continually shrinking transistors to make processors smaller, faster, and remarkably more efficient. However, we are rapidly approaching a hard boundary enforced by the fundamental laws of physics.</p>
+<p>When transistor features reach the scale of just a few atoms, quantum tunneling causes electrons to leak through barriers, generating excessive heat and making predictable digital switching nearly impossible. So, what happens when processors simply cannot be made any smaller?</p>
+<p>To explore this question, I spent part of my Sunday having a fascinating conversation with AI, brainstorming potential paradigms that could reshape computing once traditional silicon scaling hits a wall.</p>
+<hr>
+<h2>The Sunset of Traditional Silicon Scaling</h2>
+<p>For years, computer architecture relied on <em>Dennard scaling</em> and photolithography advances to push transistor counts higher. But as we reach sub-nanometer scales, physical constraints dominate:</p>
+<ol>
+<li><strong>Quantum Tunneling:</strong> At atomic scales, electrons jump across insulating barriers, creating current leaks and computational errors.</li>
+<li><strong>Thermal Dissipation Limits:</strong> Power density becomes so high that cooling ultra-dense silicon blocks without damaging the chip becomes prohibitively difficult.</li>
+<li><strong>Economic Limits:</strong> Building semiconductor fabrication plants (<em>fabs</em>) for advanced nodes now costs tens of billions of dollars, creating an economic bottleneck alongside the physical one.</li>
+</ol>
+<p>If we can no longer rely on physical miniaturization, the industry must innovate at the structural, architectural, and material levels.</p>
+<hr>
+<h2>Beyond Silicon: Emerging Computing Technologies</h2>
+<p>During my discussion with AI, we explored several emerging alternatives that move beyond simply squeezing more transistors onto a flat piece of silicon.</p>
+<h3>1. Programmable Matter (Claytronics &amp; Reconfigurable Materials)</h3>
+<p>One of the most mind-bending concepts we discussed was <strong>programmable matter</strong>—materials engineered to dynamically alter their physical properties (shape, density, optical attributes, or electrical conductivity) on command via embedded software or external control fields.</p>
+<p>In computing, instead of manufacturing rigid, static microchips, programmable matter could allow hardware to physically reconfigure its topology in real time depending on the algorithm being executed. Imagine a chip whose physical circuits morph into an optimal layout for neural network training one second, and restructure themselves for cryptographic hashing the next.</p>
+<h3>2. Neuromorphic Computing</h3>
+<p>Rather than adhering strictly to the traditional Von Neumann architecture—where processor and memory are separated by a bus that creates performance bottlenecks—<strong>neuromorphic computing</strong> takes direct inspiration from biological brains.</p>
+<p>Using specialized hardware components like memristors, neuromorphic chips integrate memory and computation directly into artificial neurons and synapses. They operate on asynchronous event-driven pulses (spikes), consuming orders of magnitude less power while excelling at pattern recognition, sensory processing, and real-time AI workloads.</p>
+<h3>3. Photonic &amp; Optical Computing</h3>
+<p>Electrons traveling through copper traces generate resistance and heat, inherently limiting clock speeds. <strong>Photonic computing</strong> replaces electrons with photons (light particles) to perform calculations and transmit data.</p>
+<p>By utilizing optical waveguides, beamsplitters, and lasers, photonic processors can calculate complex matrix operations at the speed of light with virtually no thermal loss. While full general-purpose optical CPUs remain challenging, hybrid optical-electronic accelerators are already demonstrating immense promise for AI inference and high-throughput vector math.</p>
+<h3>4. 3D Monolithic Stacking &amp; Chiplets</h3>
+<p>If we cannot shrink components horizontally, we must build vertically. <strong>3D Monolithic Integration</strong> stacks logic, memory, and interconnect layers directly on top of one another using ultra-dense Through-Silicon Vias (TSVs) or direct molecular bonding. Combined with modular <strong>chiplet architectures</strong>, this allows heterogenous integration—coupling different optimized silicon technologies (such as high-bandwidth memory, optical transceivers, and specialized AI accelerators) into a single cohesive package.</p>
+<hr>
+<h2>Final Thoughts</h2>
+<p>Reaching the physical limit of traditional silicon isn&#39;t the end of computing progress; it is simply the catalyst for a paradigm shift. We are moving away from brute-force miniaturization toward architectural creativity, bio-inspired designs, and fundamentally new physical mediums like light and programmable matter.</p>
+<p>What are your thoughts on where computing is headed? Do you think programmable matter or optical chips will be the true successors to silicon? Let me know in the comments below!</p>
+
+        </div>
+        <div id="giscus-container">
+        <script src="https://giscus.app/client.js"
+        data-repo="raulbojalil/raulbojalil.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnk3MzUyNDM1Mw=="
+        data-category="General"
+        data-category-id="DIC_kwDOBGHkgc4DE_bd"
+        data-mapping="url"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+        </script>
+        </div>
+        </section>
+        <aside class="sidebar">
+            <div class="sidebar-widget">
+                <h4>About the Author</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted);">With more than 15 years of software development experience, working for renowned companies like Axa and Pinterest, <a href="https://raulbojalil.com">Raúl Bojalil</a>  is a passionate of all things IT. He's always learning and looking for ways to make life easier using technology. He speaks 5 languages (Spanish, English, French, Portuguese and Mandarin Chinese) and plays the piano in his free time.</p>
+		<div style="height: 1px;
+    margin: 20px 0 20px 0;
+    background-color: rgba(246, 246, 246, 1);
+"></div>
+<img alt="Raúl Bojalil Tryhackme streak" src="https://assets.tryhackme.com/room-badges/2e122db3e3a3337c2f1dcb0fdbd21676.png" style="
+    width: 100%;
+">
+                <img src="https://duolingo-stats-card.vercel.app/api?username=raulbojalil" alt="Raúl Bojalil Duolingo Stats" class="Home_statsImage__kAXxj" style="display: block; width: 100%">
+            </div>
+  <div class="sidebar-widget">
+<h4>Enjoy this blog?</h4>
+<a href="https://www.buymeacoffee.com/raulbojalil" target="_blank" rel="noopener" class="track p-0.5 bg-[#E38546] inline-block shadow-md track duration-300 hover:scale-110 rounded-md transition-transform"><img height="38" width="200" src="https://raulbojalil.com/blog/coffee.png" alt="Buy Me A Coffee" loading="lazy"></a>
+</div>
+        </aside>
+    </main>
+
+</body>
+</html>

@@ -6,7 +6,7 @@ date: "2026-09-05"
 author: "Raúl Bojalil"
 image: "https://raulbojalil.com/blog/posts/tech/is-this-the-ultimate-language-learning-device/header.png"
 excerpt: "Transforming a retro handheld console into a distraction-free, tactile Chinese flashcard machine using HTML5 and the Gamepad API."
-featured: true
+featured: false
 ---
 
 When you think of retro handheld consoles like the Anbernic RG Rotate, the first thing that comes to mind is retro gaming. With its crisp 1:1 square display and ergonomic shoulder triggers, it is an absolute dream for classic gaming. 

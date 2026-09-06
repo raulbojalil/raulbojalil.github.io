@@ -58,6 +58,7 @@ pre code {
 }
 
 .giscus,
+.giscus-container,
 .giscus-frame {
   width: 100% !important;
   max-width: 100% !important;
@@ -94,6 +95,7 @@ main.container,
         <div class="markdown-body">
             {{content}}
         </div>
+        <div id="giscus-container">
         <script src="https://giscus.app/client.js"
         data-repo="raulbojalil/raulbojalil.github.io"
         data-repo-id="MDEwOlJlcG9zaXRvcnk3MzUyNDM1Mw=="
@@ -109,7 +111,8 @@ main.container,
         data-loading="lazy"
         crossorigin="anonymous"
         async>
-</script>
+        </script>
+        </div>
         </section>
         <aside class="sidebar">
             <div class="sidebar-widget">
