@@ -6,7 +6,7 @@ date: "2026-09-03"
 author: "Laura Gómez"
 image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
 excerpt: "Exploring how generative artificial intelligence is reshaping digital art and design workflows."
-featured: true
+featured: false
 ---
 
 # Generative AI and the Future of Digital Design

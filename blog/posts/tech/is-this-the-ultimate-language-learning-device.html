@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Is this the ultimate language learning device? — Raúl Bojalil</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --border-color: #e2e8f0;
+            --max-width: 800px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-color); color: var(--text-main); line-height: 1.7; }
+
+        header { background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 1rem 1.5rem; }
+        .header-content { max-width: var(--max-width); margin: 0 auto; }
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
+
+        .container { max-width: var(--max-width); margin: 2rem auto; padding: 2rem; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); }
+        .back-btn { display: inline-block; margin-bottom: 1.5rem; color: var(--accent); text-decoration: none; font-weight: 600; }
+        .tag { display: inline-block; background: var(--accent); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+        .post-meta { font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0 1rem 0; }
+        img.cover { width: 100%; max-height: 400px; object-fit: cover; border-radius: 6px; margin: 1rem 0; }
+        
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .markdown-body p { margin-bottom: 1rem; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+            <a class="logo" href="/blog">MULTI-THREADER'S BLOG</a>
+            <p>Threading thoughts on software development, AI, cybersecurity and more!</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <a class="back-btn" href="/blog">← Back to all posts</a>
+        <div><span class="tag">Tech</span></div>
+        <h1 style="font-size:2.2rem; margin-top:0.4rem;">Is this the ultimate language learning device?</h1>
+        <div class="post-meta">By Raúl Bojalil • 2026-05-09</div>
+        <img src="ultimate-learning-device.png" class="cover" alt="Is this the ultimate language learning device?">
+        <div class="markdown-body">
+            <p>When you think of retro handheld consoles like the Anbernic RG Cube, the first things that come to mind are Game Boy Advance titles, Nintendo DS classics, or PlayStation 1 ROMs. With its crisp 1:1 square display and ergonomic shoulder triggers, it is an absolute dream for classic gaming. </p>
+<p>But what if you used that exact same hardware to master Chinese vocabulary?</p>
+<p>I recently turned this handheld console into a full-fledged, offline HSK flashcard reader—and the experience might just beat traditional smartphone apps.</p>
+<hr>
+<h3>The Problem with Learning Apps on Smartphones</h3>
+<p>Smartphone apps like Anki or Pleco are fantastic, but they come with a major downside: <strong>distractions</strong>. The second you unlock your phone to review 10 vocabulary words, a push notification pops up, Instagram calls your name, or a text message interrupts your focus.</p>
+<p>Moreover, touch interfaces lack tactile satisfaction. Swiping through hundreds of cards on a glass screen quickly feels repetitive and draining.</p>
+<h3>Enter the RG Cube: Tactile, Offline, and Focused</h3>
+<p>By leveraging the RG Cube&#39;s built-in browser capabilities and Gamepad API support, I built a lightweight, single-file web application designed specifically for its unique form factor.</p>
+<p>Here is why this setup works remarkably well:</p>
+<ul>
+<li><strong>Physical Triggers for Active Recall:</strong> Instead of tapping a screen, you navigate cards using <strong>L1 and R1</strong> for sequential review.</li>
+<li><strong>Randomized Jumps on Demand:</strong> Pressing <strong>L2 or R2</strong> immediately pulls a random word from your current level, keeping your brain engaged and preventing pattern memorization.</li>
+<li><strong>1:1 Square Aspect Ratio:</strong> The 720x720 display naturally frames Chinese characters (<em>Hanzi</em>), <em>Pinyin</em>, and translations without wasted space.</li>
+<li><strong>Zero Distractions:</strong> No notifications, no social media feeds, and no constant pinging. Just you, the hardware, and the language.</li>
+<li><strong>Easy on the hand:</strong> The RG Cube is very pocketable and holding it feels very natural.</li>
+</ul>
+<hr>
+<h3>How It Works Under the Hood</h3>
+<p>The application relies on plain HTML5, CSS, and Vanilla JavaScript—meaning zero heavy frameworks and instant loading times. </p>
+<p>To bridge the console controls with the app, it continuously polls the <strong>Gamepad API</strong> to capture shoulder button inputs:</p>
+<pre><code class="language-javascript">// Mapping the physical shoulder buttons for flashcard navigation
+const l1Pressed = gp.buttons[4] &amp;&amp; gp.buttons[4].pressed; // Previous word
+const r1Pressed = gp.buttons[5] &amp;&amp; gp.buttons[5].pressed; // Next word
+
+// L2 / R2 triggers for jumping to a random word within the active HSK level
+const l2Pressed = gp.buttons[6] &amp;&amp; (gp.buttons[6].pressed || gp.buttons[6].value &gt; 0.5);
+const r2Pressed = gp.buttons[7] &amp;&amp; (gp.buttons[7].pressed || gp.buttons[7].value &gt; 0.5);
+</code></pre>
+<p>It supports instant filtering across HSK 1, HSK 2, and HSK 3 vocabulary levels, allowing you to narrow your focus or shuffle through specific tiers whenever you want.</p>
+<hr>
+<h3>The Verdict</h3>
+<p>Is it really the ultimate language learning device? If you value tactile feedback, portability, and distraction-free study sessions, <strong>it just might be</strong>.</p>
+<p>Turning dedicated gaming hardware into a productivity tool gives a second life to devices you already carry around. The next time you pick up your handheld, you can level up your real-world vocabulary before diving into your favorite game.</p>
+<p>You can try it by navigating to <a href="https://raulbojalil.com/tools/zh.html">https://raulbojalil.com/tools/zh.html</a></p>
+
+        </div>
+    </main>
+
+</body>
+</html>
