@@ -31,9 +31,22 @@ function compilePost(filePath) {
   const { attributes, body } = fm(fileContent);
   const htmlContent = marked.parse(body);
 
-  const htmlOutputPath = filePath.replace(/\.md$/, '.html');
+  // Extraer el nombre base del post (slug) y el directorio contenedor
+  const postDir = path.dirname(filePath);
+  const slug = path.basename(filePath, '.md');
+
+  // Crear la subcarpeta del post (ej. posts/tech/mi-post)
+  const outputFolder = path.join(postDir, slug);
+  if (!fs.existsSync(outputFolder)) {
+    fs.mkdirSync(outputFolder, { recursive: true });
+  }
+
+  // Definir la ruta del index.html dentro de la nueva carpeta
+  const htmlOutputPath = path.join(outputFolder, 'index.html');
   
-  const relativeHtmlPath = path.relative(__dirname, htmlOutputPath).replace(/\\/g, '/');
+  // Calcular la URL limpia (relativa) terminada en '/'
+  const relativeFolderPath = path.relative(__dirname, outputFolder).replace(/\\/g, '/');
+  const cleanUrl = `${relativeFolderPath}/`;
 
   if (postTemplate) {
     const imageTag = attributes.image ? `<img src="${attributes.image}" class="cover" alt="${attributes.title || ''}">` : '';
@@ -57,10 +70,10 @@ function compilePost(filePath) {
     image: attributes.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c',
     excerpt: attributes.excerpt || attributes.description || '',
     featured: Boolean(attributes.featured),
-    url: relativeHtmlPath
+    url: cleanUrl
   });
 
-  console.log(`✓ Post compiled statically: ${relativeHtmlPath}`);
+  console.log(`✓ Post compiled statically: ${cleanUrl}`);
 }
 
 processDirectory(POSTS_DIR);
@@ -94,11 +107,9 @@ const gridHtml = gridPosts.map(post => `
         </div>
     </a>`).join('\n');
 
-// 4. Inyectar únicamente dentro de las marcas en index_template.html
 if (fs.existsSync(TEMPLATE_INDEX_PATH)) {
   let templateContent = fs.readFileSync(TEMPLATE_INDEX_PATH, 'utf-8');
 
-  // Solo reemplaza el interior de las marcas (manteniendo <style> intacto)
   templateContent = templateContent.replace(
     /<!-- FEATURED_POST_START -->[\s\S]*<!-- FEATURED_POST_END -->/,
     `<!-- FEATURED_POST_START -->\n${featuredHtml}\n            <!-- FEATURED_POST_END -->`
