@@ -12,7 +12,7 @@
             --text-muted: #64748b;
             --accent: #2563eb;
             --border-color: #e2e8f0;
-            --max-width: 800px;
+            --max-width: 1150px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,7 +22,7 @@
         .header-content { max-width: var(--max-width); margin: 0 auto; }
         .logo { font-size: 1.4rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
 
-        .container { max-width: var(--max-width); margin: 2rem auto; padding: 2rem; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); }
+        .container { max-width: var(--max-width); margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 2.7fr 1.3fr; gap: 2rem; }
         .back-btn { display: inline-block; margin-bottom: 1.5rem; color: var(--accent); text-decoration: none; font-weight: 600; }
         .tag { display: inline-block; background: var(--accent); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
         .post-meta { font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0 1rem 0; }
@@ -32,6 +32,15 @@
         .markdown-body p { margin-bottom: 1rem; }
         .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1rem; }
         
+/* Sidebar */
+        .sidebar-widget { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem; margin-bottom: 1.5rem; }
+        .sidebar-widget h4 { font-size: 0.95rem; border-bottom: 2px solid var(--bg-color); padding-bottom: 0.5rem; margin-bottom: 0.8rem; }
+
+        @media (max-width: 800px) {
+            .container { grid-template-columns: 1fr; }
+            .featured-card { grid-template-columns: 1fr; }
+        }
+
 code {
     background-color: #272822;
     color: #f8f8f2;
@@ -62,14 +71,34 @@ pre code {
     </header>
 
     <main class="container">
+        <section id="feed-view">
         <a class="back-btn" href="/blog">← Back to all posts</a>
         <div><span class="tag">{{category}}</span></div>
-        <h1 style="font-size:2.2rem; margin-top:0.4rem;">{{title}}</h1>
+        <h1 style="line-height: 1; font-size:2.2rem; margin-top:0.4rem;">{{title}}</h1>
         <div class="post-meta">By {{author}} • {{date}}</div>
         {{image}}
         <div class="markdown-body">
             {{content}}
         </div>
+        </section>
+        <aside class="sidebar">
+            <div class="sidebar-widget">
+                <h4>About the Author</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted);">With more than 15 years of software development experience, working for renowned companies like Axa and Pinterest, <a href="https://raulbojalil.com">Raúl Bojalil</a>  is a passionate of all things IT. He's always learning and looking for ways to make life easier using technology. He speaks 5 languages (Spanish, English, French, Portuguese and Mandarin Chinese) and plays the piano in his free time.</p>
+		<div style="height: 1px;
+    margin: 20px 0 20px 0;
+    background-color: rgba(246, 246, 246, 1);
+"></div>
+<img alt="Raúl Bojalil Tryhackme streak" src="https://assets.tryhackme.com/room-badges/2e122db3e3a3337c2f1dcb0fdbd21676.png" style="
+    width: 100%;
+">
+                <img src="https://duolingo-stats-card.vercel.app/api?username=raulbojalil" alt="Raúl Bojalil Duolingo Stats" class="Home_statsImage__kAXxj" style="display: block; width: 100%">
+            </div>
+  <div class="sidebar-widget">
+<h4>Enjoy this blog?</h4>
+<a href="https://www.buymeacoffee.com/raulbojalil" target="_blank" rel="noopener" class="track p-0.5 bg-[#E38546] inline-block shadow-md track duration-300 hover:scale-110 rounded-md transition-transform"><img height="38" width="200" src="https://raulbojalil.com/blog/coffee.png" alt="Buy Me A Coffee" loading="lazy"></a>
+</div>
+        </aside>
     </main>
 
 </body>
