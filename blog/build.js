@@ -11,7 +11,6 @@ const OUTPUT_INDEX_PATH = path.join(__dirname, 'index.html');
 const postsList = [];
 const postTemplate = fs.existsSync(TEMPLATE_POST_PATH) ? fs.readFileSync(TEMPLATE_POST_PATH, 'utf-8') : '';
 
-// 1. Recorrer directorios en busca de archivos Markdown
 function processDirectory(dir) {
   if (!fs.existsSync(dir)) return;
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -27,19 +26,15 @@ function processDirectory(dir) {
   }
 }
 
-// 2. Compilar Markdown a HTML individual
 function compilePost(filePath) {
   const fileContent = fs.readFileSync(filePath, 'utf-8');
   const { attributes, body } = fm(fileContent);
   const htmlContent = marked.parse(body);
 
-  // Determinar la ruta de salida .html
   const htmlOutputPath = filePath.replace(/\.md$/, '.html');
   
-  // Calcular la ruta relativa web (ej: /blog/posts/ai/generative-ai.html)
-  const relativeHtmlPath = '/' + path.relative(__dirname, htmlOutputPath).replace(/\\/g, '/');
+  const relativeHtmlPath = path.relative(__dirname, htmlOutputPath).replace(/\\/g, '/');
 
-  // Generar HTML del post si existe la plantilla
   if (postTemplate) {
     const imageTag = attributes.image ? `<img src="${attributes.image}" class="cover" alt="${attributes.title || ''}">` : '';
     
@@ -54,7 +49,6 @@ function compilePost(filePath) {
     fs.writeFileSync(htmlOutputPath, outputPostHtml, 'utf-8');
   }
 
-  // Guardar datos para generar el listado del index
   postsList.push({
     title: attributes.title || 'Sin título',
     author: attributes.author || 'Anónimo',
@@ -66,20 +60,16 @@ function compilePost(filePath) {
     url: relativeHtmlPath
   });
 
-  console.log(`✓ Post estático compilado: ${relativeHtmlPath}`);
+  console.log(`✓ Post compiled statically: ${relativeHtmlPath}`);
 }
 
-// Ejecutar compilación de posts
 processDirectory(POSTS_DIR);
 
-// Ordenar por fecha (más recientes primero)
 postsList.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-// Separar el post destacado del resto
 const featuredPost = postsList.find(p => p.featured) || postsList[0];
 const gridPosts = postsList.filter(p => p !== featuredPost);
 
-// 3. Generar HTML estático con hipervínculos <a> nativos
 let featuredHtml = '';
 if (featuredPost) {
   featuredHtml = `
@@ -120,7 +110,7 @@ if (fs.existsSync(TEMPLATE_INDEX_PATH)) {
   );
 
   fs.writeFileSync(OUTPUT_INDEX_PATH, templateContent, 'utf-8');
-  console.log('\n✓ index.html compilado exitosamente sin JavaScript y preservando los estilos.');
+  console.log('\n✓ Done.');
 } else {
-  console.error('\n⚠ Error: No se encontró el archivo index_template.html');
+  console.error('\n⚠ Error: index_template.html not found');
 }
