@@ -2,7 +2,7 @@
 // Les appels à l'API Google Drive ne sont JAMAIS mis en cache : ils passent
 // toujours par le réseau pour refléter l'état réel du Drive de l'utilisateur.
 
-const CACHE_NAME = "ra-cloud-saves-shell-v2";
+const CACHE_NAME = "ra-cloud-saves-shell-v3";
 const SHELL_FILES = [
   "./",
   "./index.html",

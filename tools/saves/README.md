@@ -76,6 +76,14 @@ direct)"** apparaît dans le panneau "Cet appareil". Il utilise la
 
 Ce bouton ne s'affiche pas si le navigateur ne supporte pas cette API :
 
+**Sous-dossiers par cœur** : RetroArch range ses sauvegardes dans un
+sous-dossier par cœur (`saves/DeSmuME/`, `saves/ParaLLEl N64/`, etc.).
+L'app reproduit fidèlement cette arborescence dans Google Drive
+(`RetroArch Saves/DeSmuME/`, `RetroArch Saves/ParaLLEl N64/`...), aussi bien
+avec le dossier lié (FSA) qu'avec le sélecteur de dossier classique
+("Choisir un dossier"). Deux fichiers de même nom dans deux cœurs différents
+ne se marchent donc plus dessus.
+
 | Navigateur | Support |
 |---|---|
 | Chrome / Edge (ordinateur) | ✅ complet, y compris le choix de dossier |

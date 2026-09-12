@@ -23,6 +23,7 @@ const state = {
   driveFiles: [],   // fichiers listés depuis Drive
   dirHandle: null,      // FileSystemDirectoryHandle lié, si disponible
   dirPermGranted: false,
+  driveFolderCache: new Map(), // "segment/segment" -> folderId (mémoïsation)
 };
 
 const FSA_SUPPORTED = "showDirectoryPicker" in window;
@@ -206,6 +207,7 @@ async function ensureFolder() {
 
   if (data.files && data.files.length > 0) {
     state.folderId = data.files[0].id;
+    state.driveFolderCache.set("", state.folderId);
     return state.folderId;
   }
 
@@ -219,30 +221,97 @@ async function ensureFolder() {
   });
   const created = await createRes.json();
   state.folderId = created.id;
+  state.driveFolderCache.set("", state.folderId);
   log(`Dossier "${CONFIG.DRIVE_FOLDER_NAME}" créé dans Google Drive.`, "ok");
   return state.folderId;
 }
 
-async function listDriveFiles() {
-  const q = encodeURIComponent(`'${state.folderId}' in parents and trashed=false`);
-  const fields = encodeURIComponent("files(id,name,size,modifiedTime)");
-  const res = await driveFetch(`${DRIVE_API}/files?q=${q}&fields=${fields}&orderBy=name`);
-  const data = await res.json();
-  return data.files || [];
+/* --- Sous-dossiers Drive : on reproduit l'arborescence des cœurs RetroArch
+   (ex. RetroArch Saves/DeSmuME/, RetroArch Saves/ParaLLEl N64/, ...). --- */
+
+async function ensureDriveFolder(segments) {
+  if (!segments || segments.length === 0) return state.folderId;
+  let parentId = state.folderId;
+  let builtPath = [];
+  for (const seg of segments) {
+    builtPath.push(seg);
+    const key = builtPath.join("/");
+    if (state.driveFolderCache.has(key)) {
+      parentId = state.driveFolderCache.get(key);
+      continue;
+    }
+    const q = encodeURIComponent(
+      `name='${seg.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false and '${parentId}' in parents`
+    );
+    const res = await driveFetch(`${DRIVE_API}/files?q=${q}&fields=files(id,name)`);
+    const data = await res.json();
+    let folderId;
+    if (data.files && data.files.length > 0) {
+      folderId = data.files[0].id;
+    } else {
+      const createRes = await driveFetch(`${DRIVE_API}/files`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: seg,
+          mimeType: "application/vnd.google-apps.folder",
+          parents: [parentId],
+        }),
+      });
+      const created = await createRes.json();
+      folderId = created.id;
+      log(`Sous-dossier "${key}" créé dans le Drive.`, "ok");
+    }
+    state.driveFolderCache.set(key, folderId);
+    parentId = folderId;
+  }
+  return parentId;
 }
 
-async function findFileByName(name) {
+async function listDriveTree(folderId, relSegments) {
+  const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+  const fields = encodeURIComponent("files(id,name,size,modifiedTime,mimeType)");
+  const res = await driveFetch(`${DRIVE_API}/files?q=${q}&fields=${fields}&orderBy=folder,name`);
+  const data = await res.json();
+
+  let results = [];
+  for (const f of data.files || []) {
+    if (f.mimeType === "application/vnd.google-apps.folder") {
+      const newSegs = [...relSegments, f.name];
+      state.driveFolderCache.set(newSegs.join("/"), f.id);
+      results = results.concat(await listDriveTree(f.id, newSegs));
+    } else {
+      results.push({
+        id: f.id,
+        name: f.name,
+        size: f.size,
+        modifiedTime: f.modifiedTime,
+        relDir: relSegments.join("/"),
+      });
+    }
+  }
+  return results;
+}
+
+async function listDriveFiles() {
+  state.driveFolderCache.clear();
+  state.driveFolderCache.set("", state.folderId);
+  return listDriveTree(state.folderId, []);
+}
+
+async function findFileByName(name, folderId) {
+  const parent = folderId || state.folderId;
   const q = encodeURIComponent(
-    `name='${name.replace(/'/g, "\\'")}' and '${state.folderId}' in parents and trashed=false`
+    `name='${name.replace(/'/g, "\\'")}' and '${parent}' in parents and trashed=false`
   );
   const res = await driveFetch(`${DRIVE_API}/files?q=${q}&fields=files(id,name)`);
   const data = await res.json();
   return data.files && data.files[0];
 }
 
-async function uploadNewFile(file) {
+async function uploadNewFile(file, folderId) {
   const boundary = "-------ra_cloud_saves_" + Date.now();
-  const metadata = { name: file.name, parents: [state.folderId] };
+  const metadata = { name: file.name, parents: [folderId || state.folderId] };
   const bytes = await file.arrayBuffer();
 
   const body = new Blob([
@@ -268,7 +337,16 @@ async function updateFileContent(fileId, file) {
   });
 }
 
-async function downloadDriveFile(fileId, fileName) {
+async function getOrCreateSubDirHandle(rootHandle, relDir) {
+  if (!relDir) return rootHandle;
+  let handle = rootHandle;
+  for (const seg of relDir.split("/")) {
+    handle = await handle.getDirectoryHandle(seg, { create: true });
+  }
+  return handle;
+}
+
+async function downloadDriveFile(fileId, fileName, relDir) {
   const res = await driveFetch(`${DRIVE_API}/files/${fileId}?alt=media`);
   const blob = await res.blob();
 
@@ -277,11 +355,15 @@ async function downloadDriveFile(fileId, fileName) {
       const granted = await ensureDirPermission(state.dirHandle, true);
       updateFsaUI();
       if (!granted) throw new Error("permission refusée");
-      const fileHandle = await state.dirHandle.getFileHandle(fileName, { create: true });
+      const targetDir = await getOrCreateSubDirHandle(state.dirHandle, relDir);
+      const fileHandle = await targetDir.getFileHandle(fileName, { create: true });
       const writable = await fileHandle.createWritable();
       await writable.write(blob);
       await writable.close();
-      log(`"${fileName}" écrit directement dans "${state.dirHandle.name}".`, "ok");
+      log(
+        `"${relDir ? relDir + "/" : ""}${fileName}" écrit directement dans "${state.dirHandle.name}".`,
+        "ok"
+      );
       await scanDirectory();
       return;
     } catch (e) {
@@ -298,6 +380,9 @@ async function downloadDriveFile(fileId, fileName) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  if (relDir) {
+    log(`Rappel : "${fileName}" appartient au sous-dossier "${relDir}" côté RetroArch.`, "info");
+  }
 }
 
 async function deleteDriveFile(fileId) {
@@ -438,6 +523,20 @@ async function tryRestoreFolder() {
   }
 }
 
+async function walkDirectory(dirHandle, relSegments, results) {
+  for await (const entry of dirHandle.values()) {
+    if (entry.kind === "file") {
+      const file = await entry.getFile();
+      file.__source = "handle";
+      file.__entryHandle = entry;
+      file.__relDir = relSegments.join("/");
+      results.push(file);
+    } else if (entry.kind === "directory") {
+      await walkDirectory(entry, [...relSegments, entry.name], results);
+    }
+  }
+}
+
 async function scanDirectory() {
   if (!state.dirHandle) return;
   const granted = await ensureDirPermission(state.dirHandle, true);
@@ -448,14 +547,11 @@ async function scanDirectory() {
   }
 
   state.pendingFiles = state.pendingFiles.filter((f) => f.__source !== "handle");
-  for await (const entry of state.dirHandle.values()) {
-    if (entry.kind !== "file") continue;
-    const file = await entry.getFile();
-    file.__source = "handle";
-    file.__entryHandle = entry;
-    state.pendingFiles.push(file);
-  }
+  const found = [];
+  await walkDirectory(state.dirHandle, [], found);
+  state.pendingFiles.push(...found);
   renderLocalList();
+  log(`${found.length} fichier(s) trouvé(s) dans "${state.dirHandle.name}" (sous-dossiers inclus).`, "info");
 }
 
 el.linkFolderBtn.addEventListener("click", linkFolder);
@@ -491,9 +587,9 @@ function renderLocalList() {
     row.innerHTML = `
       <span class="file-icon">▣</span>
       <span class="file-meta">
-        <span class="file-name">${escapeHtml(file.name)}</span>
+        <span class="file-name">${file.__relDir ? `<span class="file-path-prefix">${escapeHtml(file.__relDir)}/</span>` : ""}${escapeHtml(file.name)}</span>
         <span class="file-sub">${formatSize(file.size)} · en attente
-          <span class="source-tag">${file.__source === "handle" ? "dossier lié" : "sélectionné"}</span>
+          <span class="source-tag">${file.__source === "handle" ? "dossier lié" : file.__source === "folder-input" ? "dossier importé" : "sélectionné"}</span>
         </span>
       </span>
       <span class="file-actions">
@@ -515,7 +611,12 @@ function renderLocalList() {
 function addPendingFiles(fileList) {
   const incoming = Array.from(fileList);
   incoming.forEach((file) => {
-    if (!state.pendingFiles.some((f) => f.name === file.name && f.size === file.size)) {
+    const relDir = file.__relDir || "";
+    if (
+      !state.pendingFiles.some(
+        (f) => f.name === file.name && f.size === file.size && (f.__relDir || "") === relDir
+      )
+    ) {
       state.pendingFiles.push(file);
     }
   });
@@ -550,11 +651,11 @@ function renderDriveList() {
     row.innerHTML = `
       <span class="file-icon">▣</span>
       <span class="file-meta">
-        <span class="file-name">${escapeHtml(file.name)}</span>
+        <span class="file-name">${file.relDir ? `<span class="file-path-prefix">${escapeHtml(file.relDir)}/</span>` : ""}${escapeHtml(file.name)}</span>
         <span class="file-sub">${formatSize(file.size)} · ${formatDate(file.modifiedTime)}</span>
       </span>
       <span class="file-actions">
-        <button class="btn small dl-drive" data-id="${file.id}" data-name="${escapeHtml(file.name)}">Télécharger</button>
+        <button class="btn small dl-drive" data-id="${file.id}" data-name="${escapeHtml(file.name)}" data-reldir="${escapeHtml(file.relDir || "")}">Télécharger</button>
         <button class="btn small danger rm-drive" data-id="${file.id}" data-name="${escapeHtml(file.name)}">Suppr.</button>
       </span>
     `;
@@ -565,7 +666,7 @@ function renderDriveList() {
     btn.addEventListener("click", async () => {
       btn.disabled = true;
       try {
-        await downloadDriveFile(btn.dataset.id, btn.dataset.name);
+        await downloadDriveFile(btn.dataset.id, btn.dataset.name, btn.dataset.reldir);
         log(`"${btn.dataset.name}" téléchargé.`, "ok");
       } catch (e) {
         log(`Échec du téléchargement de "${btn.dataset.name}" : ${e.message}`, "err");
@@ -597,6 +698,9 @@ async function refreshDriveList() {
   try {
     if (!state.folderId) await ensureFolder();
     state.driveFiles = await listDriveFiles();
+    state.driveFiles.sort((a, b) =>
+      `${a.relDir}/${a.name}`.localeCompare(`${b.relDir}/${b.name}`)
+    );
     renderDriveList();
   } catch (e) {
     log(`Échec du chargement du Drive : ${e.message}`, "err");
@@ -618,23 +722,26 @@ async function uploadAllPending() {
 
   const toSend = [...state.pendingFiles];
   for (const entry of toSend) {
+    const relDir = entry.__relDir || "";
+    const label = relDir ? `${relDir}/${entry.name}` : entry.name;
     try {
       // Pour un fichier sourcé depuis un dossier lié, on relit le contenu au
       // dernier moment (le fichier a pu changer depuis la sélection/scan).
       const file = entry.__entryHandle ? await entry.__entryHandle.getFile() : entry;
 
-      const existing = await findFileByName(entry.name);
+      const targetFolderId = await ensureDriveFolder(relDir ? relDir.split("/") : []);
+      const existing = await findFileByName(entry.name, targetFolderId);
       if (existing) {
         await updateFileContent(existing.id, file);
-        log(`"${entry.name}" mis à jour dans le Drive.`, "ok");
+        log(`"${label}" mis à jour dans le Drive.`, "ok");
       } else {
-        await uploadNewFile(file);
-        log(`"${entry.name}" envoyé vers le Drive.`, "ok");
+        await uploadNewFile(file, targetFolderId);
+        log(`"${label}" envoyé vers le Drive.`, "ok");
       }
       state.pendingFiles = state.pendingFiles.filter((f) => f !== entry);
       renderLocalList();
     } catch (e) {
-      log(`Échec de l'envoi de "${entry.name}" : ${e.message}`, "err");
+      log(`Échec de l'envoi de "${label}" : ${e.message}`, "err");
     }
   }
   await refreshDriveList();
@@ -646,7 +753,17 @@ async function uploadAllPending() {
 el.pickFilesBtn.addEventListener("click", () => el.fileInput.click());
 el.pickFolderBtn.addEventListener("click", () => el.folderInput.click());
 el.fileInput.addEventListener("change", (e) => addPendingFiles(e.target.files));
-el.folderInput.addEventListener("change", (e) => addPendingFiles(e.target.files));
+el.folderInput.addEventListener("change", (e) => {
+  const files = Array.from(e.target.files).map((file) => {
+    // webkitRelativePath ex. "saves/DeSmuME/pokemon.srm" — le premier segment
+    // est le dossier choisi lui-même, on ne garde que ce qu'il y a entre les deux.
+    const parts = file.webkitRelativePath ? file.webkitRelativePath.split("/") : [file.name];
+    file.__relDir = parts.slice(1, -1).join("/");
+    file.__source = "folder-input";
+    return file;
+  });
+  addPendingFiles(files);
+});
 
 ["dragenter", "dragover"].forEach((evt) =>
   el.localDropZone.addEventListener(evt, (e) => {

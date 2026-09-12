@@ -284,6 +284,11 @@ main {
   text-overflow: ellipsis;
 }
 
+.file-path-prefix {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
 .file-sub {
   font-size: 0.72rem;
   color: var(--text-dim);
