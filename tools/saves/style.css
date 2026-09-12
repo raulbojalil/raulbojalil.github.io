@@ -1,0 +1,365 @@
+/* ---------------------------------------------------------------
+   RetroArch Cloud Save Manager
+   Palette : terminal CRT — fond charbon, accent phosphore vert,
+   touches ambre pour les états d'attention.
+   ---------------------------------------------------------------- */
+
+:root {
+  --bg: #14171c;
+  --surface: #1d2129;
+  --surface-raised: #262b35;
+  --line: #333a46;
+  --text: #e8ecef;
+  --text-dim: #8b94a3;
+  --green: #5fd068;
+  --green-dim: #3a8a42;
+  --amber: #f2a65a;
+  --red: #e2665a;
+  --radius: 3px;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: inherit; }
+
+button {
+  font-family: var(--mono);
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* ---------- Bandeau supérieur ---------- */
+
+.topbar {
+  position: relative;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--line);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(95, 208, 104, 0.035) 0px,
+      rgba(95, 208, 104, 0.035) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand-title {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.brand-title .accent { color: var(--green); }
+
+.brand-sub {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-dim);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.status-pill.connected { color: var(--green); border-color: var(--green-dim); }
+.status-pill.connected .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+.btn {
+  font-size: 0.85rem;
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  color: var(--text);
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.btn:hover { border-color: var(--green-dim); color: var(--green); }
+
+.btn.primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #0c130d;
+  font-weight: 700;
+}
+
+.btn.primary:hover { background: #6fdc79; color: #0c130d; }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: var(--line);
+  color: var(--text-dim);
+}
+
+.btn.small { padding: 6px 10px; font-size: 0.76rem; }
+.btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+.btn.warn { border-color: var(--amber); color: var(--amber); }
+.btn.warn:hover { background: var(--amber); color: #1c1305; }
+
+.fsa-section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: rgba(95, 208, 104, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.source-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 0 4px;
+  margin-left: 6px;
+}
+
+/* ---------- Corps ---------- */
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  gap: 0;
+  align-items: start;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+
+.panel-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel-title {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.panel-count {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--text-dim);
+}
+
+.panel-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.panel-help {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  position: relative;
+}
+
+.divider-glyph {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  color: var(--green-dim);
+  background: var(--bg);
+  padding: 6px 0;
+}
+
+/* Rangée de fichier — lecture façon terminal, données alignées en colonnes */
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.file-icon { color: var(--green-dim); flex-shrink: 0; font-family: var(--mono); }
+
+.file-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-name {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+
+.file-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.file-row.pending .file-icon { color: var(--amber); }
+.file-row.error .file-icon { color: var(--red); }
+
+.empty-state {
+  padding: 20px 10px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+.drop-zone {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 22px 14px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.drop-zone.dragover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.field-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+input[type="file"] { display: none; }
+
+/* ---------- Journal d'activité ---------- */
+
+.log {
+  max-width: 980px;
+  margin: 0 auto 40px;
+  padding: 0 24px;
+  width: 100%;
+}
+
+.log-title {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.log-list {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-dim);
+}
+
+.log-list li.ok::before { content: "OK   "; color: var(--green); }
+.log-list li.err::before { content: "ERR  "; color: var(--red); }
+.log-list li.info::before { content: "INFO "; color: var(--text-dim); }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 760px) {
+  main {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px 16px 48px;
+  }
+  .divider { display: none; }
+  .panel { min-height: unset; }
+}
