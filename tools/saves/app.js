@@ -6,7 +6,7 @@
    OAuth dans Google Cloud Console.
    ========================================================================= */
 const CONFIG = {
-  CLIENT_ID: "REMPLACER_PAR_VOTRE_CLIENT_ID.apps.googleusercontent.com",
+  CLIENT_ID: "793875939223-g6q1j3s71bg1eafr8f8rmubstic2ksr4.apps.googleusercontent.com",
   SCOPE: "https://www.googleapis.com/auth/drive.file",
   DRIVE_FOLDER_NAME: "RetroArch Saves",
 };
