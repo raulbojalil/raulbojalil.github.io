@@ -1,6 +1,6 @@
 ---
 title: "Is this the ultimate language learning device?"
-category: "Tech"
+category: "Technology"
 lang: "en"
 date: "2026-09-05"
 author: "Raúl Bojalil"

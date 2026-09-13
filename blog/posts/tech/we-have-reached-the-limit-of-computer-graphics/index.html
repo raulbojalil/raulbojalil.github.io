@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Is this the ultimate language learning device? — Raúl Bojalil</title>
+    <title>We have reached the limit of computer graphics — Raúl Bojalil</title>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -130,45 +130,30 @@
         <section id="feed-view">
             <a class="back-btn" href="/blog">← Back to all posts</a>
             <div><span class="tag">Technology</span></div>
-            <h1 style="line-height: 1.2; font-size:2.2rem; margin-top:0.4rem;">Is this the ultimate language learning device?</h1>
-            <div class="post-meta">By Raúl Bojalil • 2026-09-05</div>
-            <img src="https://raulbojalil.com/blog/posts/tech/is-this-the-ultimate-language-learning-device/header.png" class="cover" alt="Is this the ultimate language learning device?">
+            <h1 style="line-height: 1.2; font-size:2.2rem; margin-top:0.4rem;">We have reached the limit of computer graphics</h1>
+            <div class="post-meta">By Raúl Bojalil • 2026-09-13</div>
+            <img src="https://raulbojalil.com/blog/posts/tech/we-have-reached-the-limit-of-computer-graphics/header.jpg" class="cover" alt="We have reached the limit of computer graphics">
             <div class="markdown-body">
-                <p>When you think of retro handheld consoles like the Anbernic RG Rotate, the first thing that comes to mind is retro gaming. With its crisp 1:1 square display and ergonomic shoulder triggers, it is an absolute dream for classic gaming. </p>
-<p>But what if you used that exact same hardware to master Chinese vocabulary?</p>
-<p>I recently turned this handheld console into a full-fledged, offline HSK flashcard reader—and the experience might just beat traditional smartphone apps.</p>
+                <p>Unless you have been living under a rock, you&#39;ve heard about <strong>DLSS 5</strong>, a technology made by NVIDIA to make computer graphics more photorealistic. What started years ago as a smart spatial upscaling trick has evolved into a hyper-advanced real-time AI rendering pipeline capable of predicting geometry, lighting, and temporal consistency at the frame level. But of course it&#39;s not without its flaws, it was received with a lot of criticism from the gaming community, and a lot of funny memes started appearing all over the internet.</p>
+<p>There&#39;s no denying though (using AI or not) that we are quickly approaching a historical turning point in visual computing: the moment where real-time graphics become completely indistinguishable from reality. But what can we do beyond photorealistic graphics?</p>
 <hr>
-<h3>The Problem with Learning Apps on Smartphones</h3>
-<p>Smartphone apps like Anki or Pleco are fantastic, but they come with a major downside: <strong>distractions</strong>. The second you unlock your phone to review 10 vocabulary words, a push notification pops up, Instagram calls your name, or a text message interrupts your focus.</p>
-<p>Moreover, touch interfaces lack tactile satisfaction. Swiping through hundreds of cards on a glass screen quickly feels repetitive and draining.</p>
-<h3>Enter the RG Rotate: Tactile, Offline, and Focused</h3>
-<p>By leveraging the RG Rotate&#39;s built-in browser capabilities and Gamepad API support, I built a lightweight, single-file web application designed specifically for its unique form factor.</p>
-<p>Here is why this setup works remarkably well:</p>
+<h2>When Photorealism Hits the Wall</h2>
+<p>For decades, the goal of computer graphics was clear and straightforward: <strong>more polygons, better ray tracing, higher resolutions, and more convincing materials.</strong> Developers spent billions optimizing rasterization techniques and lighting models to trick the human eye.</p>
+<p>Now, generative AI and real-time neural rendering are bridging the final gap. Once AI models can synthesize photorealistic, physically accurate worlds on the fly at hundreds of frames per second, traditional rendering engines as we know them will reach their ceiling. </p>
+<p>From a purely visual perspective, on a flat 2D screen, <strong>we will have reached the absolute limit of computer graphics.</strong> Once a rendered image is pixel-perfect and indistinguishable from real life, throwing more computing power at screen-based rendering yields zero perceptual improvement. </p>
+<p>Is this the end of the road for graphics innovation? Not at all, it simply shifts the battlefield, we have to think outside the box.</p>
+<hr>
+<h2>The Next Frontier: Beyond Flat Screens</h2>
+<p>Hitting the limit of 2D visual fidelity forces the tech industry to rethink how we experience digital worlds altogether. When rendering pixels on a panel can no longer be improved, innovation must pivot to <strong>immersion and interface paradigms</strong>:</p>
 <ul>
-<li><strong>Physical Triggers for Active Recall:</strong> Instead of tapping a screen, you navigate cards using <strong>L1 and R1</strong> for sequential review.</li>
-<li><strong>Randomized Jumps on Demand:</strong> Pressing <strong>L2 or R2</strong> immediately pulls a random word from your current level, keeping your brain engaged and preventing pattern memorization.</li>
-<li><strong>1:1 Square Aspect Ratio:</strong> The 720x720 display naturally frames Chinese characters (<em>Hanzi</em>), <em>Pinyin</em>, and translations without wasted space.</li>
-<li><strong>Zero Distractions:</strong> No notifications, no social media feeds, and no constant pinging. Just you, the hardware, and the language.</li>
-<li><strong>Easy on the hand:</strong> The RG Rotate is very pocketable and holding it feels very natural.</li>
+<li><strong>Next-Gen Spatial Virtual Reality:</strong> Photorealism inside a VR headset requires vastly higher resolutions, field-of-view improvements, and ultra-low latency to prevent motion sickness. AI-driven foveated rendering will be mandatory to push photorealistic graphics at 16K per eye.</li>
+<li><strong>Neural &amp; Haptic Feedback:</strong> True realism isn&#39;t just visual—it&#39;s tactile. Integrating low-latency neural interfaces to simulate physical touch, resistance, and momentum will redefine what &quot;immersion&quot; actually means.</li>
+<li><strong>Direct Brain-Computer Interfaces (BCI):</strong> Why route signals through eyes, optics, and display panels at all? The ultimate frontier of visual computing involves transmitting signals directly to the visual cortex. Skipping physical light altogether opens up possibilities for experiences that bypass human biological display limitations entirely.</li>
 </ul>
 <hr>
-<h3>How It Works Under the Hood</h3>
-<p>The application relies on plain HTML5, CSS, and Vanilla JavaScript—meaning zero heavy frameworks and instant loading times. </p>
-<p>To bridge the console controls with the app, it continuously polls the <strong>Gamepad API</strong> to capture shoulder button inputs:</p>
-<pre><code class="language-javascript">// Mapping the physical shoulder buttons for flashcard navigation
-const l1Pressed = gp.buttons[4] &amp;&amp; gp.buttons[4].pressed; // Previous word
-const r1Pressed = gp.buttons[5] &amp;&amp; gp.buttons[5].pressed; // Next word
-
-// L2 / R2 triggers for jumping to a random word within the active HSK level
-const l2Pressed = gp.buttons[6] &amp;&amp; (gp.buttons[6].pressed || gp.buttons[6].value &gt; 0.5);
-const r2Pressed = gp.buttons[7] &amp;&amp; (gp.buttons[7].pressed || gp.buttons[7].value &gt; 0.5);
-</code></pre>
-<p>It supports instant filtering across HSK 1, HSK 2, and HSK 3 vocabulary levels, allowing you to narrow your focus or shuffle through specific tiers whenever you want.</p>
-<hr>
-<h3>The Verdict</h3>
-<p>Is it really the ultimate language learning device? If you value tactile feedback, portability, and distraction-free study sessions, <strong>it just might be</strong>.</p>
-<p>Turning dedicated gaming hardware into a productivity tool gives a second life to devices you already carry around. The next time you pick up your handheld, you can level up your real-world vocabulary before diving into your favorite game.</p>
-<p>You can try it by navigating to <a href="https://raulbojalil.com/tools/zh.html">https://raulbojalil.com/tools/zh.html</a></p>
+<h2>Final Thoughts</h2>
+<p>Achieving photorealistic graphics via real-time AI doesn&#39;t mean computing progress stops, it just means the flat-screen chapter of graphics history is coming to a close. Once the visual trickery is perfected, the real challenge begins: bringing those worlds into our senses seamlessly.</p>
+<p>What are your thoughts on DLSS 5 and the future of rendering? Do you think BCIs or VR will be the primary way we consume graphics next? Let me know in the comments below!</p>
 
             </div>
             <div id="giscus-container" style="margin-top: 2rem;">

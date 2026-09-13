@@ -6,7 +6,7 @@ date: "2026-09-06"
 author: "Raúl Bojalil"
 image: "https://raulbojalil.com/blog/posts/tech/sunday-thoughts-processors-physical-limit/header.png"
 excerpt: "A Sunday deep dive exploring what lies beyond Moore's Law, physical limits of silicon processors, and conversations with AI about programmable matter, optical computing, and neuromorphic chips."
-featured: true
+featured: false
 ---
 
 This Sunday, I found myself in a philosophical mood, pondering the fundamental physical limits of modern technology. For decades, the entire computing industry has comfortably relied on Moore's Law—continually shrinking transistors to make processors smaller, faster, and remarkably more efficient. However, we are rapidly approaching a hard boundary enforced by the fundamental laws of physics.
