@@ -25,7 +25,7 @@ For an artificial intelligence to genuinely gain self-awareness, reason autonomo
 
 Current LLMs and neural networks, despite their impressive text generation and pattern recognition, are massive statistical engines running on finite data centers. The energy consumption, silicon throughput, and architectural memory bottlenecks of our current infrastructure make the concept of a rogue, self-sustaining superintelligence pure science fiction. We are nowhere near the hardware threshold required for such an entity to operate.
 
-Check out Uncle Bob's take on this, he basically says that, even if we had all this power, a super intelligence would prefer to make all of us its "slaves". It's an interesting idea. [X account](https://x.com/unclebobmartin/status/2099481469433323588).
+Check out Uncle Bob's take on this on his [X account](https://x.com/unclebobmartin/status/2099481469433323588). He basically says that, even if we had all this power, a super intelligence would prefer to make all of us its "slaves". It's an interesting idea.
 
 ---
 
