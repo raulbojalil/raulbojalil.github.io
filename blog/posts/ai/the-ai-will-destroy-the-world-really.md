@@ -1,6 +1,6 @@
 ---
 title: "The AI will destroy the world!... Really?"
-category: "Technology"
+category: "AI"
 lang: "en"
 date: "2026-09-19"
 author: "Raúl Bojalil"
