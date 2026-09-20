@@ -113,6 +113,57 @@
         #feed-view {
             min-width: 0; /* Necesario para que Grid/Flexbox no desborde elementos hijos largos */
         }
+.embeddable-buttondown-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.embeddable-buttondown-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.embeddable-buttondown-form input[type="email"] {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.embeddable-buttondown-form input[type="email"]:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.embeddable-buttondown-form input[type="submit"] {
+  padding: 10px 16px;
+  background: #6366f1;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.embeddable-buttondown-form input[type="submit"]:hover {
+  background: #4f46e5;
+}
+
+.embeddable-buttondown-form input[type="submit"]:active {
+  transform: scale(0.98);
+}
+
     </style>
 </head>
 <body>
@@ -187,6 +238,18 @@
         </section>
         
         <aside class="sidebar">
+            <div class="sidebar-widget">
+               <h4>Subscribe to my newsletter</h4>
+               <form
+  action="https://buttondown.com/api/emails/embed-subscribe/bojalil"
+  method="post"
+  class="embeddable-buttondown-form"
+>
+  <label for="bd-email">Enter your email</label>
+  <input type="email" name="email" id="bd-email" />
+  <input type="submit" value="Subscribe" />
+</form>
+            </div>
             <div class="sidebar-widget">
                 <h4>About the Author</h4>
                 <p style="font-size:0.85rem; color:var(--text-muted);">With more than 15 years of software development experience, working for renowned companies like Axa and Pinterest, <a href="https://raulbojalil.com">Raúl Bojalil</a> is a passionate of all things IT. He's always learning and looking for ways to make life easier using technology. He speaks 5 languages (Spanish, English, French, Portuguese and Mandarin Chinese) and plays the piano in his free time.</p>
