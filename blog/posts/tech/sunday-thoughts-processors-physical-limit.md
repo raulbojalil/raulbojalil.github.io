@@ -1,5 +1,5 @@
 ---
-title: "Sunday Thoughts: What Happens When Processors Reach Their Physical Limit?"
+title: "Sunday Thoughts: What happens when processors reach their physical limit?"
 category: "Technology"
 lang: "en"
 date: "2026-09-06"

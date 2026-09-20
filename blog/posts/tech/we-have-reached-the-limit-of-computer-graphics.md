@@ -6,7 +6,7 @@ date: "2026-09-13"
 author: "Raúl Bojalil"
 image: "https://raulbojalil.com/blog/posts/tech/we-have-reached-the-limit-of-computer-graphics/header.jpg"
 excerpt: "Reflecting on NVIDIA's DLSS 5, real-time AI rendering, and why achieving photorealism isn't the end of innovation, it's the stepping stone to BCI and true immersive VR."
-featured: true
+featured: false
 ---
 
 Unless you have been living under a rock, you've heard about **DLSS 5**, a technology made by NVIDIA to make computer graphics more photorealistic. What started years ago as a smart spatial upscaling trick has evolved into a hyper-advanced real-time AI rendering pipeline capable of predicting geometry, lighting, and temporal consistency at the frame level. But of course it's not without its flaws, it was received with a lot of criticism from the gaming community, and a lot of funny memes started appearing all over the internet.
